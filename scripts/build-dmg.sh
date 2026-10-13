@@ -10,7 +10,7 @@ if (( $# > 1 )) || [[ "${1:-}" == --help ]]; then
 fi
 mkdir -p build
 if (( $# == 0 )); then
-  xcodebuild -project XiaBanLa.xcodeproj -scheme XiaBanLa \
+  xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow \
     -configuration Release -destination 'generic/platform=macOS' \
     -derivedDataPath build/DMGDerivedData \
     'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO \

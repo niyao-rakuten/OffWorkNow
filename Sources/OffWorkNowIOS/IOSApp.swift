@@ -2,7 +2,7 @@ import SwiftUI
 import UserNotifications
 import WorkdayCore
 
-@main struct XiaBanLaIOSApp: App {
+@main struct OffWorkNowIOSApp: App {
     @StateObject private var model = MobileModel()
     @Environment(\.scenePhase) private var scenePhase
     var body: some Scene {

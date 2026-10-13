@@ -4,7 +4,7 @@
 
 | 需求 | 实现 | 验证 |
 |---|---|---|
-| 名称改为“下班啦” | XiaBanLa.xcodeproj，中文产品/界面/欢迎页/通知名称，版本 1.1.0（2） | 成品 Info.plist 与构建通过 |
+| 名称改为“下班啦” | OffWorkNow.xcodeproj，中文产品/界面/欢迎页/通知名称，版本 1.1.0（2） | 成品 Info.plist 与构建通过 |
 | 后续支持 iOS 与 macOS | 原生 macOS 与 iOS 两个 Scheme，共用 WorkdayCore / PetAvatar | macOS 测试及 iOS Simulator 构建通过；iOS 交互待验 |
 | macOS 上架与安装流程 | App Sandbox、PrivacyInfo、图标、Release 自动签名、归档/导出配置、首次使用页、APP_STORE.md | 工程及本地权限校验通过；开发者证书/商店归档/TestFlight/审核未执行 |
 | 常驻动画桌面宠物 | NSPanel，拖动、位置保存、置顶/隐藏，减少动态效果；倒计时/加班/打卡/喝水入口 | 编译通过；跨屏与实际拖动/长期能耗待验 |

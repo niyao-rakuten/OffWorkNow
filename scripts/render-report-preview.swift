@@ -6,7 +6,7 @@ import WorkdayCore
     @MainActor static func main() throws {
         _ = NSApplication.shared
         PetArtwork.resourceDirectory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Resources/PetArt")
-        let suite = "XiaBanLa.ReportPreview." + UUID().uuidString
+        let suite = "OffWorkNow.ReportPreview." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         var settings = WorkSettings(); settings.timeZoneID = "Asia/Shanghai"; settings.monthlySalary = 21750

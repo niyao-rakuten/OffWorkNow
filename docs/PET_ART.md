@@ -47,10 +47,10 @@
 
 ```sh
 xcrun swiftc -parse-as-library -module-cache-path build/PreviewModuleCache \
-  -I build/XiaBanLaDerivedData/Build/Products/Debug \
+  -I build/OffWorkNowDerivedData/Build/Products/Debug \
   -o build/render-pet-previews \
   Sources/SharedUI/PetAvatar.swift Sources/SharedUI/PetArtwork.swift \
   Sources/SharedUI/PetControls.swift Sources/SharedUI/CustomPetLibrary.swift scripts/render-pet-previews.swift \
-  build/XiaBanLaDerivedData/Build/Products/Debug/WorkdayCore.o
+  build/OffWorkNowDerivedData/Build/Products/Debug/WorkdayCore.o
 build/render-pet-previews
 ```

@@ -7,11 +7,11 @@ if [[ -z "${XBL_TEAM_ID:-}" ]]; then
 fi
 platform="${1:-macOS}"
 case "$platform" in
-  macOS) scheme=XiaBanLa; destination='generic/platform=macOS'; archs=( 'ARCHS=arm64 x86_64' 'ONLY_ACTIVE_ARCH=NO' ) ;;
-  iOS) scheme=XiaBanLa-iOS; destination='generic/platform=iOS'; archs=() ;;
+  macOS) scheme=OffWorkNow; destination='generic/platform=macOS'; archs=( 'ARCHS=arm64 x86_64' 'ONLY_ACTIVE_ARCH=NO' ) ;;
+  iOS) scheme=OffWorkNow-iOS; destination='generic/platform=iOS'; archs=() ;;
   *) print -u2 '用法：XBL_TEAM_ID=你的TeamID ./scripts/archive-app-store.sh macOS|iOS'; exit 2 ;;
 esac
-xcodebuild -project XiaBanLa.xcodeproj -scheme "$scheme" -configuration Release \
+xcodebuild -project OffWorkNow.xcodeproj -scheme "$scheme" -configuration Release \
   -destination "$destination" -derivedDataPath build/StoreDerivedData \
   -archivePath "build/${scheme}.xcarchive" \
   "DEVELOPMENT_TEAM=$XBL_TEAM_ID" CODE_SIGN_STYLE=Automatic \

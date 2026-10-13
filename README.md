@@ -1,4 +1,4 @@
-# 下班啦 · XiaBanLa
+# 下班啦 · OffWorkNow
 
 一只陪你等下班、喝水和收工的小伙伴。macOS 提供菜单栏工具及常驻桌面宠物；iOS 提供应用内伙伴与倒计时。工作安排、Decimal 工资估算、下班打卡、加班计算和喝水记录共用 `WorkdayCore`，无第三方运行依赖、账号或网络请求。
 
@@ -39,7 +39,7 @@
 
 最低 macOS 13。实际使用 Xcode 26.5、Apple Silicon 构建。
 
-1. 打开 **`XiaBanLa.xcodeproj`**，选择 **`XiaBanLa`** Scheme、`My Mac`，按 ⌘R。
+1. 打开 **`OffWorkNow.xcodeproj`**，选择 **`OffWorkNow`** Scheme、`My Mac`，按 ⌘R。
 2. 本地已构建产物为 **`build/下班啦.app`**（Debug、ad-hoc 签名）。双击或 `open 'build/下班啦.app'` 运行。
 3. 启动展示“收工日记”日历与日报；通过“通知与偏好设置 → 提醒”主动开启通知。关闭日记窗口后，桌面宠物与菜单栏继续运行。
 4. 安装固定路径：退出开发副本，将 `.app` 复制到自己的 `~/Applications` 或通过 Finder 放到“应用程序”，从该位置启动后再设置登录项。不要同时运行旧“下班小助手”、Xcode 副本和新版，避免多个实例各自显示菜单项/宠物或提醒。
@@ -60,7 +60,7 @@ ad-hoc 签名不是商店发行签名，也未公证；移动/下载或跨机器
 
 ## iOS 配套目标
 
-同一工程选择 **`XiaBanLa-iOS`** Scheme，最低 iOS 16，支持 iPhone/iPad。选择已安装的模拟器可运行；真机需在 Signing & Capabilities 配置自己的 Team。
+同一工程选择 **`OffWorkNow-iOS`** Scheme，最低 iOS 16，支持 iPhone/iPad。选择已安装的模拟器可运行；真机需在 Signing & Capabilities 配置自己的 Team。
 
 iOS 支持六种内置动画伙伴、自定义图集、启动日历与日报、倒计时、工资估算、上下班/午休/星期/时区/日期覆盖设置、下班打卡、加班时长与轮换文案、喝水打卡及杯量设置。数据仅在该设备保存，**没有跨设备同步**。没有跨应用浮动宠物或 Widget 扩展。
 
@@ -109,12 +109,12 @@ iOS 支持六种内置动画伙伴、自定义图集、启动日历与日报、�
 ## 测试、源码与隐私
 
 ```sh
-xcodebuild -project XiaBanLa.xcodeproj -scheme XiaBanLa \
-  -destination 'platform=macOS' -derivedDataPath build/XiaBanLaDerivedData \
+xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow \
+  -destination 'platform=macOS' -derivedDataPath build/OffWorkNowDerivedData \
   test CODE_SIGN_IDENTITY=-
 swift test --scratch-path build/swift-package
-xcodebuild -project XiaBanLa.xcodeproj -scheme XiaBanLa-iOS \
-  -destination 'generic/platform=iOS Simulator' -derivedDataPath build/XiaBanLaIOSDerivedData \
+xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow-iOS \
+  -destination 'generic/platform=iOS Simulator' -derivedDataPath build/OffWorkNowIOSDerivedData \
   build CODE_SIGNING_ALLOWED=NO
 ```
 
@@ -122,12 +122,12 @@ xcodebuild -project XiaBanLa.xcodeproj -scheme XiaBanLa-iOS \
 
 - `WorkdayCore`：工作/工资、设置迁移、Clock、提醒计划、Checkout、Hydration，跨平台纯逻辑。
 - `Sources/WorkdayBuddy`：macOS 生命周期、菜单栏、桌面宠物、欢迎页、设置和系统服务。
-- `Sources/XiaBanLaIOS`：iOS 配套应用及设置。
+- `Sources/OffWorkNowIOS`：iOS 配套应用及设置。
 - `Sources/SharedUI/PetAvatar.swift`：连续帧播放与随机动作；`PetArtwork.swift` 缓存透明图集，`PetControls.swift` 提供紧凑图片按钮。
 - `Resources/Assets.xcassets`：原创猫与时钟图标，覆盖 macOS/iPhone/iPad/商店尺寸；图标生成脚本只用于开发，应用不依赖 Pillow。
 - `Configuration`：两个平台 Info.plist、macOS 沙盒权限、隐私清单、商店导出配置。
 - `scripts/archive-app-store.sh`：有开发者账号后生成归档，不上传或发布。
 
-数据保存在本机 UserDefaults：工作安排、薪资、提醒去重、最近一次下班标记、当天饮水明细及历史日报。自定义 PNG 副本保存在 Application Support/XiaBanLa/CustomPets。无加密、上传、第三方分析 SDK；月薪不写日志。配置包含 schemaVersion，新字段补默认值、损坏配置恢复并说明。日报独立保存每日汇总，跨日不删除历史，损坏时保留原数据并提示。无需日历、位置、联系人、屏幕录制或辅助功能权限；PNG 导入只读取主动选择的文件。隐私清单声明 UserDefaults 的必要理由 `CA92.1`。
+数据保存在本机 UserDefaults：工作安排、薪资、提醒去重、最近一次下班标记、当天饮水明细及历史日报。自定义 PNG 副本保存在 Application Support/OffWorkNow/CustomPets。无加密、上传、第三方分析 SDK；月薪不写日志。配置包含 schemaVersion，新字段补默认值、损坏配置恢复并说明。日报独立保存每日汇总，跨日不删除历史，损坏时保留原数据并提示。无需日历、位置、联系人、屏幕录制或辅助功能权限；PNG 导入只读取主动选择的文件。隐私清单声明 UserDefaults 的必要理由 `CA92.1`。
 
 退出：菜单栏面板 → 退出，或宠物右键 → 退出下班啦。卸载：先关闭并保存开机启动，再退出，删除 `.app`；商店安装版也可使用系统应用管理删除。沙盒本地数据可能保留，若需清理应在退出后通过 Finder 管理 `~/Library/Containers/com.workdaybuddy.app`，不要误删其他应用容器。旧开发版本的 `defaults delete com.workdaybuddy.app` 不保证清除新版容器数据；卸载不会自动重置系统通知授权。

@@ -4,7 +4,7 @@
 
 ## 工程已经具备的内容
 
-- `XiaBanLa`：macOS 13+ 原生菜单栏与桌面宠物；`XiaBanLa-iOS`：iOS 16+ 原生配套应用，共用 `WorkdayCore` 和四种矢量动画伙伴。
+- `OffWorkNow`：macOS 13+ 原生菜单栏与桌面宠物；`OffWorkNow-iOS`：iOS 16+ 原生配套应用，共用 `WorkdayCore` 和四种矢量动画伙伴。
 - `PRODUCT_NAME` / `CFBundleDisplayName` 均为“下班啦”，版本 1.1.0、构建 2；后续上传不同构建须递增构建号。
 - Bundle ID 保留 `com.workdaybuddy.app`，两个平台同 ID 便于未来同一商店记录；若这个 ID 不属于你的 Team，应在两个目标中统一替换成自己注册的唯一 ID（这会改变本地配置容器）。
 - macOS `com.apple.security.app-sandbox=true`，增加用户所选文件只读访问用于 PNG 图集导入；不申请网络、辅助功能或屏幕录制权限。
@@ -18,14 +18,14 @@ Apple 明确要求 Mac App Store 应用启用 App Sandbox；上架前仍需完�
 
 1. 在 Xcode → Settings → Accounts 登录开发者账号；两个应用目标的 Signing & Capabilities 选择自己的 Team。注册/确认同一 App ID，启用 macOS 能力；不要填写他人的 Team 或冒用已有商标名称。
 2. 在 App Store Connect 创建“下班啦”应用记录，选择 iOS 和 macOS 平台、对应 Bundle ID、自己的 SKU。也可先创建 macOS 平台，之后添加 iOS。使用同一应用记录与 Bundle ID 可为未来 universal purchase 准备。[Apple：添加平台](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-platforms)
-3. 在 Xcode 中分别选择 `XiaBanLa` / `My Mac` 与 `XiaBanLa-iOS` / Any iOS Device，Product → Archive。或使用脚本：
+3. 在 Xcode 中分别选择 `OffWorkNow` / `My Mac` 与 `OffWorkNow-iOS` / Any iOS Device，Product → Archive。或使用脚本：
 
    ```sh
    XBL_TEAM_ID=你的TeamID ./scripts/archive-app-store.sh macOS
    XBL_TEAM_ID=你的TeamID ./scripts/archive-app-store.sh iOS
    ```
 
-   脚本仅生成 `build/XiaBanLa.xcarchive` 或 `build/XiaBanLa-iOS.xcarchive`，macOS 将 arm64 与 x86_64 传给应用和 Package 以构建通用归档；会使用开发者签名服务，不上传。此通用签名归档尚未实际执行，须在账号配置后验证。
+   脚本仅生成 `build/OffWorkNow.xcarchive` 或 `build/OffWorkNow-iOS.xcarchive`，macOS 将 arm64 与 x86_64 传给应用和 Package 以构建通用归档；会使用开发者签名服务，不上传。此通用签名归档尚未实际执行，须在账号配置后验证。
 4. Xcode Organizer → Validate App → Distribute App → App Store Connect。按 Xcode 指引使用 App Store 分发签名及描述文件，不选择用于商店外分发的 Developer ID 路线。导出时可参考 `Configuration/ExportOptions-AppStore.plist`（method=app-store-connect、destination=export）；上传必须是有意识的独立操作。[Apple：上传构建](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/)
 5. 用 TestFlight 安装与真实账号、沙盒容器验证。分别检查菜单栏/宠物首次展示、通知允许/拒绝、默认 5 分钟及自定义加班间隔边界、弹性上班时间、打卡取消、喝水保存与杯量变更、登录项和升级迁移。
 6. 补齐平台截图、描述、关键词、支持 URL、隐私政策公开 URL、年龄分级、版权、价格/地区、隐私问卷和审核联系方式。当前仓库有本地隐私说明，但尚无可直接填入商店的公开支持或政策 URL。

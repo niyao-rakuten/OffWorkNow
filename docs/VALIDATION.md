@@ -20,14 +20,14 @@ DMG 打包验证（2026-10-13）：`scripts/build-dmg.sh` 成功构建 Release �
 
 | 操作 | 结果 | 证据 |
 |---|---|---|
-| macOS `XiaBanLa` Debug 测试构建（含四种宠物、喝水及加班） | **49 个测试，0 失败** | `build/xiabanla-macos-test.log`，`build/XiaBanLaDerivedData/Logs/Test/*.xcresult` |
-| macOS 普通 Debug 构建，关闭调试基础权限注入 | 成功 | `build/xiabanla-macos-build.log` |
-| iOS `XiaBanLa-iOS`、generic iOS Simulator 目标编译 | 成功，未运行模拟器 | `build/xiabanla-ios-build.log` |
+| macOS `OffWorkNow` Debug 测试构建（含四种宠物、喝水及加班） | **49 个测试，0 失败** | `build/offworknow-macos-test.log`，`build/OffWorkNowDerivedData/Logs/Test/*.xcresult` |
+| macOS 普通 Debug 构建，关闭调试基础权限注入 | 成功 | `build/offworknow-macos-build.log` |
+| iOS `OffWorkNow-iOS`、generic iOS Simulator 目标编译 | 成功，未运行模拟器 | `build/offworknow-ios-build.log` |
 | Xcode 工程、两个 Info.plist、沙盒权限和隐私清单 lint | 通过 | `plutil -lint` |
 | 两个平台图标资源编译 | 通过 | Xcode asset catalog 编译日志 |
 | 本地 ad-hoc 签名严格验证 | 通过 | `codesign --verify --deep --strict` |
 | 成品显示名称/版本/系统下限/菜单栏属性 | 下班啦、1.1.0（2）、macOS 13、LSUIElement=true | `build/下班啦.app/Contents/Info.plist` |
-| App Sandbox 权限 | 源配置仅 app-sandbox=true；普通本地打包不注入测试临时权限 | `Configuration/XiaBanLa.entitlements`，成品 codesign entitlement 输出 |
+| App Sandbox 权限 | 源配置仅 app-sandbox=true；普通本地打包不注入测试临时权限 | `Configuration/OffWorkNow.entitlements`，成品 codesign entitlement 输出 |
 | imagegen 新美术资源 | 四种宠物共 96 帧、4 个 UI 图形；透明 PNG 与校准元数据已打包进两个平台 | `Resources/PetArt/`、`docs/pet-art-prompts.json` |
 | 原生 SwiftUI 离屏伙伴预览 | 验证 96 帧和 4 个按钮图片可加载，人工检查浅深色及动作关键帧；导出连续帧 GIF，未验证真实桌面交互 | `docs/assets/pets-light.png`、`docs/assets/pets-dark.png`、`docs/assets/pets-actions.gif` |
 | 原第一版 Debug 启动 | 上一轮实际启动成功并确认进程；这不等于新版 UI 已人工验收 | 上一轮验证记录 |

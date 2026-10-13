@@ -6,8 +6,31 @@ import WorkdayCore
 /// Sandboxed local copies: preferences contain only UUIDs, never arbitrary file paths.
 enum CustomPetLibrary {
     // Internal override lets the smoke harness use an isolated temporary library.
-    static var directory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("XiaBanLa/CustomPets", isDirectory: true)
+    static var directory: URL = {
+        let manager = FileManager.default
+        let support = manager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let current = support.appendingPathComponent("OffWorkNow/CustomPets", isDirectory: true)
+        // Keep existing imported pets available when upgrading from the previous brand.
+        let legacy = support.appendingPathComponent("XiaBanLa/CustomPets", isDirectory: true)
+        guard manager.fileExists(atPath: legacy.path) else { return current }
+        do {
+            try manager.createDirectory(at: current.deletingLastPathComponent(), withIntermediateDirectories: true)
+            if !manager.fileExists(atPath: current.path) {
+                try manager.moveItem(at: legacy, to: current)
+            } else {
+                for file in try manager.contentsOfDirectory(at: legacy, includingPropertiesForKeys: nil) {
+                    let destination = current.appendingPathComponent(file.lastPathComponent)
+                    if !manager.fileExists(atPath: destination.path) {
+                        try manager.copyItem(at: file, to: destination)
+                    }
+                }
+            }
+            return current
+        } catch {
+            // A failed migration must not make the user's existing pets disappear.
+            return legacy
+        }
+    }()
     static func url(for id: UUID) -> URL { directory.appendingPathComponent(id.uuidString + ".png") }
 
     static func importPNG(_ url: URL) throws -> CustomPetConfiguration {
