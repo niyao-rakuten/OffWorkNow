@@ -1,112 +1,114 @@
-# 下班啦 · OffWorkNow
+# OffWorkNow · 下班啦
 
-一只陪你等下班、喝水和收工的小伙伴。macOS 提供菜单栏工具及常驻桌面宠物；iOS 提供应用内伙伴与倒计时。工作安排、Decimal 工资估算、下班打卡、加班计算和喝水记录共用 `WorkdayCore`，无第三方运行依赖、账号或网络请求。
+English | [简体中文](README.zh-CN.md)
 
-## 现在可以使用
+A little companion for counting down to the end of your workday, drinking water, and clocking out. macOS includes a menu bar utility and a persistent desktop pet; iOS includes an in-app companion and countdown. Both platforms share `WorkdayCore` for schedules, `Decimal` earnings estimates, clock-out records, overtime calculations, and hydration tracking. No third-party runtime dependencies, accounts, or network requests.
 
-自定义动画单帧问题已修复：新导入图集在设置网格后自动计算普通动画帧数；喝水帧单独预留。旧配置只有 1 帧时会显示明确提示和一键修正按钮，修改后保存生效。关闭自动模式可手动指定帧数。
+## What's available
 
-最新动画更新：新增丸子头女生，六种伙伴每种 6 个动作 × 6 帧，合计 **216 帧**。打工人摇头晃脑哼歌，猫、狗、小鱼、小狐妖听歌跳舞。桌面**单击切动作、双击换形象、拖动移位置**，手动播放喝水动作不增加记录。[完整动作清单](docs/PET_ANIMATIONS.md) · [听歌动画预览](docs/assets/pets-music.gif)。
+The single-frame custom animation issue is fixed: after you configure the grid of an imported sprite sheet, the app automatically calculates the regular animation frame count and reserves drinking frames separately. Existing configurations with only one frame show an explanation and a one-click correction; save to apply it. Turn off automatic mode to set the frame count manually.
 
-2026-10-13 更新：新增小狐妖与五种伙伴的喝水动画、双击宠物切换形象、自定义 PNG 序列帧导入，以及启动日历、每日报表、本地历史与三种月度折线图。
+The latest animation update adds a girl with a bun hairstyle. Six companions each have 6 actions × 6 frames, totaling **216 frames**. The office worker hums and sways, while the cat, dog, fish, and fox spirit dance to music. On the desktop, **click to change actions, double-click to change companions, and drag to reposition**. Playing the drinking animation manually does not add a hydration record. [Full action list](docs/PET_ANIMATIONS.md) · [Music animation preview](docs/assets/pets-music.gif).
 
-- 启动进入“收工日记”，菜单栏“每日报表”可重新打开。日历根据加班时长显示手绘笑脸、无奈、哭脸；点击日期查看喝水量、收入和加班文案。详见 [日报数据口径](docs/DAILY_REPORTS.md)。
-- “设置 → 通用 → 自定义序列帧”支持 PNG 网格、有效帧数、帧率、循环方式、喝水帧段与预览，保存后生效。详见 [自定义伙伴](docs/CUSTOM_PETS.md)。
-- 双击宠物动画区域轮换形象，拖动继续移动位置。喝水成功后播放专属喝水动作；猫狗用碗、打工人和小狐妖用杯、小鱼鼓起腮帮。
-- 日报永久保留已记录日期，打卡后冻结日报收入和加班；主面板仍显示计划收入。隐藏薪资同步覆盖日报与图表。旧版未记录日期无法补回。
-- 最新 macOS **59 项核心测试通过**，iOS 构建通过；150 帧动画和 6 个日报图标已验证可加载。沙盒增加用户所选文件只读权限，用于 PNG 导入。
+October 13, 2026 update: added the fox spirit and drinking animations for five companions, double-click companion switching, custom PNG sprite-sheet imports, a calendar on launch, daily reports, local history, and three monthly line charts.
 
-[小狐妖原画](docs/assets/fox-portrait.png) · [小狐妖动画](docs/assets/fox-actions.gif) · [喝水动画](docs/assets/pets-drinking.gif) · [日报界面（演示数据）](docs/assets/daily-report.png)
+- The app opens the workday journal (收工日记). Reopen it from Daily Report (每日报表) in the menu bar panel. The calendar shows hand-drawn happy, resigned, or crying faces based on overtime; select a date to see water intake, earnings, and overtime messages. See [Daily report definitions](docs/DAILY_REPORTS.md).
+- Settings → General → Custom Sprite Sheet (设置 → 通用 → 自定义序列帧) supports PNG grids, active frame counts, frame rates, loop modes, drinking frame ranges, and previews. Save to apply changes. See [Custom companions](docs/CUSTOM_PETS.md).
+- Double-click the pet animation to cycle through companions; drag to move it. Recording a drink plays a dedicated animation: cats and dogs use bowls, the worker and fox spirit use cups, and the fish puffs its cheeks.
+- Recorded dates remain in daily report history. Clocking out freezes report earnings and overtime, while the main panel continues to show scheduled earnings. Hiding earnings also applies to reports and charts. Dates not recorded by older versions cannot be recovered.
+- The latest recorded validation passed **59 macOS core tests** and the iOS build; 150 animation frames and 6 report icons were verified to load. The sandbox grants read-only access to user-selected files for PNG imports.
 
-- 菜单栏倒计时、工资或仅图标；弹出面板、独立草稿设置。
-- 桌面伙伴：**下班猫、摸鱼狗、打工人、小金鱼、小狐妖、丸子头女生**。imagegen 日系漫画水彩美术，每只 4 组动作 × 6 帧，另有 6 帧喝水和 6 帧耳机听歌动作；随机播放打呼噜/弓背、摇尾/犬吠/作揖、拼命工作/灵魂出窍/思考、游动/吐泡泡、小狐妖摆尾等；打卡后庆祝，减少动态效果或睡眠时暂停。
-- 宠物展示下班倒计时或加班时长。拖动宠物可移动，位置本地保存；通用设置可切换伙伴、隐藏或关闭置顶。系统改变显示器后会检查位置是否仍在屏幕内。
-- **“打卡下班”按钮**：工作日开始工作后可用。点击记录本地时间并停止当天整点、下班和加班提醒；加班时长封存，次日自动恢复未打卡状态。面板可确认撤销误打卡，恢复后续事件而不补发过去事件。
-- **可自定义的加班提醒间隔（默认 5 分钟）**：未打卡时，从设定下班时间起计时，按间隔的整数倍发送系统通知；例如默认在 5、10、15…分钟触发并显示桌面文案，轮换“你怎么又在加班？已经加班0h5min了”和“已经加班0h10min！不要再当牛马了，快点下班”。可关闭加班提醒；暂停健康提醒不影响它。
-- **喝水打卡**：每点击一次“喝一杯水”记录一杯。默认 **500 ml/杯**，可改为 1–2000 ml 的整数；显示当天杯数及总毫升数，可撤销上一杯。每条记录保存当时杯量，修改设置不改变已喝的总量。休息日也能打卡，跨工作时区自然日重新统计。不规定每日饮水目标。
-- 工作时区、星期、午休、日期覆盖和按日期的弹性上班时间；整点健康提醒、可选中文语音及工作日下班通知。
-- 工资三种折算、隐藏工资、通知权限引导、原生开机启动与本地配置恢复。
+[Fox spirit artwork](docs/assets/fox-portrait.png) · [Fox animations](docs/assets/fox-actions.gif) · [Drinking animations](docs/assets/pets-drinking.gif) · [Daily report with demo data](docs/assets/daily-report.png)
 
-这是个人本地收工标记，不会向公司提交考勤。主面板工资仍按原计划时段估算；日报在打卡时冻结收入，**不计算加班工资**。日报保留每日喝水量、估算收入及加班历史。
+- Menu bar countdown, earnings, or icon-only mode; a popover panel and separate settings drafts.
+- Desktop companions: **Off-Work Cat, Slacking Dog, Office Worker, Goldfish, Fox Spirit, and Bun-Haired Girl**. Japanese manga and watercolor artwork created with imagegen. Each companion has 4 action sets × 6 frames, plus 6 drinking frames and 6 headphone/music frames. Random actions include purring/arching, tail wagging/barking/bowing, frantic work/daydreaming/thinking, swimming/blowing bubbles, and fox tail swaying. Companions celebrate clock-out and pause when Reduce Motion is enabled or the computer sleeps.
+- Pets display the countdown or elapsed overtime. Drag to reposition; the position is saved locally. General settings let you switch companions, hide the pet, or turn off always-on-top. Display changes trigger a check that the pet remains on screen.
+- **Clock Out (打卡下班)** becomes available after work begins on a working day. It records the local time, stops that day's hourly, end-of-work, and overtime reminders, and freezes overtime. The next day resets the clock-out state automatically. Undo an accidental clock-out with confirmation in the panel; future events resume without replaying past ones.
+- **Configurable overtime reminders, every 5 minutes by default**: until you clock out, notifications occur at interval multiples after the scheduled end time, such as 5, 10, and 15 minutes. Desktop messages alternate between playful prompts asking why you are still working and encouraging you to go home. Overtime reminders can be disabled; pausing health reminders does not affect them.
+- **Hydration tracking**: each Drink a Cup (喝一杯水) click records one cup. The default is **500 ml per cup**, configurable as an integer from 1–2000 ml. View today's cup count and total volume, and undo the last cup. Records retain the cup size used at the time, so changing settings does not change previous totals. Tracking also works on days off and resets at the start of each calendar day in the work time zone. There is no prescribed daily hydration goal.
+- Work time zone, weekdays, lunch breaks, date overrides, and flexible start times by date; hourly health reminders, optional Chinese speech, and end-of-work notifications on working days.
+- Three earnings calculation methods, hidden earnings, notification permission guidance, native launch at login, and local settings reset.
 
-桌面采用三层布局：顶部同一行显示手绘水杯 × 杯数和可点击的数字时间，中间为宠物动画，底部为图片“打卡下班”按钮。底部按钮仅在工作日到达下班时间且尚未打卡时出现（包含倒计时刚归零和加班期间），打卡后隐藏；预留底部空间避免宠物位置跳动。点击时间打开设置，拖动宠物调整位置；右键水杯可撤销上一杯。加班时间以 `+HH:MM:SS` 显示，打卡后显示实际打卡时间。加班提醒继续走系统通知。
+Clock-out is a personal local record; it does not submit attendance to an employer. The main panel estimates earnings from the planned schedule. Daily reports freeze earnings at clock-out and **do not calculate overtime pay**. Reports retain daily hydration, estimated earnings, and overtime history.
 
-六种伙伴的实际 SwiftUI 渲染：[浅色](docs/assets/pets-light.png) · [深色](docs/assets/pets-dark.png) · [连续帧动画预览](docs/assets/pets-actions.gif)。素材和动作说明见 [PET_ART.md](docs/PET_ART.md)。
+The desktop has three layers: a hand-drawn water cup with the cup count and clickable digital time at the top, the pet animation in the middle, and an image-based Clock Out button at the bottom. The bottom button appears only after the scheduled end time on a working day when you have not clocked out, including the moment the countdown reaches zero and during overtime. It disappears after clock-out; reserved space prevents the pet from jumping. Click the time to open settings, drag the pet to move it, and right-click the cup to undo the last drink. Overtime displays as `+HH:MM:SS`; after clock-out, the actual clock-out time is shown. Overtime reminders use system notifications.
 
-## macOS 运行与安装
+Actual SwiftUI renders of all six companions: [Light](docs/assets/pets-light.png) · [Dark](docs/assets/pets-dark.png) · [Frame animation preview](docs/assets/pets-actions.gif). See [PET_ART.md](docs/PET_ART.md) for artwork and action details.
 
-制作拖拽安装包：在项目目录运行 `./scripts/build-dmg.sh`，生成 Apple Silicon + Intel 的 Release DMG。安装和正式发行签名说明见 [DMG.md](docs/DMG.md)。
+## Running and installing on macOS
 
-最低 macOS 13。实际使用 Xcode 26.5、Apple Silicon 构建。
+To create a drag-to-Applications installer, run `./scripts/build-dmg.sh` from the project directory. It produces a Release DMG for Apple Silicon and Intel. See [DMG.md](docs/DMG.md) for installation and distribution signing.
 
-1. 打开 **`OffWorkNow.xcodeproj`**，选择 **`OffWorkNow`** Scheme、`My Mac`，按 ⌘R。
-2. 本地已构建产物为 **`build/下班啦.app`**（Debug、ad-hoc 签名）。双击或 `open 'build/下班啦.app'` 运行。
-3. 启动展示“收工日记”日历与日报；通过“通知与偏好设置 → 提醒”主动开启通知。关闭日记窗口后，桌面宠物与菜单栏继续运行。
-4. 安装固定路径：退出开发副本，将 `.app` 复制到自己的 `~/Applications` 或通过 Finder 放到“应用程序”，从该位置启动后再设置登录项。不要同时运行旧“下班小助手”、Xcode 副本和新版，避免多个实例各自显示菜单项/宠物或提醒。
-5. 应用无常驻 Dock 图标；从菜单栏面板进入设置及退出。点击外部或 Escape 关闭面板，关闭设置视为取消草稿，不退出应用。
+Requires macOS 13 or later. Built using Xcode 26.5 on Apple Silicon.
 
-菜单栏位置由 macOS 决定，可按住 Command 拖动；空间不足选择仅图标。首次时区记录为系统时区，此后不自动随出差变化；默认周一至周五 09:00–18:00、午休 12:00–13:00，月薪留空。
+1. Open **`OffWorkNow.xcodeproj`**, select the **`OffWorkNow`** scheme and `My Mac`, then press ⌘R.
+2. The local Debug build is **`build/下班啦.app`**, with ad-hoc signing. Double-click it or run `open 'build/下班啦.app'`.
+3. The workday journal and daily reports appear on launch. Enable notifications explicitly in Notifications and Preferences → Reminders (通知与偏好设置 → 提醒). Closing the journal window leaves the desktop pet and menu bar running.
+4. Install in a fixed location: quit the development copy, copy the `.app` to `~/Applications` or Applications using Finder, launch it there, and then enable launch at login. Avoid running the older 下班小助手, an Xcode copy, and the new app simultaneously; multiple instances can show duplicate menu items, pets, or reminders.
+5. There is no persistent Dock icon. Open settings or quit from the menu bar panel. Clicking outside or pressing Escape closes the panel. Closing settings cancels the draft without quitting the app.
 
-本地重新构建：
+macOS controls the menu bar position; hold Command to drag it. Use icon-only mode when space is limited. The initial work time zone is taken from the system and does not automatically change when you travel. Defaults are Monday–Friday, 09:00–18:00, with lunch from 12:00–13:00 and monthly salary left blank.
+
+Rebuild locally:
 
 ```sh
 ./scripts/build-app.sh
 open 'build/下班啦.app'
 ```
 
-此脚本生成本机架构的 Debug 应用。Apple Silicon 为 arm64，Intel 为 x86_64。Bundle ID 保留 `com.workdaybuddy.app`，源码核心名称保留以减少迁移；所有产品显示名称和成品名称已改为“下班啦”。本次已启用 macOS App Sandbox，偏好由系统保存在应用容器；从旧非沙盒开发版本切换后的实际偏好迁移须实机验证，不承诺跨容器自动读取真实月薪。
+This script creates a Debug app for the host architecture: arm64 on Apple Silicon or x86_64 on Intel. The bundle ID remains `com.workdaybuddy.app`, and core source names are retained to reduce migration work. Product display names and built artifacts use 下班啦. macOS App Sandbox is enabled, and the system stores preferences in the app container. Preference migration from older non-sandboxed development builds requires testing on a real machine; automatic access to an existing salary across containers is not guaranteed.
 
-ad-hoc 签名不是商店发行签名，也未公证；移动/下载或跨机器使用可能受到 Gatekeeper 提示。正式商店安装与上架流程见 [发布与安装](docs/APP_STORE.md)。
+Ad-hoc signing is not App Store distribution signing, and the app is not notarized. Moving, downloading, or using it on another machine may trigger Gatekeeper prompts. See [Distribution and installation](docs/APP_STORE.md) for the App Store workflow.
 
-## iOS 配套目标
+## iOS companion target
 
-同一工程选择 **`OffWorkNow-iOS`** Scheme，最低 iOS 16，支持 iPhone/iPad。选择已安装的模拟器可运行；真机需在 Signing & Capabilities 配置自己的 Team。
+Select the **`OffWorkNow-iOS`** scheme in the same project. Requires iOS 16 or later and supports iPhone/iPad. Run on an installed simulator; physical devices require your own Team in Signing & Capabilities.
 
-iOS 支持六种内置动画伙伴、自定义图集、启动日历与日报、倒计时、工资估算、上下班/午休/星期/时区/日期覆盖设置、下班打卡、加班时长与轮换文案、喝水打卡及杯量设置。数据仅在该设备保存，**没有跨设备同步**。没有跨应用浮动宠物或 Widget 扩展。
+iOS supports all six built-in animated companions, custom sprite sheets, the launch calendar and daily reports, countdowns, earnings estimates, schedule/lunch/weekday/time-zone/date-override settings, clock-out, overtime duration and rotating messages, and hydration tracking with configurable cup sizes. Data stays on that device; **there is no cross-device sync**. There is no floating pet across other apps or Widget extension.
 
-- 下班通知由用户主动授权，预约未来 **7 天**的工作日事件；每次打开或保存后重建计划。即使应用进入后台，这些本地预约仍由 iOS 管理。打卡取消当天的待发送下班通知。
-- 加班文案在应用内展示；iOS 不在后台每 5 分钟运行宠物、语音或持续计时器，也不承诺每 5 分钟后台通知。整点健康提醒/语音、桌面置顶和开机启动目前属于 macOS 功能。
-- iOS Simulator 目标已编译；未完成模拟器交互、真机通知及 App Store 验收。
+- End-of-work notifications require explicit user authorization and schedule working-day events for the next **7 days**. Opening the app or saving settings rebuilds the schedule. iOS manages these local notifications in the background. Clocking out cancels that day's pending end-of-work notification.
+- Overtime messages appear inside the app. iOS does not run the pet, speech, or a continuous timer every 5 minutes in the background, and does not promise background notifications at that interval. Hourly health reminders/speech, desktop always-on-top, and launch at login are currently macOS features.
+- The iOS Simulator target has compiled successfully. Simulator interaction, physical-device notifications, and App Store acceptance remain unverified.
 
-## 工作与工资口径
+## Schedule and earnings calculations
 
-设置采用草稿、统一校验及保存，月薪留空与 0 区分；金额 0–10,000,000 元、最多两位小数，支持规范千位逗号，内部使用 `Decimal`。不支持跨午夜班次；至少一个常规工作日；启用午休时需满足上班 < 午休开始 < 午休结束 < 下班。指定日期覆盖优先于星期，不自动识别节假日/调休。
+Settings use drafts, centralized validation, and explicit saving. A blank monthly salary differs from zero. Amounts range from CNY 0–10,000,000 with up to two decimal places; standard thousands separators are supported, and calculations use `Decimal`. Overnight shifts are unsupported, and at least one regular working day is required. With lunch enabled, start < lunch start < lunch end < finish. Date overrides take precedence over weekdays; holidays and compensatory working days are not detected automatically.
 
-日薪 Q 的三种互斥算法：
+Daily pay Q uses one of three mutually exclusive methods:
 
-| 方式 | 日薪 |
+| Method | Daily pay |
 |---|---|
-| 固定月计薪天数（默认 21.75，可设 1–31） | 月薪 ÷ 计薪天数 |
-| 当月计划工作日 | 月薪 ÷ 当前自然月按星期与覆盖计算的工作日数；为 0 时解释原因 |
-| 自定义日薪 | 输入日薪，月薪保留但不参与计算 |
+| Fixed monthly paid days (default 21.75, configurable from 1–31) | Monthly salary ÷ paid days |
+| Scheduled working days in the current month | Monthly salary ÷ working days calculated from weekdays and date overrides in the calendar month; a zero count shows an explanation |
+| Custom daily pay | Entered daily amount; monthly salary is retained but not used |
 
-`今日估算收入 = Q × 已经过的有效工作秒数 / 有效总秒数`，直接从当前绝对时间重算，不累加舍入后的金额；仅显示时四舍五入到分。午休工资和进度停止、下班倒计时继续；工作前为 0，下班后封顶，休息日为 0。固定天数不保证自然月累计恰好等于月薪。睡眠和关闭电脑不扣除计划工作时段。
+`Today's estimated earnings = Q × elapsed effective working seconds / total effective working seconds`. The app recalculates from the current absolute time instead of accumulating rounded amounts; rounding to cents happens only for display. Earnings and progress pause during lunch while the countdown continues. Earnings are zero before work, capped after work, and zero on days off. The fixed-day method does not guarantee that a calendar month's total equals the monthly salary. Sleep and shutdown do not subtract planned working time.
 
-例：21750 / 21.75 = 日薪 1000，09:00–18:00 扣午休后 8 小时；12:30 收入 375，15:00 为 625、62.5% 进度、3 小时倒计时；18:00 封顶 1000。之后的加班提示不增加工资。
+Example: 21750 / 21.75 gives daily pay of 1000. A 09:00–18:00 schedule with lunch removed contains 8 working hours. Earnings are 375 at 12:30 and 625 at 15:00, with 62.5% progress and 3 hours remaining. At 18:00, earnings cap at 1000. Subsequent overtime reminders do not increase earnings.
 
-隐藏工资统一覆盖菜单栏、面板和设置预览；通知、语音和日志从不包含薪资。保存新安排后重算整个当天估算，不记录分段薪资。恢复默认需确认，清除草稿月薪/日期覆盖与偏好并关闭登录项；不重置系统通知授权，不删除本地打卡和当天喝水记录。
+Hiding earnings applies to the menu bar, panel, and settings preview. Notifications, speech, and logs never include salary. Saving a new schedule recalculates the whole day's estimate; segmented earnings are not recorded. Resetting defaults requires confirmation, clears the draft salary/date overrides and preferences, and disables launch at login. It does not reset system notification authorization or delete local clock-out and today's hydration records.
 
-常规上班默认为 09:00，可在工作安排中修改默认值。每天可单独覆盖上班时间：菜单栏面板展开“今日上班 · 弹性调整”即可应用到今天，或设置中指定日期添加/删除覆盖；其他日期不受影响。当天实际上班须早于下班，午休仅扣除重叠部分（例如 13:30 上班不会再扣 12:00–13:00）。修改后整天收入、进度及整点提醒立即重新计算。
+The regular start time defaults to 09:00 and can be changed in schedule settings. Override individual dates using Today's Start · Flexible Adjustment (今日上班 · 弹性调整) in the menu bar panel, or add/remove date overrides in settings. Other dates are unaffected. The day's start must precede its finish. Only overlapping lunch time is deducted; a 13:30 start does not deduct 12:00–13:00 lunch. Changes immediately recalculate earnings, progress, and hourly reminders.
 
-加班提示间隔在提醒设置中调整，支持 1–240 分钟的整数，默认 5。修改只安排未来事件，重合的已发生事件通过同一标识去重，不补发过去的提示。
+Overtime reminder intervals are configured in reminder settings as integers from 1–240 minutes, defaulting to 5. Changes schedule future events only. Already-occurring overlapping events are deduplicated by their shared identifier, and past reminders are not replayed.
 
-所有时间使用配置工作时区的 Gregorian Calendar；夏令时空缺取下一个有效时间，重复取第一次，工时按实际区间时长。工作时区与系统不同会显示提示。当天加班统计至该时区的自然日末尾，不跨午夜延续。
+All times use a Gregorian calendar in the configured work time zone. Nonexistent daylight-saving times use the next valid time; repeated times use the first occurrence. Working duration uses actual elapsed intervals. A notice appears when the work and system time zones differ. Overtime ends at the end of that calendar day in the work time zone and does not carry across midnight.
 
-## macOS 提醒、权限和限制
+## macOS reminders, permissions, and limitations
 
-`ReminderCoordinator` 统一管理整点、下班和加班事件；只有一个下一事件定时器。事件先持久化预留并分别记录通知/语音状态，避免重启和时钟回拨重复。修改设置重约未来事件。先预留后投递的策略在进程中途退出时可能漏一条，优先避免重复。
+`ReminderCoordinator` manages hourly, end-of-work, and overtime events with a single timer for the next event. Events are reserved persistently before delivery, with separate notification/speech states to prevent duplicates after restarts or clock changes. Settings changes reschedule future events. Reserving before delivery can miss an event if the process exits midway; the design prioritizes avoiding duplicates.
 
-- 自然整点仅在有效工作区间触发，上班和午休结束整点可发送；午休开始整点不发，下班只发下班通知。
-- 启动在整点后 10 秒内允许发送该整点；已经错过的下班和加班事件不补发。唤醒跳过过去事件，下一加班提醒仍落在“下班时间 + 自定义间隔整数倍”，不累计补发。
-- 暂停一小时使用真实 Date，或暂停至下班；暂停只影响整点，不会重新打开已关闭的整点开关。下班和加班不受它影响；点击“打卡下班”停止当天所有生产提醒。
-- 三类健康文案各六条，先均匀选启用类别，再选句子，连续不重复。全部类别关闭仍用温和休息文案。测试提醒明确标注测试，不影响真实计划。
-- 拒绝通知后其余功能照常使用；在“系统设置 → 通知 → 下班啦”开启。专注模式、通知样式与声音由系统控制。系统设置 URL 在不同版本可能跳到通知总页。
-- 中文语音默认关闭，独立于通知权限；仅整点使用，需可用系统中文语音及可确认未锁定的控制台会话。不自动下载语音，不读取屏幕，无额外辅助功能权限。系统无法可靠提供会话状态时保守静默，设置中说明。
-- 应用退出后清除本应用待发送通知、不再报时；无后台守护、强制唤醒或阻止睡眠。系统可能延迟/静默已提交通知，不能保证准点可见或撤回已经投递的通知。
+- Hourly reminders fire only at full hours within effective working periods. A full hour at work start or lunch end is eligible; lunch start is excluded, and the scheduled finish sends only the end-of-work notification.
+- Launching within 10 seconds after a full hour may deliver that hourly reminder. Missed end-of-work and overtime events are not replayed. Wake skips past events; the next overtime reminder remains aligned to scheduled finish + an integer multiple of the interval.
+- Pause for one hour uses a real `Date`; pausing until work ends is also supported. Pausing affects only hourly reminders and does not enable a disabled hourly setting. End-of-work and overtime reminders remain active. Clocking out stops all regular reminders for that day.
+- Each of three health message categories has six messages. The app first selects evenly among enabled categories, then picks a message without consecutive repeats. With all categories disabled, it uses a gentle rest message. Test reminders are clearly labeled and do not affect the real schedule.
+- Other features work if notifications are denied. Enable them in System Settings → Notifications → 下班啦. Focus modes, notification style, and sound are controlled by the system. The settings URL may open the general Notifications page on some OS versions.
+- Chinese speech is off by default and independent of notification permission. It is used only for hourly reminders, requires an available system Chinese voice and a verifiably unlocked console session, and does not download voices, read the screen, or require additional accessibility permissions. If session state cannot be determined reliably, speech remains silent; settings explain this behavior.
+- Quitting clears the app's pending notifications and stops reminders. There is no background daemon, forced wake, or sleep prevention. The system may delay or silence submitted notifications; precise delivery or withdrawal of already-delivered notifications is not guaranteed.
 
-开机启动使用 `SMAppService.mainApp`，反映真实注册状态，保存时才注册；失败就地解释，需要系统批准时提供登录项入口。正式安装固定路径及正确签名会影响注册；实际重新登录启动仍待验收。本次没有注册用户的登录项。
+Launch at login uses `SMAppService.mainApp`, reports the actual registration state, and registers only when settings are saved. Failures are explained inline; when system approval is needed, a Login Items shortcut is provided. Installation at a fixed location and correct signing affect registration. Launch after an actual login remains unverified. No user login item was registered during development validation.
 
-## 测试、源码与隐私
+## Tests, source, and privacy
 
 ```sh
 xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow \
@@ -118,16 +120,16 @@ xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow-iOS \
   build CODE_SIGNING_ALLOWED=NO
 ```
 
-最新 Xcode macOS 构建及 **59 个核心测试全部通过**，iOS 模拟器目标构建通过。测试与人工待验收项见 [验证记录](docs/VALIDATION.md)，需求映射见 [需求对照](docs/REQUIREMENTS.md)。Xcode 26 的 XCTest 运行库最低为 macOS 14；应用最低仍为 macOS 13，其实机兼容性待验。
+The latest recorded Xcode macOS build and **all 59 core tests passed**, along with the iOS Simulator build. See [Validation records](docs/VALIDATION.md) for tests and pending manual checks, and [Requirements mapping](docs/REQUIREMENTS.md). The Xcode 26 XCTest runtime requires macOS 14 or later; the app still targets macOS 13, whose real-device compatibility remains unverified.
 
-- `WorkdayCore`：工作/工资、设置迁移、Clock、提醒计划、Checkout、Hydration，跨平台纯逻辑。
-- `Sources/WorkdayBuddy`：macOS 生命周期、菜单栏、桌面宠物、欢迎页、设置和系统服务。
-- `Sources/OffWorkNowIOS`：iOS 配套应用及设置。
-- `Sources/SharedUI/PetAvatar.swift`：连续帧播放与随机动作；`PetArtwork.swift` 缓存透明图集，`PetControls.swift` 提供紧凑图片按钮。
-- `Resources/Assets.xcassets`：原创猫与时钟图标，覆盖 macOS/iPhone/iPad/商店尺寸；图标生成脚本只用于开发，应用不依赖 Pillow。
-- `Configuration`：两个平台 Info.plist、macOS 沙盒权限、隐私清单、商店导出配置。
-- `scripts/archive-app-store.sh`：有开发者账号后生成归档，不上传或发布。
+- `WorkdayCore`: cross-platform logic for work/earnings, settings migration, Clock, reminder scheduling, Checkout, and Hydration.
+- `Sources/WorkdayBuddy`: macOS lifecycle, menu bar, desktop pet, welcome screen, settings, and system services.
+- `Sources/OffWorkNowIOS`: iOS companion app and settings.
+- `Sources/SharedUI/PetAvatar.swift`: frame playback and random actions. `PetArtwork.swift` caches transparent sprite sheets; `PetControls.swift` provides compact image buttons.
+- `Resources/Assets.xcassets`: original cat and clock icons in macOS/iPhone/iPad/App Store sizes. Icon generation scripts are development tools only; the app does not depend on Pillow.
+- `Configuration`: Info.plist files for both platforms, macOS sandbox entitlements, privacy manifest, and App Store export configuration.
+- `scripts/archive-app-store.sh`: creates an archive when a developer account is available; does not upload or publish it.
 
-数据保存在本机 UserDefaults：工作安排、薪资、提醒去重、最近一次下班标记、当天饮水明细及历史日报。自定义 PNG 副本保存在 Application Support/OffWorkNow/CustomPets。无加密、上传、第三方分析 SDK；月薪不写日志。配置包含 schemaVersion，新字段补默认值、损坏配置恢复并说明。日报独立保存每日汇总，跨日不删除历史，损坏时保留原数据并提示。无需日历、位置、联系人、屏幕录制或辅助功能权限；PNG 导入只读取主动选择的文件。隐私清单声明 UserDefaults 的必要理由 `CA92.1`。
+Local UserDefaults stores schedules, salary, reminder deduplication, the most recent clock-out, today's hydration details, and historical daily reports. Copies of custom PNGs are stored in Application Support/OffWorkNow/CustomPets. There is no encryption, upload, or third-party analytics SDK; monthly salary is not logged. Settings include `schemaVersion`; new fields receive defaults, and damaged configurations are recovered with an explanation. Daily reports store summaries separately, retain history across days, and preserve damaged data with a warning. No calendar, location, contacts, screen recording, or accessibility permissions are required. PNG import reads only files explicitly selected by the user. The privacy manifest declares required reason `CA92.1` for UserDefaults.
 
-退出：菜单栏面板 → 退出，或宠物右键 → 退出下班啦。卸载：先关闭并保存开机启动，再退出，删除 `.app`；商店安装版也可使用系统应用管理删除。沙盒本地数据可能保留，若需清理应在退出后通过 Finder 管理 `~/Library/Containers/com.workdaybuddy.app`，不要误删其他应用容器。旧开发版本的 `defaults delete com.workdaybuddy.app` 不保证清除新版容器数据；卸载不会自动重置系统通知授权。
+To quit, choose Quit in the menu bar panel or right-click the pet and choose Quit OffWorkNow (退出下班啦). To uninstall, disable and save launch at login, quit, and delete the `.app`; App Store installations can also use system app management. Sandbox data may remain. If you want to remove it, quit first and manage `~/Library/Containers/com.workdaybuddy.app` in Finder, taking care to avoid other app containers. The older development command `defaults delete com.workdaybuddy.app` may not clear the new container's data. Uninstalling does not automatically reset system notification authorization.
