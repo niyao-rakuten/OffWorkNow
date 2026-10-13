@@ -36,7 +36,7 @@ public enum ScheduleCalculator {
     public static func snapshot(now: Date, settings: WorkSettings) -> WorkSnapshot {
         let c = settings.calendar
         let start = localTime(settings.startMinute(on: now), on: now, calendar: c)
-        let end = localTime(settings.endMinute, on: now, calendar: c)
+        let end = localTime(settings.endMinute(on: now), on: now, calendar: c)
         let b1 = localTime(settings.lunchStart, on: now, calendar: c)
         let b2 = localTime(settings.lunchEnd, on: now, calendar: c)
         // A DST gap can collapse an interval even if its wall-clock times are valid.

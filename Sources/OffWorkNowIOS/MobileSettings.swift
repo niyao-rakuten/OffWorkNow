@@ -31,19 +31,19 @@ struct MobileSettings: View {
                     ForEach([2,3,4,5,6,7,1], id: \.self) { day in
                         Toggle([1:"周日",2:"周一",3:"周二",4:"周三",5:"周四",6:"周五",7:"周六"][day]!, isOn: Binding(get: { draft.weekdays.contains(day) }, set: { if $0 { draft.weekdays.insert(day) } else { draft.weekdays.remove(day) } }))
                     }
-                    timePicker("上班", minute: $draft.startMinute)
-                    timePicker("下班", minute: $draft.endMinute)
-                    Toggle("不计薪午休", isOn: $draft.lunchEnabled)
-                    if draft.lunchEnabled { timePicker("午休开始", minute: $draft.lunchStart); timePicker("午休结束", minute: $draft.lunchEnd) }
                 }
                 Section("弹性上班") {
+                    timePicker("默认上班", minute: $draft.startMinute)
+                    Stepper("班次时长（含午休） \(ScheduleCalculator.timeLabel(draft.workDurationMinutes))", value: $draft.workDurationMinutes, in: 1...1439, step: 15)
+                    Toggle("不计薪午休", isOn: $draft.lunchEnabled)
+                    if draft.lunchEnabled { timePicker("午休开始", minute: $draft.lunchStart); timePicker("午休结束", minute: $draft.lunchEnd) }
                     DatePicker("日期", selection: $flexibleDate, displayedComponents: .date).environment(\.timeZone, draft.calendar.timeZone)
                     timePicker("当天上班", minute: $flexibleMinute)
                     Button("添加 / 更新") { draft.dailyStartMinutes[ScheduleCalculator.key(flexibleDate, calendar: draft.calendar)] = flexibleMinute }
                     ForEach(draft.dailyStartMinutes.keys.sorted(), id: \.self) { key in
                         HStack { Text(key); Text(ScheduleCalculator.timeLabel(draft.dailyStartMinutes[key]!)); Spacer(); Button("使用默认") { draft.dailyStartMinutes.removeValue(forKey: key) } }
                     }
-                    Text("仅此日上班时间不同，其余使用默认上班；午休只扣重叠部分。").font(.caption).foregroundStyle(.secondary)
+                    Text("下班时间 = 当天上班 + 班次时长。午休只扣重叠部分，倒计时继续。").font(.caption).foregroundStyle(.secondary)
                 }
                 Section("日期覆盖") {
                     DatePicker("日期", selection: $overrideDate, displayedComponents: .date).environment(\.timeZone, draft.calendar.timeZone)
@@ -76,6 +76,9 @@ struct MobileSettings: View {
                 CustomPetEditor(settings: $draft, onImport: { importedAssets.insert($0) })
                 if let error { Section { Text(error).foregroundStyle(.red) } }
             }.navigationTitle("设置")
+            .onChange(of: flexibleDate) { date in
+                flexibleMinute = draft.startMinute(on: date)
+            }
             .onDisappear { CustomPetLibrary.discard(importedAssets, keeping: model.settings.customPet?.assetID) }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }

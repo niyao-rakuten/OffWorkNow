@@ -53,6 +53,7 @@ import WorkdayCore
     }
     var todayStartMinute: Int { settings.startMinute(on: now) }
     func setTodayStart(_ minute: Int?) throws {
+        refresh()
         var value = settings
         let key = ScheduleCalculator.key(now, calendar: settings.calendar)
         value.dailyStartMinutes[key] = minute

@@ -13,7 +13,8 @@ struct SettingsView: View {
     @State private var cupVolume: String
     @State private var days: String
     @State private var start: String
-    @State private var end: String
+    @State private var duration: String
+    @State private var syncedDailyStarts: [String: Int]
     @State private var lunchStart: String
     @State private var lunchEnd: String
     @State private var launchAtLogin: Bool
@@ -29,7 +30,7 @@ struct SettingsView: View {
         _overtimeGap = State(initialValue: String(s.overtimeIntervalMinutes))
         _flexibleTime = State(initialValue: ScheduleCalculator.timeLabel(s.startMinute(on: model.now)))
         _cupVolume = State(initialValue: String(s.cupVolumeML))
-        _start = State(initialValue: ScheduleCalculator.timeLabel(s.startMinute)); _end = State(initialValue: ScheduleCalculator.timeLabel(s.endMinute))
+        _start = State(initialValue: ScheduleCalculator.timeLabel(s.startMinute)); _duration = State(initialValue: ScheduleCalculator.timeLabel(s.workDurationMinutes)); _syncedDailyStarts = State(initialValue: s.dailyStartMinutes)
         _lunchStart = State(initialValue: ScheduleCalculator.timeLabel(s.lunchStart)); _lunchEnd = State(initialValue: ScheduleCalculator.timeLabel(s.lunchEnd)); _launchAtLogin = State(initialValue: model.login.enabled)
     }
     var body: some View {
@@ -51,6 +52,18 @@ struct SettingsView: View {
                 }
             }.padding(16)
         }.frame(minWidth: 560, minHeight: 500)
+        .onChange(of: model.settings.dailyStartMinutes) { newValue in
+            for key in Set(syncedDailyStarts.keys).union(newValue.keys) {
+                if newValue[key] != syncedDailyStarts[key] {
+                    draft.dailyStartMinutes[key] = newValue[key]
+                }
+            }
+            syncedDailyStarts = newValue
+            flexibleTime = ScheduleCalculator.timeLabel(draft.startMinute(on: flexibleDate))
+        }
+        .onChange(of: flexibleDate) { date in
+            flexibleTime = ScheduleCalculator.timeLabel(draft.startMinute(on: date))
+        }
         .onDisappear { CustomPetLibrary.discard(importedAssets, keeping: model.settings.customPet?.assetID) }
         .alert("恢复默认设置？", isPresented: $confirmReset) {
             Button("取消", role: .cancel) {}
@@ -73,15 +86,12 @@ struct SettingsView: View {
                 }
                 Text("不自动识别法定节假日或调休，请使用日期覆盖。").font(.caption).foregroundStyle(.secondary)
             }
-            Section("当日工时 · HH:mm") {
-                timeField("上班", value: $start, errorKey: "start")
-                timeField("下班", value: $end, errorKey: "end")
+            Section("弹性上班 · 每天可不同") {
+                timeField("默认上班（HH:mm）", value: $start, errorKey: "start")
+                timeField("班次时长（HH:mm，含午休）", value: $duration, errorKey: "duration")
                 Toggle("启用不计薪午休", isOn: $draft.lunchEnabled)
                 if draft.lunchEnabled { timeField("午休开始", value: $lunchStart, errorKey: "lunchStart"); timeField("午休结束", value: $lunchEnd, errorKey: "lunchEnd") }
-                Text("仅支持当天内班次；午休工资和进度暂停，倒计时继续。").font(.caption).foregroundStyle(.secondary)
-            }
-            Section("弹性上班 · 每天可不同") {
-                Text("常规上班默认 09:00，可修改上方默认时间；下列日期单独覆盖上班时间，不改变其他日期。").font(.caption).foregroundStyle(.secondary)
+                Text("下班时间 = 当天上班 + 班次时长；午休工资和进度暂停，倒计时继续。").font(.caption).foregroundStyle(.secondary)
                 DatePicker("日期（工作时区）", selection: $flexibleDate, displayedComponents: .date).environment(\.timeZone, draft.calendar.timeZone).environment(\.calendar, draft.calendar)
                 TextField("当天上班（HH:mm）", text: $flexibleTime).monospacedDigit()
                 Button("添加 / 更新当天时间") {
@@ -91,7 +101,7 @@ struct SettingsView: View {
                 ForEach(draft.dailyStartMinutes.keys.sorted(), id: \.self) { key in
                     HStack { Text(key); Text(ScheduleCalculator.timeLabel(draft.dailyStartMinutes[key]!)).monospacedDigit(); Spacer(); Button("使用默认") { draft.dailyStartMinutes.removeValue(forKey: key) } }
                 }
-                Text("当天上班须早于下班。午休只扣除与当天工作重叠的部分；进度、收入与整点提醒随之重算。").font(.caption).foregroundStyle(.secondary)
+                Text("仅支持当天内班次。任务栏修改今日上班会同步到此处，并立即更新倒计时。").font(.caption).foregroundStyle(.secondary)
             }
             Section("指定日期覆盖") {
                 DatePicker("日期（工作时区）", selection: $selectedDate, displayedComponents: .date).environment(\.timeZone, draft.calendar.timeZone).environment(\.calendar, draft.calendar)
@@ -207,7 +217,7 @@ struct SettingsView: View {
         var result = draft
         result.overtimeIntervalMinutes = try OvertimeCalculator.parseInterval(overtimeGap)
         result.cupVolumeML = try HydrationCalculator.parseCupVolume(cupVolume)
-        result.startMinute = try minute(start, field: "上班"); result.endMinute = try minute(end, field: "下班")
+        result.startMinute = try minute(start, field: "上班"); result.workDurationMinutes = try minute(duration, field: "班次时长")
         if result.lunchEnabled { result.lunchStart = try minute(lunchStart, field: "午休开始"); result.lunchEnd = try minute(lunchEnd, field: "午休结束") }
         result.monthlySalary = try Money.parse(monthly)
         result.customDaily = try Money.parse(daily)
@@ -218,7 +228,7 @@ struct SettingsView: View {
     private func save() {
         errors = [:]
         // Collect field errors before attempting any persistent or system mutation.
-        for (key, text, title) in [("start", start, "上班"), ("end", end, "下班")] + (draft.lunchEnabled ? [("lunchStart", lunchStart, "午休开始"), ("lunchEnd", lunchEnd, "午休结束")] : []) {
+        for (key, text, title) in [("start", start, "上班"), ("duration", duration, "班次时长")] + (draft.lunchEnabled ? [("lunchStart", lunchStart, "午休开始"), ("lunchEnd", lunchEnd, "午休结束")] : []) {
             do { _ = try minute(text, field: title) } catch { errors[key] = error.localizedDescription }
         }
         for (key, text, max) in [("monthly", monthly, Decimal(10_000_000)), ("daily", daily, Decimal(10_000_000)), ("days", days, Decimal(31))] {
@@ -230,7 +240,7 @@ struct SettingsView: View {
         do { try model.save(validatedDraft(), launchAtLogin: launchAtLogin); close() } catch { errors["settings"] = error.localizedDescription }
     }
     private func reset() {
-        draft = WorkSettings(); overtimeGap = "5"; flexibleTime = "09:00"; cupVolume = "500"; monthly = ""; daily = ""; days = "21.75"; start = "09:00"; end = "18:00"; lunchStart = "12:00"; lunchEnd = "13:00"; launchAtLogin = false; errors = [:]
+        draft = WorkSettings(); overtimeGap = "5"; flexibleTime = "09:00"; cupVolume = "500"; monthly = ""; daily = ""; days = "21.75"; start = "09:00"; duration = "09:00"; lunchStart = "12:00"; lunchEnd = "13:00"; launchAtLogin = false; errors = [:]
     }
 }
 

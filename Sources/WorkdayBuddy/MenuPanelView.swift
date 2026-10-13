@@ -34,7 +34,7 @@ struct MenuPanelView: View {
                 }
                 Text("按设置的工作时间估算，不代表实际到账或考勤结算").font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 VStack(alignment: .leading, spacing: 6) {
-                    Label("\(ScheduleCalculator.timeLabel(model.todayStartMinute))–\(ScheduleCalculator.timeLabel(model.settings.endMinute)) · \(model.settings.timeZoneID)", systemImage: "clock")
+                    Label("\(ScheduleCalculator.timeLabel(model.todayStartMinute))–\(ScheduleCalculator.timeLabel(model.settings.endMinute(on: model.now))) · \(model.settings.timeZoneID)", systemImage: "clock")
                     if model.settings.lunchEnabled { Text("午休 \(ScheduleCalculator.timeLabel(model.settings.lunchStart))–\(ScheduleCalculator.timeLabel(model.settings.lunchEnd)) · 不计薪") }
                     Text(model.settings.payMode.title + (model.settings.payMode == .fixedDays ? " · \(Money.input(model.settings.fixedDays)) 天/月" : ""))
                 }.font(.caption).foregroundStyle(.secondary)
@@ -155,7 +155,7 @@ private struct TodayStartEditor: View {
                     }.buttonStyle(.link)
                 }.controlSize(.small)
                 if let error { Text(error).font(.caption).foregroundStyle(.red) }
-                Text("仅修改今天；当天进度和收入重新估算，午休仍不计薪。").font(.caption).foregroundStyle(.secondary)
+                Text("同步保存到弹性上班；下班倒计时立即更新，午休仍不计薪。").font(.caption).foregroundStyle(.secondary)
             }.padding(.top, 8)
         }.onAppear { selected = model.work.start }
     }

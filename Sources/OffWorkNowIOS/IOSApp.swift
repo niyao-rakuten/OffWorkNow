@@ -101,7 +101,7 @@ import WorkdayCore
         for offset in 0..<7 {
             let day = c.date(byAdding: .day, value: offset, to: today)!
             guard ScheduleCalculator.isWorkday(day, settings: settings) else { continue }
-            let end = ScheduleCalculator.localTime(settings.endMinute, on: day, calendar: c)
+            let end = ScheduleCalculator.localTime(settings.endMinute(on: day), on: day, calendar: c)
             guard end > Date(), !(checkoutRecord?.applies(now: end, settings: settings) ?? false) else { continue }
             let content = UNMutableNotificationContent(); content.title = "下班啦"; content.body = "下班时间到啦！今天辛苦了，打开下班啦打卡收工。"
             if settings.notificationSound { content.sound = .default }

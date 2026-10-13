@@ -28,7 +28,7 @@ public enum ReminderPlanner {
     public static func event(date: Date, kind: EventKind, settings: WorkSettings) -> ReminderEvent {
         let key = ScheduleCalculator.key(date, calendar: settings.calendar)
         if kind == .overtime {
-            let end = ScheduleCalculator.localTime(settings.endMinute, on: date, calendar: settings.calendar)
+            let end = ScheduleCalculator.localTime(settings.endMinute(on: date), on: date, calendar: settings.calendar)
             let elapsed = Int(date.timeIntervalSince(end))
             return ReminderEvent(id: "overtime.\(settings.timeZoneID).\(key).\(elapsed)", date: date, kind: kind)
         }
@@ -74,7 +74,7 @@ public enum ReminderPlanner {
                     }
                 }
                 if settings.offworkEnabled {
-                    events.append(event(date: ScheduleCalculator.localTime(settings.endMinute, on: day, calendar: c), kind: .offwork, settings: settings))
+                    events.append(event(date: ScheduleCalculator.localTime(settings.endMinute(on: day), on: day, calendar: c), kind: .offwork, settings: settings))
                 }
                 if let overtime = OvertimeCalculator.next(now: c.isDate(day, inSameDayAs: now) ? now : day, settings: settings, checkout: checkout, ledger: ledger) { events.append(overtime) }
                 if let result = events.sorted(by: { $0.date < $1.date }).first(where: { $0.date > now && ledger.records[$0.id] == nil }) { return result }
