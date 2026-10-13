@@ -40,7 +40,10 @@ import WorkdayCore
         let bottom: Int
         let columns: [Int]
         let baseline: Int
+        let anchors: [Anchor]?
+        let scaleMultiplier: Double?
         let seam: Seam?
+        struct Anchor: Decodable { let x: Double; let y: Double }
         struct Seam: Decodable { let column: Int; let y: Int; let lowerX: Int }
     }
 
@@ -52,10 +55,12 @@ import WorkdayCore
               let source = CGImageSourceCreateWithURL(directory.appendingPathComponent(name + ".png") as CFURL, nil),
               let sheet = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return [] }
         let unit = sheet.width / columns
-        let scale = 256.0 / Double(unit)
         var result: [CGImage] = []
         for row in rows {
             guard row.columns.count == columns + 1 else { return [] }
+            guard row.anchors == nil || row.anchors?.count == columns else { return [] }
+            // One uniform scale per atlas; authored foot anchors remove translation without fitting each pose.
+            let scale = 256.0 / Double(unit) * (row.scaleMultiplier ?? 1)
             for column in 0..<columns {
                 let upperLeft = row.columns[column], upperRight = row.columns[column + 1]
                 let lowerLeft = row.seam?.column == column ? row.seam!.lowerX : upperLeft
@@ -68,8 +73,11 @@ import WorkdayCore
                                               bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return [] }
                 // Fixed scale and column anchor, shared ground line across actions.
                 // Never fit each pose's bounding box independently: it causes size pulsing.
-                let left = 16 + Double(x - column * unit) * scale
-                let top = 272 - Double(row.baseline - row.top) * scale
+                let anchor = row.anchors?[column]
+                let left = anchor.map { 144 + (Double(x) - $0.x) * scale }
+                    ?? (16 + Double(x - column * unit) * scale)
+                let baseline = anchor?.y ?? Double(row.baseline)
+                let top = 272 - (baseline - Double(row.top)) * scale
                 if let seam = row.seam, seam.column == column || seam.column == column + 1 {
                     // A bubble and the adjacent fish's tail share a column but not a row.
                     // Follow their transparent gap rather than truncating either silhouette.

@@ -22,8 +22,9 @@ enum CustomPetLibrary {
         let dimensions = try inspect(data)
         let name = String(url.deletingPathExtension().lastPathComponent.prefix(80))
         // A single frame is safe by default; do not guess how the user's sheet is arranged.
-        let value = CustomPetConfiguration(name: name.isEmpty ? "我的伙伴" : name,
+        var value = CustomPetConfiguration(name: name.isEmpty ? "我的伙伴" : name,
                                            pixelWidth: dimensions.0, pixelHeight: dimensions.1)
+        value.automaticFrameCount = true
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try data.write(to: Self.url(for: value.assetID), options: .atomic)
         return value

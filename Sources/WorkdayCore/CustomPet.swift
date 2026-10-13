@@ -22,7 +22,25 @@ public struct CustomPetConfiguration: Codable, Equatable, Hashable, Sendable {
     public var frameCount: Int
     public var framesPerSecond: Int
     public var drinkingFrames: SpriteFrameRange? = nil
+    /// Nil preserves the explicitly stored frame count in older settings.
+    public var automaticFrameCount: Bool? = nil
     public var playback: SpritePlayback
+
+    public var suggestedFrameCount: Int? {
+        guard (1...32).contains(columns), (1...32).contains(rows), columns * rows <= 256,
+              (1...4096).contains(pixelWidth), (1...4096).contains(pixelHeight),
+              pixelWidth % columns == 0, pixelHeight % rows == 0 else { return nil }
+        let total = columns * rows
+        if let range = drinkingFrames {
+            guard range.first >= 1, range.last >= range.first, range.last <= total else { return nil }
+            if range.first > 1 { return range.first - 1 }
+        }
+        return total
+    }
+
+    public mutating func refreshAutomaticFrameCount() {
+        if automaticFrameCount == true, let count = suggestedFrameCount { frameCount = count }
+    }
 
     public init(assetID: UUID = UUID(), name: String, pixelWidth: Int, pixelHeight: Int,
                 columns: Int = 1, rows: Int = 1, frameCount: Int = 1,

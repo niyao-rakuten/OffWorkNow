@@ -46,15 +46,15 @@ import UniformTypeIdentifiers
             }
         }
         guard CGImageDestinationFinalize(gif) else { throw NSError(domain: "GIF export", code: 4) }
-        for (name, rows) in [("fox-actions", Array(0..<6)), ("pets-drinking", [4]), ("pets-music", [5])] {
+        for (name, rows) in [("bun-girl-actions", Array(0..<6)), ("fox-actions", Array(0..<6)), ("pets-drinking", [4]), ("pets-music", [5])] {
             let destination = URL(fileURLWithPath: "docs/assets/\(name).gif")
             guard let output = CGImageDestinationCreateWithURL(destination as CFURL, UTType.gif.identifier as CFString, rows.count * 6, nil) else { continue }
             CGImageDestinationSetProperties(output, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
             for row in rows {
                 for frame in 0..<6 {
                     let cg: CGImage?
-                    if name == "fox-actions" {
-                        cg = ImageRenderer(content: PetSprite(kind: .fox, row: row, frame: frame)
+                    if name == "fox-actions" || name == "bun-girl-actions" {
+                        cg = ImageRenderer(content: PetSprite(kind: name == "bun-girl-actions" ? .bunGirl : .fox, row: row, frame: frame)
                             .frame(width: 280, height: 280).padding(20).background(Color(red: 0.95, green: 0.94, blue: 0.90))).cgImage
                     } else { cg = ImageRenderer(content: preview(dark: false, row: row, frame: frame)).cgImage }
                     if let cg { CGImageDestinationAddImage(output, cg, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 0.26]] as CFDictionary) }
@@ -62,7 +62,7 @@ import UniformTypeIdentifiers
             }
             guard CGImageDestinationFinalize(output) else { throw NSError(domain: "Action GIF export", code: 5) }
         }
-        print("Validated 180 frames and 4 controls; rendered light/dark UI and animation preview.")
+        print("Validated \(PetKind.allCases.filter { $0 != .custom }.count * 36) frames and 4 controls; rendered light/dark UI and animation preview.")
     }
 
     @MainActor private static func preview(dark: Bool, row: Int, frame: Int) -> some View {

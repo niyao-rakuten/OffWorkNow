@@ -1,6 +1,8 @@
 # 日系手绘桌面伙伴
 
-最新：五张 `*-music.png` 新增耳机听歌动作，内置共 **180 帧**。各角色完整动作与单击/双击操作见 [PET_ANIMATIONS.md](PET_ANIMATIONS.md)，生成词见 [music-art-prompts.json](music-art-prompts.json)。
+新增丸子头女生：`bunGirl.png`（6×4）、`bunGirl-drink.png` / `bunGirl-music.png`（3×2），均为 1536×1024，共 36 帧；全部内置角色合计 **216 帧**。原图保持不变，在 `atlas-layout.json` 记录每帧脚底锚点和统一图集比例，由现有裁帧器定位到 288×288 画布。提示词见 [bun-girl-art-prompts.json](bun-girl-art-prompts.json)。
+
+此前：五张 `*-music.png` 新增耳机听歌动作，内置共 **180 帧**。各角色完整动作与单击/双击操作见 [PET_ANIMATIONS.md](PET_ANIMATIONS.md)，生成词见 [music-art-prompts.json](music-art-prompts.json)。
 
 2026-10-13 新增：`fox.png` 为 6×4 小狐妖基础动作图集，五张 `*-drink.png` 为 3×2 喝水图集。内置动画共 150 帧。喝水动作每帧 0.26 秒，成功打卡后播放一次；连续点击重新播放。双击动画区域轮换角色。自定义序列帧见 [CUSTOM_PETS.md](CUSTOM_PETS.md)。
 

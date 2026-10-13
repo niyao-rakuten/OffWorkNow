@@ -24,15 +24,33 @@ struct CustomPetEditor: View {
                     TextField("列数", value: field(\.columns, default: 1), format: .number)
                     TextField("行数", value: field(\.rows, default: 1), format: .number)
                 }
-                TextField("有效帧数（从第 1 帧开始）", value: field(\.frameCount, default: 1), format: .number)
+                Toggle("自动计算普通动画帧数", isOn: Binding(get: { settings.customPet?.automaticFrameCount == true }, set: { enabled in
+                    update { $0.automaticFrameCount = enabled }
+                }))
+                TextField("普通动画帧数（从第 1 帧开始）", value: field(\.frameCount, default: 1), format: .number)
+                    .disabled(config.automaticFrameCount == true)
+                Text("自动模式播放全部网格；设置喝水起始帧后，普通动画播放它之前的帧。需要固定帧数时可关闭自动模式。").font(.caption).foregroundStyle(.secondary)
+                if config.frameCount == 1, let suggested = config.suggestedFrameCount, suggested > 1 {
+                    Text("当前普通动画只有 1 帧，因此会停在第一张图；喝水动画使用独立帧段。").font(.caption).foregroundStyle(.orange)
+                    Button("自动修正为 \(suggested) 帧并播放") {
+                        update { $0.automaticFrameCount = true }
+                        previewPlaying = true
+                    }
+                }
                 Stepper("速度：\(config.framesPerSecond) 帧/秒", value: field(\.framesPerSecond, default: 8), in: 1...30)
                 Picker("播放方式", selection: field(\.playback, default: .loop)) {
                     ForEach(SpritePlayback.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 Toggle("设置喝水动作帧", isOn: Binding(get: { settings.customPet?.drinkingFrames != nil }, set: { enabled in
-                    settings.customPet?.drinkingFrames = enabled ? SpriteFrameRange(first: 1, last: max(1, config.frameCount)) : nil
+                    update { value in
+                        if enabled, (1...32).contains(value.columns), (1...32).contains(value.rows), value.columns * value.rows <= 256 {
+                            let total = value.columns * value.rows
+                            value.drinkingFrames = SpriteFrameRange(first: max(1, total - value.columns + 1), last: total)
+                        } else { value.drinkingFrames = nil }
+                    }
                 }))
                 if config.drinkingFrames != nil {
+                    Text("开启时默认使用最后一行，请按实际图集确认喝水范围。").font(.caption).foregroundStyle(.secondary)
                     HStack {
                         TextField("起始帧（从 1 开始）", value: drinkField(\.first), format: .number)
                         TextField("结束帧（包含）", value: drinkField(\.last), format: .number)
@@ -40,6 +58,8 @@ struct CustomPetEditor: View {
                 }
                 if let error = validationIssue(config) { Text(error).font(.caption).foregroundStyle(.red) }
                 else {
+                    Text("普通动画：第 1–\(config.frameCount) 帧" + (config.drinkingFrames.map { " · 喝水：第 \($0.first)–\($0.last) 帧" } ?? ""))
+                        .font(.caption).foregroundStyle(.secondary)
                     CustomPetAvatar(config: config, animate: previewPlaying, drinkTrigger: drinkTrigger).frame(width: 150, height: 150)
                     HStack {
                         Button(previewPlaying ? "暂停预览" : "播放预览") { previewPlaying.toggle() }
@@ -77,10 +97,16 @@ struct CustomPetEditor: View {
         .onDisappear { importTask?.cancel() }
     }
     private func field<T>(_ key: WritableKeyPath<CustomPetConfiguration, T>, default fallback: T) -> Binding<T> {
-        Binding(get: { settings.customPet?[keyPath: key] ?? fallback }, set: { settings.customPet?[keyPath: key] = $0 })
+        Binding(get: { settings.customPet?[keyPath: key] ?? fallback }, set: { value in update { $0[keyPath: key] = value } })
     }
     private func drinkField(_ key: WritableKeyPath<SpriteFrameRange, Int>) -> Binding<Int> {
-        Binding(get: { settings.customPet?.drinkingFrames?[keyPath: key] ?? 1 }, set: { settings.customPet?.drinkingFrames?[keyPath: key] = $0 })
+        Binding(get: { settings.customPet?.drinkingFrames?[keyPath: key] ?? 1 }, set: { value in update { $0.drinkingFrames?[keyPath: key] = value } })
+    }
+    private func update(_ change: (inout CustomPetConfiguration) -> Void) {
+        guard var config = settings.customPet else { return }
+        change(&config)
+        config.refreshAutomaticFrameCount()
+        settings.customPet = config
     }
     private func validationIssue(_ config: CustomPetConfiguration) -> String? {
         do { _ = try config.validated(); return nil } catch { return error.localizedDescription }

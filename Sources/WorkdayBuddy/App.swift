@@ -203,7 +203,7 @@ import WorkdayCore
         let height = min(820, (NSScreen.main?.visibleFrame.height ?? 900) - 80)
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: height), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "下班啦 · 收工日记"; window.isReleasedWhenClosed = false; window.delegate = self
-        window.minSize = NSSize(width: 540, height: 560)
+        window.minSize = NSSize(width: 540, height: 860)
         window.contentViewController = NSHostingController(rootView: MacReportsView(model: model, openSettings: { [weak self] in self?.showSettings() }))
         reportsWindow = window; window.center(); NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
     }

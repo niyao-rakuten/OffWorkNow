@@ -1,0 +1,13 @@
+{
+  "tool": "built-in imagegen",
+  "selectedPrompt": "Draw a NEW accurately registered sprite sheet from scratch on a square transparent canvas. SIX columns SIX rows =36 sprites. Do NOT use a collage layout or distribute figures between outer margins: tile SIX IDENTICAL square cells exactly edge-to-edge across the whole image and SIX down. Each figure is SMALL, occupying middle60% of cell. Position pelvis at EXACTLY50% of cell width, foot bottom at80% of cell height. The six column centers MUST BE at8.333%,25%,41.667%,58.333%,75%,91.667% of full image width. Six row baselines MUST BE at13.333%,30%,46.667%,63.333%,80%,96.667% of full image height. WIDE empty space inside each cell.\nCharacter: adorable adult office woman, chestnut bob, roundglasses, peachflowerhairclip, creamblouse sagecardigan navytrousers whitesocks, seated crosslegged pinklaptop. Japanese handdrawn manga watercolor. Normal roundhead, uncompressedtorso. IDENTICAL crossed legs and foot position across36frames. Locked camera scale, no shifting sideways/forward. All actions minimal head/hand motions:\nrow1 SIX typing phases alternating fingers blink return;\nrow2 SIX thinking phases handchin then lower;\nrow3 SIX tired phases blink yawn recover;\nrow4 SIX happy phases smile smallfistpump return;\nrow5 SIX mintheadphones phases tiny headtilt left/right return;\nrow6 SIX drink phases lift clearbluewatercup to lips sip lower.\nAlways keep pink laptop and crossed legs unchanged in EVERYframe. Character width <=60%cell height<=65%cell. No floating decorations, no shadows, no gridlines, no text. Actual transparent PNG 1536square. Precise equal grid spacing and identical root anchors are more important than detail.",
+  "postprocess": "User explicitly approved automatic alignment. align-office-girl.py translates unscaled frames onto 256x256 cells; source retained.",
+  "output": "test-assets/custom-pets/office-girl-36frames-stable.png",
+  "columns": 6,
+  "rows": 6,
+  "frameCount": 30,
+  "drinkingFrames": {
+    "first": 31,
+    "last": 36
+  }
+}

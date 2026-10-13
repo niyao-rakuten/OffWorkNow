@@ -9,8 +9,9 @@ public enum MenuMode: String, Codable, CaseIterable { case countdown, earnings, 
 public enum ReminderCategory: String, Codable, CaseIterable { case walk, water, eyes
     public var title: String { switch self { case .walk: return "走动"; case .water: return "喝水"; case .eyes: return "护眼" } }
 }
-public enum PetKind: String, Codable, CaseIterable { case cat, dog, worker, goldfish, fox, custom
-    public var title: String { switch self { case .cat: return "下班猫"; case .dog: return "摸鱼狗"; case .worker: return "打工人"; case .goldfish: return "小金鱼"; case .fox: return "小狐妖"; case .custom: return "自定义动画" } }
+public enum PetKind: String, Codable, CaseIterable { case cat, dog, worker, goldfish, fox, bunGirl, custom
+    public var title: String { switch self { case .cat: return "下班猫"; case .dog: return "摸鱼狗"; case .worker: return "打工人"; case .goldfish: return "小金鱼"; case .fox: return "小狐妖"; case .bunGirl: return "丸子头女生"; case .custom: return "自定义动画" } }
+    public var isOfficeWorker: Bool { self == .worker || self == .bunGirl }
 }
 public extension PetKind {
     func next(customAvailable: Bool) -> PetKind {

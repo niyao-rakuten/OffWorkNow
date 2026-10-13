@@ -106,7 +106,7 @@ struct BuiltinPetAvatar: View {
             handledAnimation = requestedAnimation
             action = (action + 1) % 6
         } else {
-            action = celebrating ? 3 : (tired && kind == .worker ? 1 : 0)
+            action = celebrating ? 3 : (tired && kind.isOfficeWorker ? 1 : 0)
         }
         started = ProcessInfo.processInfo.systemUptime
         guard playing else { handledDrink = requestedDrink; return }
@@ -127,7 +127,7 @@ struct BuiltinPetAvatar: View {
             guard !Task.isCancelled else { return }
             if celebrating { action = action == 0 ? [3, 5].randomElement()! : 0 }
             else if action != 0 { action = 0 }
-            else if tired && kind == .worker { action = [1, 1, 2, 5].randomElement()! }
+            else if tired && kind.isOfficeWorker { action = [1, 1, 2, 5].randomElement()! }
             else { action = [1, 2, 5].randomElement()! }
             started = ProcessInfo.processInfo.systemUptime
         }
