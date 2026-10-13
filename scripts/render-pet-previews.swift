@@ -9,7 +9,7 @@ import UniformTypeIdentifiers
         _ = NSApplication.shared
         PetArtwork.resourceDirectory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Resources/PetArt")
         for kind in PetKind.allCases.filter { $0 != .custom } {
-            for row in 0..<5 {
+            for row in 0..<6 {
                 for frame in 0..<6 {
                     guard let image = PetArtwork.frame(kind: kind, row: row, column: frame), image.width == 288, image.height == 288 else {
                         throw NSError(domain: "Missing sprite \(kind.rawValue)/\(row)/\(frame)", code: 1)
@@ -27,7 +27,7 @@ import UniformTypeIdentifiers
             guard let cgImage = renderer.cgImage, let data = NSBitmapImageRep(cgImage: cgImage).representation(using: .png, properties: [:]) else { throw NSError(domain: "PetPreview", code: 3) }
             try data.write(to: URL(fileURLWithPath: "docs/assets/pets-\(dark ? "dark" : "light").png"))
         }
-        for row in 1..<5 {
+        for row in 1..<6 {
             let renderer = ImageRenderer(content: preview(dark: true, row: row, frame: 3))
             renderer.scale = 2
             if let cgImage = renderer.cgImage, let data = NSBitmapImageRep(cgImage: cgImage).representation(using: .png, properties: [:]) {
@@ -36,9 +36,9 @@ import UniformTypeIdentifiers
         }
         // Authored frames rendered through the same SwiftUI components, exported for visual review.
         let url = URL(fileURLWithPath: "docs/assets/pets-actions.gif")
-        guard let gif = CGImageDestinationCreateWithURL(url as CFURL, UTType.gif.identifier as CFString, 30, nil) else { return }
+        guard let gif = CGImageDestinationCreateWithURL(url as CFURL, UTType.gif.identifier as CFString, 36, nil) else { return }
         CGImageDestinationSetProperties(gif, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
-        for row in 0..<5 {
+        for row in 0..<6 {
             for frame in 0..<6 {
                 let renderer = ImageRenderer(content: preview(dark: false, row: row, frame: frame))
                 guard let image = renderer.cgImage else { continue }
@@ -46,7 +46,7 @@ import UniformTypeIdentifiers
             }
         }
         guard CGImageDestinationFinalize(gif) else { throw NSError(domain: "GIF export", code: 4) }
-        for (name, rows) in [("fox-actions", Array(0..<5)), ("pets-drinking", [4])] {
+        for (name, rows) in [("fox-actions", Array(0..<6)), ("pets-drinking", [4]), ("pets-music", [5])] {
             let destination = URL(fileURLWithPath: "docs/assets/\(name).gif")
             guard let output = CGImageDestinationCreateWithURL(destination as CFURL, UTType.gif.identifier as CFString, rows.count * 6, nil) else { continue }
             CGImageDestinationSetProperties(output, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
@@ -62,7 +62,7 @@ import UniformTypeIdentifiers
             }
             guard CGImageDestinationFinalize(output) else { throw NSError(domain: "Action GIF export", code: 5) }
         }
-        print("Validated 150 frames and 4 controls; rendered light/dark UI and animation preview.")
+        print("Validated 180 frames and 4 controls; rendered light/dark UI and animation preview.")
     }
 
     @MainActor private static func preview(dark: Bool, row: Int, frame: Int) -> some View {

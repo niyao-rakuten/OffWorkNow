@@ -19,9 +19,11 @@ import WorkdayCore
     let login = LoginService()
     let checkoutStore = CheckoutStore()
     let hydrationStore = HydrationStore()
+    let reports = DailyReportStore()
     @Published var waterIssue: String?
     @Published var animationsActive = true
     @Published private(set) var drinkAnimationID = 0
+    @Published private(set) var petAnimationID = 0
     let reminders: ReminderCoordinator
     @Published private(set) var now: Date
     @Published private(set) var work: WorkSnapshot
@@ -35,9 +37,10 @@ import WorkdayCore
         earnings = EarningsCalculator.calculate(now: clock.now, settings: store.settings, work: initialWork)
         reminders = ReminderCoordinator(notifications: notifications, speech: speech, clock: clock)
     }
-    func refresh() {
+    func refresh(forceReport: Bool = false) {
         now = clock.now; work = ScheduleCalculator.snapshot(now: now, settings: settings)
         earnings = EarningsCalculator.calculate(now: now, settings: settings, work: work); reminders.expirePause()
+        reports.capture(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration, force: forceReport)
     }
     func save(_ settings: WorkSettings, launchAtLogin: Bool) throws {
         _ = try settings.validated()
@@ -46,7 +49,7 @@ import WorkdayCore
         if launchAtLogin != login.enabled { try login.setEnabled(launchAtLogin) }
         try store.save(settings)
         if let oldAsset { CustomPetLibrary.discard([oldAsset], keeping: settings.customPet?.assetID) }
-        reminders.configure(settings, checkout: checkoutStore.record); refresh()
+        reminders.configure(settings, checkout: checkoutStore.record); refresh(forceReport: true)
     }
     var todayStartMinute: Int { settings.startMinute(on: now) }
     func setTodayStart(_ minute: Int?) throws {
@@ -58,7 +61,7 @@ import WorkdayCore
     var hydration: HydrationSummary { hydrationStore.log?.summary(now: now, settings: settings) ?? HydrationSummary(cups: 0, totalML: 0) }
     func drinkWater() {
         refresh()
-        do { try hydrationStore.drink(now: now, settings: settings); drinkAnimationID += 1; waterIssue = nil; refresh() }
+        do { try hydrationStore.drink(now: now, settings: settings); drinkAnimationID += 1; waterIssue = nil; refresh(forceReport: true) }
         catch { waterIssue = error.localizedDescription }
     }
     func cyclePet() throws {
@@ -68,14 +71,15 @@ import WorkdayCore
         try store.save(value)
         refresh()
     }
-    func undoWater() { hydrationStore.undo(now: now, settings: settings); refresh() }
+    func cyclePetAnimation() { petAnimationID &+= 1 }
+    func undoWater() { refresh(); hydrationStore.undo(now: now, settings: settings); refresh(forceReport: true) }
     var checkout: CheckoutSnapshot { OvertimeCalculator.snapshot(now: now, settings: settings, work: work, checkout: checkoutStore.record) }
     func checkoutNow() {
         refresh(); guard checkout.canCheckout else { return }
         checkoutStore.checkout(now: now, settings: settings)
-        reminders.configure(settings, checkout: checkoutStore.record); refresh()
+        reminders.configure(settings, checkout: checkoutStore.record); refresh(forceReport: true)
     }
-    func undoCheckout() { checkoutStore.undo(); reminders.configure(settings); refresh() }
+    func undoCheckout() { checkoutStore.undo(); reminders.configure(settings); refresh(forceReport: true) }
     var statusTitle: String { checkout.isCheckedOut ? "已打卡下班" : checkout.isOvertime ? "加班中" : work.state.title }
     func amount(_ value: Decimal?) -> String { settings.hideEarnings ? "¥••••" : value.map(Money.formatted) ?? "—" }
     var menuTitle: String {
@@ -96,7 +100,7 @@ import WorkdayCore
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private var settingsWindow: NSWindow?
-    private var welcomeWindow: NSWindow?
+    private var reportsWindow: NSWindow?
     private var petWindow: NSPanel?
     private var settingsSubscription: AnyCancellable?
     private var displayTimer: Timer?
@@ -112,7 +116,7 @@ import WorkdayCore
         statusItem.button?.target = self; statusItem.button?.action = #selector(togglePanel)
         popover = NSPopover(); popover.behavior = .transient; popover.delegate = self
         popover.contentSize = NSSize(width: 360, height: 660)
-        popover.contentViewController = NSHostingController(rootView: MenuPanelView(model: model, openSettings: { [weak self] in self?.showSettings() }))
+        popover.contentViewController = NSHostingController(rootView: MenuPanelView(model: model, openReports: { [weak self] in self?.showReports() }, openSettings: { [weak self] in self?.showSettings() }))
         subscription = model.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async { self?.updateTitle() }
         }
@@ -121,7 +125,8 @@ import WorkdayCore
         }
         model.reminders.configure(model.settings, checkout: model.checkoutStore.record, startup: true)
         syncPetWindow()
-        if !UserDefaults.standard.bool(forKey: "welcomeCompleted") { showWelcome() }
+        model.refresh(forceReport: true)
+        showReports()
         watch(NSWorkspace.shared.notificationCenter, NSWorkspace.willSleepNotification) { [weak self] in self?.displayTimer?.invalidate(); self?.model.animationsActive = false; self?.model.reminders.suspend() }
         watch(NSWorkspace.shared.notificationCenter, NSWorkspace.didWakeNotification) { [weak self] in self?.recover() }
         watch(NSWorkspace.shared.notificationCenter, NSWorkspace.sessionDidResignActiveNotification) { [weak self] in self?.model.animationsActive = false; self?.model.speech.stop() }
@@ -191,17 +196,24 @@ import WorkdayCore
         petWindow?.level = model.settings.petAlwaysOnTop ? .floating : .normal
         petWindow?.orderFrontRegardless()
     }
-    private func showWelcome() {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 500), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "欢迎使用下班啦"; window.isReleasedWhenClosed = false
-        window.contentViewController = NSHostingController(rootView: WelcomeView(notifications: model.notifications, finish: { [weak self] in
-            UserDefaults.standard.set(true, forKey: "welcomeCompleted"); self?.welcomeWindow?.close(); self?.welcomeWindow = nil
-        }))
-        welcomeWindow = window; window.center(); NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
+    func showReports() {
+        popover.performClose(nil)
+        model.refresh(forceReport: true)
+        if let reportsWindow { NSApp.activate(ignoringOtherApps: true); reportsWindow.makeKeyAndOrderFront(nil); return }
+        let height = min(820, (NSScreen.main?.visibleFrame.height ?? 900) - 80)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: height), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        window.title = "下班啦 · 收工日记"; window.isReleasedWhenClosed = false; window.delegate = self
+        window.minSize = NSSize(width: 540, height: 560)
+        window.contentViewController = NSHostingController(rootView: MacReportsView(model: model, openSettings: { [weak self] in self?.showSettings() }))
+        reportsWindow = window; window.center(); NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
     }
-    func windowWillClose(_ notification: Notification) { if notification.object as? NSWindow === settingsWindow { settingsWindow = nil } }
+    func windowWillClose(_ notification: Notification) {
+        if notification.object as? NSWindow === settingsWindow { settingsWindow = nil }
+        if notification.object as? NSWindow === reportsWindow { reportsWindow = nil }
+    }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
     func applicationWillTerminate(_ notification: Notification) {
+        model.refresh(forceReport: true)
         displayTimer?.invalidate(); petWindow?.saveFrame(usingName: "DesktopPet"); model.reminders.stop()
         for (center, token) in observers { center.removeObserver(token) }
     }
@@ -210,4 +222,19 @@ import WorkdayCore
 private final class DesktopPetPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+}
+
+private struct MacReportsView: View {
+    @ObservedObject var model: AppModel
+    let openSettings: () -> Void
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("照顾好自己，再继续闪闪发光。").font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                Button("通知与偏好设置", action: openSettings)
+            }.padding(12)
+            DailyReportsView(store: model.reports, settings: model.settings, now: model.now)
+        }
+    }
 }

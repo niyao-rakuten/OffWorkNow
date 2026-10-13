@@ -15,11 +15,15 @@ struct DesktopPetView: View {
                         drink: model.drinkWater, undoDrink: model.undoWater)
             PetAvatar(kind: model.settings.petKind, celebrating: model.checkout.isCheckedOut,
                       tired: model.checkout.isOvertime, animate: model.animationsActive,
-                      custom: model.settings.customPet, drinkTrigger: model.drinkAnimationID)
+                      custom: model.settings.customPet, drinkTrigger: model.drinkAnimationID,
+                      animationTrigger: model.petAnimationID)
                 .frame(width: 200, height: 200)
-                .overlay(PetDragHandle(doubleClick: cyclePet))
+                .overlay(PetDragHandle(singleClick: model.cyclePetAnimation, doubleClick: cyclePet))
+                .help("单击切换动作 · 双击切换形象 · 拖动移动位置")
+                .accessibilityAction(named: "切换动作", model.cyclePetAnimation)
                 .accessibilityAction(named: "切换伙伴", cyclePet)
                 .contextMenu {
+                    Button("下一个动作", action: model.cyclePetAnimation)
                     Button("下一个伙伴", action: cyclePet)
                     Button("设置", action: openSettings)
                     Button("退出下班啦") { NSApp.terminate(nil) }
@@ -74,27 +78,3 @@ struct WelcomeView: View {
     }
 }
 
-private struct PetDragHandle: NSViewRepresentable {
-    let doubleClick: () -> Void
-    func makeNSView(context: Context) -> NSView { let view = DragView(); view.doubleClick = doubleClick; return view }
-    func updateNSView(_ nsView: NSView, context: Context) { (nsView as? DragView)?.doubleClick = doubleClick }
-    private final class DragView: NSView {
-        var doubleClick: (() -> Void)?
-        private var downEvent: NSEvent?
-        override var mouseDownCanMoveWindow: Bool { false }
-        override func mouseDown(with event: NSEvent) {
-            if event.clickCount == 2 { downEvent = nil; doubleClick?() }
-            else { downEvent = event }
-        }
-        override func mouseDragged(with event: NSEvent) {
-            guard let downEvent else { return }
-            let distance = hypot(event.locationInWindow.x - downEvent.locationInWindow.x,
-                                 event.locationInWindow.y - downEvent.locationInWindow.y)
-            guard distance >= 3 else { return }
-            self.downEvent = nil
-            window?.performDrag(with: downEvent)
-            window?.saveFrame(usingName: "DesktopPet")
-        }
-        override func mouseUp(with event: NSEvent) { downEvent = nil }
-    }
-}

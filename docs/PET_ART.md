@@ -1,5 +1,11 @@
 # 日系手绘桌面伙伴
 
+最新：五张 `*-music.png` 新增耳机听歌动作，内置共 **180 帧**。各角色完整动作与单击/双击操作见 [PET_ANIMATIONS.md](PET_ANIMATIONS.md)，生成词见 [music-art-prompts.json](music-art-prompts.json)。
+
+2026-10-13 新增：`fox.png` 为 6×4 小狐妖基础动作图集，五张 `*-drink.png` 为 3×2 喝水图集。内置动画共 150 帧。喝水动作每帧 0.26 秒，成功打卡后播放一次；连续点击重新播放。双击动画区域轮换角色。自定义序列帧见 [CUSTOM_PETS.md](CUSTOM_PETS.md)。
+
+新增 `report-ui.png` 为 3×2 日报图标：笑脸、无奈、哭脸、水杯、钱袋、时钟。原始生成词见 [fox-and-drink-prompts.json](fox-and-drink-prompts.json) 和 [report-art-prompts.json](report-art-prompts.json)。[狐妖原画](assets/fox-portrait.png) · [狐妖动画](assets/fox-actions.gif) · [喝水动画](assets/pets-drinking.gif)。
+
 2026-10-12 重做。通过内置 **image_gen** 生成，不使用 CLI/API fallback。原始透明 PNG 已复制进 `Resources/PetArt/`，随 macOS 和 iOS 一起打包，不依赖生成缓存目录或网络。完整生成提示词见 [pet-art-prompts.json](pet-art-prompts.json)。
 
 ## 素材与帧定义
@@ -42,7 +48,7 @@ xcrun swiftc -parse-as-library -module-cache-path build/PreviewModuleCache \
   -I build/XiaBanLaDerivedData/Build/Products/Debug \
   -o build/render-pet-previews \
   Sources/SharedUI/PetAvatar.swift Sources/SharedUI/PetArtwork.swift \
-  Sources/SharedUI/PetControls.swift scripts/render-pet-previews.swift \
+  Sources/SharedUI/PetControls.swift Sources/SharedUI/CustomPetLibrary.swift scripts/render-pet-previews.swift \
   build/XiaBanLaDerivedData/Build/Products/Debug/WorkdayCore.o
 build/render-pet-previews
 ```

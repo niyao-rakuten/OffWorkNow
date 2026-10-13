@@ -7,7 +7,11 @@ import WorkdayCore
     @Environment(\.scenePhase) private var scenePhase
     var body: some Scene {
         WindowGroup {
-            MobileDashboard(model: model)
+            TabView {
+                DailyReportsView(store: model.reports, settings: model.settings, now: model.now)
+                    .tabItem { Label("日记", systemImage: "calendar") }
+                MobileDashboard(model: model).tabItem { Label("今日", systemImage: "sun.max") }
+            }
                 .onAppear { model.activate() }
                 .onChange(of: scenePhase) { phase in if phase == .active { model.activate() } else { model.deactivate() } }
         }
@@ -22,6 +26,7 @@ import WorkdayCore
     @Published private(set) var drinkAnimationID = 0
     @Published var notificationAllowed = false
     @Published var error: String?
+    let reports = DailyReportStore()
     private var timer: Timer?
     private let notificationDelegate = MobileNotificationDelegate()
     private let defaults = UserDefaults.standard
@@ -35,26 +40,27 @@ import WorkdayCore
     var hydration: HydrationSummary { hydrationLog?.summary(now: now, settings: settings) ?? HydrationSummary(cups: 0, totalML: 0) }
     func drinkWater() {
         now = Date(); var value = hydrationLog ?? HydrationLog(now: now, settings: settings)
-        do { try value.add(now: now, settings: settings); hydrationLog = value; defaults.set(try JSONEncoder().encode(value), forKey: "waterCups"); drinkAnimationID += 1 }
+        do { try value.add(now: now, settings: settings); hydrationLog = value; defaults.set(try JSONEncoder().encode(value), forKey: "waterCups"); drinkAnimationID += 1; captureReport(force: true) }
         catch { self.error = error.localizedDescription }
     }
-    func undoWater() { hydrationLog?.undoLast(now: now, settings: settings); defaults.set(try? JSONEncoder().encode(hydrationLog), forKey: "waterCups") }
+    func undoWater() { now = Date(); hydrationLog?.undoLast(now: now, settings: settings); defaults.set(try? JSONEncoder().encode(hydrationLog), forKey: "waterCups"); captureReport(force: true) }
     var work: WorkSnapshot { ScheduleCalculator.snapshot(now: now, settings: settings) }
     var checkout: CheckoutSnapshot { OvertimeCalculator.snapshot(now: now, settings: settings, work: work, checkout: checkoutRecord) }
     var earnings: EarningsSnapshot { EarningsCalculator.calculate(now: now, settings: settings, work: work) }
     func activate() {
-        now = Date(); timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in Task { @MainActor in self?.now = Date() } }
+        now = Date(); captureReport(force: true); timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in Task { @MainActor in self?.now = Date(); self?.captureReport() } }
         Task { await scheduleOffwork() }
     }
-    func deactivate() { timer?.invalidate(); timer = nil }
+    func deactivate() { now = Date(); captureReport(force: true); timer?.invalidate(); timer = nil }
     func checkoutNow() {
         now = Date(); guard checkout.canCheckout else { return }
         checkoutRecord = CheckoutRecord(now: now, settings: settings)
         defaults.set(try? JSONEncoder().encode(checkoutRecord), forKey: "latestCheckout")
+        captureReport(force: true)
         Task { await scheduleOffwork() }
     }
-    func undoCheckout() { checkoutRecord = nil; defaults.removeObject(forKey: "latestCheckout"); Task { await scheduleOffwork() } }
+    func undoCheckout() { now = Date(); checkoutRecord = nil; defaults.removeObject(forKey: "latestCheckout"); captureReport(force: true); Task { await scheduleOffwork() } }
     func save(_ draft: WorkSettings) throws {
         let valid = try draft.validated()
         if valid.petKind == .custom, let config = valid.customPet { try CustomPetLibrary.validateFile(config) }
@@ -62,7 +68,11 @@ import WorkdayCore
         let data = try JSONEncoder().encode(valid)
         defaults.set(data, forKey: "settings"); settings = valid; now = Date()
         if let oldAsset { CustomPetLibrary.discard([oldAsset], keeping: valid.customPet?.assetID) }
+        captureReport(force: true)
         Task { await scheduleOffwork() }
+    }
+    func captureReport(force: Bool = false) {
+        reports.capture(now: now, settings: settings, checkout: checkoutRecord, hydration: hydration, force: force)
     }
     func enableNotifications() {
         Task {

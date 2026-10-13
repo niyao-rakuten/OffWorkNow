@@ -7,7 +7,7 @@
 - `XiaBanLa`：macOS 13+ 原生菜单栏与桌面宠物；`XiaBanLa-iOS`：iOS 16+ 原生配套应用，共用 `WorkdayCore` 和四种矢量动画伙伴。
 - `PRODUCT_NAME` / `CFBundleDisplayName` 均为“下班啦”，版本 1.1.0、构建 2；后续上传不同构建须递增构建号。
 - Bundle ID 保留 `com.workdaybuddy.app`，两个平台同 ID 便于未来同一商店记录；若这个 ID 不属于你的 Team，应在两个目标中统一替换成自己注册的唯一 ID（这会改变本地配置容器）。
-- macOS `com.apple.security.app-sandbox=true`，不申请网络、文件访问、辅助功能或屏幕录制权限。
+- macOS `com.apple.security.app-sandbox=true`，增加用户所选文件只读访问用于 PNG 图集导入；不申请网络、辅助功能或屏幕录制权限。
 - `PrivacyInfo.xcprivacy` 声明不跟踪、不收集离开设备的数据，UserDefaults 使用 `CA92.1`；App Store Connect 的隐私回答仍应按最终产品核实。
 - macOS/iOS 所需图标、生产版本号、共享 Scheme、ArchiveAction 和导出模板。
 - Release 不强制 ad-hoc 证书；账号就绪后使用 Xcode 自动签名。Debug 本地脚本显式使用 ad-hoc。

@@ -4,6 +4,7 @@ import WorkdayCore
 
 struct MenuPanelView: View {
     @ObservedObject var model: AppModel
+    let openReports: () -> Void
     let openSettings: () -> Void
     var body: some View {
         ScrollView {
@@ -42,6 +43,7 @@ struct MenuPanelView: View {
                 if let message = model.store.recoveryMessage { Text(message).font(.caption).foregroundStyle(.orange) }
                 Divider()
                 HStack {
+                    Button(action: openReports) { Label("每日报表", systemImage: "calendar") }
                     Button(action: openSettings) { Label("设置", systemImage: "gearshape") }.keyboardShortcut(",", modifiers: .command)
                     Spacer()
                     Button("退出") { NSApp.terminate(nil) }.keyboardShortcut("q", modifiers: .command)

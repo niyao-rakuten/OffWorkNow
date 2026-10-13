@@ -1,5 +1,17 @@
 # 最新验证记录
 
+DMG 打包验证（2026-10-13）：`scripts/build-dmg.sh` 成功构建 Release 双架构（arm64 + x86_64），生成约 44 MB 的 `build/下班啦-1.1.0-macOS-universal.dmg`。映像 CRC 校验通过；只读挂载后确认应用签名有效、可执行文件包含两种架构、Applications 符号链接指向 `/Applications`，含中文安装说明，验证后已卸载映像。此包使用 ad-hoc 本地签名，未 Developer ID 签名或公证；未改动系统已安装应用。
+
+耳机动画更新：五张透明 PNG 图集新增 30 帧，全部 **180 帧**加载通过，并查看实际 SwiftUI 听歌关键帧和导出 `pets-music.gif`。`scripts/validate-pet-clicks.swift` 对实际 NSView 事件处理器注入点击事件，覆盖延迟单击、双击取消单击、拖动不触发切换、移除视图取消待处理点击和非激活首次点击；不替代真实桌面命中区域、窗口拖动的人工验收。
+
+2026-10-13 增量验证：macOS **59 项测试、0 失败**，iOS Simulator 构建通过。新增 5 项自定义图集测试（迁移、网格校验、循环/往返、喝水帧段、形象切换）与 5 项日报测试（1500 ml 和 15/30 分钟边界、文案、打卡冻结、跨日历史、回拨保护和损坏校验）。以下 2026-10-12 表格为上一版本基线。
+
+- `scripts/validate-custom-pets.swift`：PNG 导入、本地副本在源文件移动后仍可用、24 帧读取、草稿清理，以及损坏/超大/缺失文件拒绝，全部通过。
+- `scripts/render-pet-previews.swift`：五种内置伙伴共 150 帧加载成功，查看喝水关键帧并导出 GIF。
+- `scripts/render-report-preview.swift`：临时空间中 13 天记录重新加载一致，6 个图标加载成功，损坏存储保留原数据；预览使用合成数据，不改用户实际记录。
+- 新的 macOS 文件权限仅为用户选定文件只读，用于 PNG 导入。普通构建不注入测试权限。
+- 真实双击/拖动、文件选择器、日历点击与 iOS 真机交互仍需人工验收；离屏预览不等于桌面交互已验证。
+
 2026-10-12（Asia/Shanghai）；Xcode 26.5（17F42）、Apple Silicon、Swift 6.3.2，源码语言模式 Swift 5。
 
 ## 实际执行

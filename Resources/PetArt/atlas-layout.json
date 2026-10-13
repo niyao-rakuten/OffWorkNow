@@ -413,5 +413,125 @@
       ],
       "baseline": 942
     }
+  ],
+  "cat-music": [
+    {
+      "top": 0,
+      "bottom": 512,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 471
+    },
+    {
+      "top": 512,
+      "bottom": 1024,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 960
+    }
+  ],
+  "dog-music": [
+    {
+      "top": 0,
+      "bottom": 512,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 470
+    },
+    {
+      "top": 512,
+      "bottom": 1024,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 963
+    }
+  ],
+  "worker-music": [
+    {
+      "top": 0,
+      "bottom": 512,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 488
+    },
+    {
+      "top": 512,
+      "bottom": 1024,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 985
+    }
+  ],
+  "goldfish-music": [
+    {
+      "top": 0,
+      "bottom": 512,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 461
+    },
+    {
+      "top": 512,
+      "bottom": 1024,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 940
+    }
+  ],
+  "fox-music": [
+    {
+      "top": 0,
+      "bottom": 512,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 460
+    },
+    {
+      "top": 512,
+      "bottom": 1024,
+      "columns": [
+        0,
+        512,
+        1024,
+        1536
+      ],
+      "baseline": 947
+    }
   ]
 }

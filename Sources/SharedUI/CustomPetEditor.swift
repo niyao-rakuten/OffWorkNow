@@ -60,6 +60,7 @@ struct CustomPetEditor: View {
             case .success(let url):
                 busy = true; issue = nil
                 importTask = Task {
+                    defer { busy = false }
                     do {
                         let value = try await Task.detached(priority: .userInitiated) { try CustomPetLibrary.importPNG(url) }.value
                         guard !Task.isCancelled else {
@@ -69,7 +70,6 @@ struct CustomPetEditor: View {
                         onImport(value.assetID)
                         settings.customPet = value; settings.petKind = .custom
                     } catch { issue = error.localizedDescription }
-                    busy = false
                 }
             case .failure(let error): issue = error.localizedDescription
             }

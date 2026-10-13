@@ -8,13 +8,14 @@ struct PetAvatar: View {
     var animate = true
     var custom: CustomPetConfiguration? = nil
     var drinkTrigger = 0
+    var animationTrigger = 0
     var body: some View {
         Group {
             if kind == .custom {
-                if let custom { CustomPetAvatar(config: custom, animate: animate, drinkTrigger: drinkTrigger) }
+                if let custom { CustomPetAvatar(config: custom, animate: animate, drinkTrigger: drinkTrigger, animationTrigger: animationTrigger) }
                 else { Text("请先导入动画").font(.caption).foregroundStyle(.secondary) }
             } else {
-                BuiltinPetAvatar(kind: kind, celebrating: celebrating, tired: tired, animate: animate, drinkTrigger: drinkTrigger)
+                BuiltinPetAvatar(kind: kind, celebrating: celebrating, tired: tired, animate: animate, drinkTrigger: drinkTrigger, animationTrigger: animationTrigger)
             }
         }.id(kind).aspectRatio(1, contentMode: .fit)
     }
@@ -24,6 +25,7 @@ struct CustomPetAvatar: View {
     let config: CustomPetConfiguration
     var animate = true
     var drinkTrigger = 0
+    var animationTrigger = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var started = ProcessInfo.processInfo.systemUptime
     @State private var drinkingStarted: Double?
@@ -41,6 +43,12 @@ struct CustomPetAvatar: View {
         .aspectRatio(1, contentMode: .fit).accessibilityLabel(config.name)
         .onChange(of: config) { _ in started = ProcessInfo.processInfo.systemUptime; drinkingStarted = nil }
         .onChange(of: drinkTrigger) { _ in drinkingStarted = playing ? ProcessInfo.processInfo.systemUptime : nil }
+        .onChange(of: animationTrigger) { _ in
+            let now = ProcessInfo.processInfo.systemUptime
+            let drinking = drinkingStarted.map { now - $0 < Double(config.drinkingFrames?.count ?? 0) / Double(max(1, config.framesPerSecond)) } ?? false
+            drinkingStarted = playing && config.drinkingFrames != nil && !drinking ? now : nil
+            started = now
+        }
         .onChange(of: playing) { _ in started = ProcessInfo.processInfo.systemUptime; drinkingStarted = nil }
     }
     private func index(at now: Double) -> Int {
@@ -53,22 +61,29 @@ struct CustomPetAvatar: View {
     }
 }
 
-/// Six authored frames per action, four actions per pet. Only the active pet is decoded.
+/// Six authored frames per action: four base actions, drinking, and headphone music.
 struct BuiltinPetAvatar: View {
     let kind: PetKind
     var celebrating = false
     var tired = false
     var animate = true
     var drinkTrigger = 0
+    var animationTrigger = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var requestedDrink = 0
     @State private var handledDrink = 0
+    @State private var requestedAnimation = 0
+    @State private var handledAnimation = 0
     @State private var action = 0
     @State private var started = ProcessInfo.processInfo.systemUptime
 
     private var playing: Bool { animate && !reduceMotion }
-    private var playbackID: String { "\(kind.rawValue)-\(celebrating)-\(tired)-\(playing)-\(requestedDrink)" }
-    private var frameDuration: Double { action == 4 ? 0.26 : action == 1 && kind == .cat ? 0.28 : 0.18 }
+    private var playbackID: String { "\(kind.rawValue)-\(celebrating)-\(tired)-\(playing)-\(requestedDrink)-\(requestedAnimation)" }
+    private var frameDuration: Double {
+        if action == 4 { return 0.26 }
+        if action == 5 { return 0.22 }
+        return action == 1 && kind == .cat ? 0.28 : 0.18
+    }
 
     var body: some View {
         TimelineView(.animation(minimumInterval: frameDuration, paused: !playing)) { _ in
@@ -82,11 +97,17 @@ struct BuiltinPetAvatar: View {
         .aspectRatio(1, contentMode: .fit)
         .accessibilityLabel(kind.title + (celebrating ? "，开心下班" : tired ? "，陪你等下班" : "，桌面伙伴"))
         .onChange(of: drinkTrigger) { requestedDrink = $0 }
+        .onChange(of: animationTrigger) { requestedAnimation = $0 }
         .task(id: playbackID) { await playActions() }
     }
 
     @MainActor private func playActions() async {
-        action = celebrating ? 3 : (tired && kind == .worker ? 1 : 0)
+        if requestedAnimation != handledAnimation {
+            handledAnimation = requestedAnimation
+            action = (action + 1) % 6
+        } else {
+            action = celebrating ? 3 : (tired && kind == .worker ? 1 : 0)
+        }
         started = ProcessInfo.processInfo.systemUptime
         guard playing else { handledDrink = requestedDrink; return }
         if requestedDrink != handledDrink {
@@ -104,10 +125,10 @@ struct BuiltinPetAvatar: View {
             do { try await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000)) }
             catch { return }
             guard !Task.isCancelled else { return }
-            if celebrating { action = action == 3 ? 0 : 3 }
+            if celebrating { action = action == 0 ? [3, 5].randomElement()! : 0 }
             else if action != 0 { action = 0 }
-            else if tired && kind == .worker { action = [1, 1, 2].randomElement()! }
-            else { action = Int.random(in: 1...2) }
+            else if tired && kind == .worker { action = [1, 1, 2, 5].randomElement()! }
+            else { action = [1, 2, 5].randomElement()! }
             started = ProcessInfo.processInfo.systemUptime
         }
     }

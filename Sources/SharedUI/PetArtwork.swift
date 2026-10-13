@@ -7,12 +7,13 @@ import WorkdayCore
     static var resourceDirectory = Bundle.main.resourceURL?.appendingPathComponent("PetArt")
     private static var frames: [String: [CGImage]] = [:]
     private static var controls: [CGImage] = []
+    private static var reportIcons: [CGImage] = []
     enum Control: Int { case cup, clock, checkout, checkedOut }
 
     static func frame(kind: PetKind, row: Int, column: Int) -> CGImage? {
-        guard kind != .custom, (0..<5).contains(row), (0..<6).contains(column) else { return nil }
-        if row == 4 {
-            let key = kind.rawValue + "-drink"
+        guard kind != .custom, (0..<6).contains(row), (0..<6).contains(column) else { return nil }
+        if row == 4 || row == 5 {
+            let key = kind.rawValue + (row == 4 ? "-drink" : "-music")
             if frames[key] == nil { frames[key] = loadPetFrames(key, columns: 3, rowCount: 2) }
             guard let images = frames[key], images.indices.contains(column) else { return nil }
             return images[column]
@@ -27,6 +28,11 @@ import WorkdayCore
         if controls.isEmpty { controls = loadCells("controls", columns: 2, rows: 2).map(trimTransparentMargin) }
         guard controls.indices.contains(control.rawValue) else { return nil }
         return controls[control.rawValue]
+    }
+
+    static func reportIcon(_ index: Int) -> CGImage? {
+        if reportIcons.isEmpty { reportIcons = loadCells("report-ui", columns: 3, rows: 2).map(trimTransparentMargin) }
+        return reportIcons.indices.contains(index) ? reportIcons[index] : nil
     }
 
     private struct AtlasRow: Decodable {
