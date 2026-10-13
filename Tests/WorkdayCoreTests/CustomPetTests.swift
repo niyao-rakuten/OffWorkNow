@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class CustomPetTests: XCTestCase {
+final class CustomPetTests: ChineseLocalizationTestCase {
     private func sample() -> CustomPetConfiguration {
         CustomPetConfiguration(name: "自定义小狐狸", pixelWidth: 1536, pixelHeight: 1024,
                                columns: 6, rows: 4, frameCount: 24, framesPerSecond: 8)

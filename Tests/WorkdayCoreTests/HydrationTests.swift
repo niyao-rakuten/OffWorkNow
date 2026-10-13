@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class HydrationTests: XCTestCase {
+final class HydrationTests: ChineseLocalizationTestCase {
     let helper = CalculationTests()
     func testEachClickCreatesOneCupAndKeepsConfiguredVolume() throws {
         var s = helper.settings(); s.cupVolumeML = 500

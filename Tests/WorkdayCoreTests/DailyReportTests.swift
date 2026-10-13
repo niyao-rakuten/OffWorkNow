@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class DailyReportTests: XCTestCase {
+final class DailyReportTests: ChineseLocalizationTestCase {
     let helper = CalculationTests()
     func report(_ time: String = "18:00:00", water: Int = 1500) -> DailyReport {
         DailyReport.snapshot(now: helper.date("2026-10-12 " + time), settings: helper.settings(), checkout: nil, hydration: HydrationSummary(cups: 3, totalML: water))

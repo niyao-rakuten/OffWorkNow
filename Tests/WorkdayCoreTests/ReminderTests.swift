@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class ReminderTests: XCTestCase {
+final class ReminderTests: ChineseLocalizationTestCase {
     let helper = CalculationTests()
     func testStartupHourlyBoundaries() {
         let s = helper.settings(); let ledger = ReminderLedger()

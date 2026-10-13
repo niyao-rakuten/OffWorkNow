@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class CalculationTests: XCTestCase {
+final class CalculationTests: ChineseLocalizationTestCase {
     func settings() -> WorkSettings { var s = WorkSettings(); s.timeZoneID = "Asia/Shanghai"; s.monthlySalary = 21750; s.overtimeEnabled = false; return s }
     func date(_ text: String, zone: String = "Asia/Shanghai") -> Date {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.timeZone = TimeZone(identifier: zone); f.dateFormat = "yyyy-MM-dd HH:mm:ss"; return f.date(from: text)!

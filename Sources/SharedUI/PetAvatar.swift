@@ -2,6 +2,7 @@ import SwiftUI
 import WorkdayCore
 
 struct PetAvatar: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let kind: PetKind
     var celebrating = false
     var tired = false
@@ -13,7 +14,7 @@ struct PetAvatar: View {
         Group {
             if kind == .custom {
                 if let custom { CustomPetAvatar(config: custom, animate: animate, drinkTrigger: drinkTrigger, animationTrigger: animationTrigger) }
-                else { Text("请先导入动画").font(.caption).foregroundStyle(.secondary) }
+                else { Text(L10n.text("请先导入动画")).font(.caption).foregroundStyle(.secondary) }
             } else {
                 BuiltinPetAvatar(kind: kind, celebrating: celebrating, tired: tired, animate: animate, drinkTrigger: drinkTrigger, animationTrigger: animationTrigger)
             }
@@ -22,6 +23,7 @@ struct PetAvatar: View {
 }
 
 struct CustomPetAvatar: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let config: CustomPetConfiguration
     var animate = true
     var drinkTrigger = 0
@@ -37,7 +39,7 @@ struct CustomPetAvatar: View {
             if let image = CustomPetFrames.frame(config, index: frame) {
                 Image(decorative: image, scale: 1).resizable().interpolation(.high).scaledToFit()
             } else {
-                Text("图集不可用，请检查设置或重新导入").font(.caption).multilineTextAlignment(.center).foregroundStyle(.secondary)
+                Text(L10n.text("图集不可用，请检查设置或重新导入")).font(.caption).multilineTextAlignment(.center).foregroundStyle(.secondary)
             }
         }
         .aspectRatio(1, contentMode: .fit).accessibilityLabel(config.name)
@@ -63,6 +65,7 @@ struct CustomPetAvatar: View {
 
 /// Six authored frames per action: four base actions, drinking, and headphone music.
 struct BuiltinPetAvatar: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let kind: PetKind
     var celebrating = false
     var tired = false
@@ -95,7 +98,7 @@ struct BuiltinPetAvatar: View {
                         y: kind == .goldfish && playing ? sin(ProcessInfo.processInfo.systemUptime * 1.1) * 3 : 0)
         }
         .aspectRatio(1, contentMode: .fit)
-        .accessibilityLabel(kind.title + (celebrating ? "，开心下班" : tired ? "，陪你等下班" : "，桌面伙伴"))
+        .accessibilityLabel(kind.title + (celebrating ? L10n.text("，开心下班") : tired ? L10n.text("，陪你等下班") : L10n.text("，桌面伙伴")))
         .onChange(of: drinkTrigger) { requestedDrink = $0 }
         .onChange(of: animationTrigger) { requestedAnimation = $0 }
         .task(id: playbackID) { await playActions() }
@@ -136,6 +139,7 @@ struct BuiltinPetAvatar: View {
 
 /// Also used by the offscreen preview tool to inspect individual authored frames.
 struct PetSprite: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let kind: PetKind
     var row = 0
     var frame = 0

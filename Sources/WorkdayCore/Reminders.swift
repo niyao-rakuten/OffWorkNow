@@ -85,14 +85,14 @@ public enum ReminderPlanner {
     }
 }
 public enum HealthMessages {
-    public static let messages: [ReminderCategory: [String]] = [
-        .walk: ["站起来走两分钟，活动一下肩背。", "换个姿势，轻轻舒展一下。", "走动一小会儿，再回来继续。", "放松肩膀，起身看看窗外。", "给自己一点活动的时间。", "伸伸懒腰，慢慢走几步。"],
-        .water: ["喝几口水，休息一下再继续。", "拿起水杯，给自己一个小停顿。", "忙碌之余，记得喝口水。", "慢慢喝点水，放松一下。", "让水杯陪你歇一会儿。", "口渴了就喝点水，照顾好自己。"],
-        .eyes: ["看看窗外远处，让眼睛歇一会儿。", "暂时离开屏幕，看看远方。", "轻轻眨眨眼，放松视线。", "把目光移向窗外，休息一下。", "给眼睛一点不看屏幕的时间。", "看看远处的景物，稍作休息。"]
-    ]
+    public static var messages: [ReminderCategory: [String]] { [
+        .walk: [L10n.text("站起来走两分钟，活动一下肩背。"), L10n.text("换个姿势，轻轻舒展一下。"), L10n.text("走动一小会儿，再回来继续。"), L10n.text("放松肩膀，起身看看窗外。"), L10n.text("给自己一点活动的时间。"), L10n.text("伸伸懒腰，慢慢走几步。")],
+        .water: [L10n.text("喝几口水，休息一下再继续。"), L10n.text("拿起水杯，给自己一个小停顿。"), L10n.text("忙碌之余，记得喝口水。"), L10n.text("慢慢喝点水，放松一下。"), L10n.text("让水杯陪你歇一会儿。"), L10n.text("口渴了就喝点水，照顾好自己。")],
+        .eyes: [L10n.text("看看窗外远处，让眼睛歇一会儿。"), L10n.text("暂时离开屏幕，看看远方。"), L10n.text("轻轻眨眨眼，放松视线。"), L10n.text("把目光移向窗外，休息一下。"), L10n.text("给眼睛一点不看屏幕的时间。"), L10n.text("看看远处的景物，稍作休息。")]
+    ] }
     public static func choose(categories: Set<ReminderCategory>, previous: String?, pick: (Int) -> Int = { Int.random(in: 0..<$0) }) -> String {
         let available = ReminderCategory.allCases.filter { categories.contains($0) }
-        guard !available.isEmpty else { return "工作辛苦了，记得适当休息" }
+        guard !available.isEmpty else { return L10n.text("工作辛苦了，记得适当休息") }
         let category = available[pick(available.count)]
         let candidates = messages[category]!.filter { $0 != previous }
         let pool = candidates.isEmpty ? messages[category]! : candidates

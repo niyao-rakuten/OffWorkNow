@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class FlexibleScheduleTests: XCTestCase {
+final class FlexibleScheduleTests: ChineseLocalizationTestCase {
     let helper = CalculationTests()
     func testDefaultNineAndDailyStartChangesOnlyOneDay() throws {
         var s = helper.settings(); let now = helper.date("2026-10-12 10:00:00")

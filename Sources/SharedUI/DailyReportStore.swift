@@ -13,7 +13,7 @@ import WorkdayCore
         self.defaults = defaults
         if let data = defaults.data(forKey: "dailyReportArchive") {
             do { archive = try DailyReportArchive.decode(data) }
-            catch { readable = false; issue = "日报数据无法读取，已保留原始数据，暂不覆盖。" }
+            catch { readable = false; issue = L10n.text("日报数据无法读取，已保留原始数据，暂不覆盖。") }
         }
     }
     func capture(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, hydration: HydrationSummary, force: Bool = false) {
@@ -28,6 +28,6 @@ import WorkdayCore
             let data = try JSONEncoder().encode(next)
             defaults.set(data, forKey: "dailyReportArchive")
             archive = next; issue = nil; lastMinute = minute; lastDay = day
-        } catch { issue = "日报保存失败：" + error.localizedDescription }
+        } catch { issue = L10n.text("日报保存失败：") + error.localizedDescription }
     }
 }

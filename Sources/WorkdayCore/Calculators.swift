@@ -1,7 +1,7 @@
 import Foundation
 
 public enum WorkState: String { case before, working, lunch, after, rest
-    public var title: String { switch self { case .before: return "未上班"; case .working: return "工作中"; case .lunch: return "午休"; case .after: return "已下班"; case .rest: return "休息日" } }
+    public var title: String { switch self { case .before: return L10n.text("未上班"); case .working: return L10n.text("工作中"); case .lunch: return L10n.text("午休"); case .after: return L10n.text("已下班"); case .rest: return L10n.text("休息日") } }
 }
 public struct WorkSnapshot {
     public let dateKey: String
@@ -58,7 +58,7 @@ public enum ScheduleCalculator {
     public static func countdown(_ seconds: TimeInterval, secondsIncluded: Bool = false) -> String {
         if seconds <= 0 { return secondsIncluded ? "00:00:00" : "00:00" }
         if secondsIncluded { let s = Int(ceil(seconds)); return String(format: "%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60) }
-        if seconds < 60 { return "<1分钟" }
+        if seconds < 60 { return L10n.text("<1分钟") }
         let m = Int(ceil(seconds / 60)); return String(format: "%02d:%02d", m / 60, m % 60)
     }
 }
@@ -68,15 +68,15 @@ public enum EarningsCalculator {
         let daily: Decimal
         switch settings.payMode {
         case .customDaily:
-            guard let value = settings.customDaily else { return EarningsSnapshot(daily: nil, earned: nil, reason: "设置自定义日薪后查看今日收入") }; daily = value
+            guard let value = settings.customDaily else { return EarningsSnapshot(daily: nil, earned: nil, reason: L10n.text("设置自定义日薪后查看今日收入")) }; daily = value
         case .fixedDays, .plannedDays:
-            guard let salary = settings.monthlySalary else { return EarningsSnapshot(daily: nil, earned: nil, reason: "设置月薪后查看今日收入") }
+            guard let salary = settings.monthlySalary else { return EarningsSnapshot(daily: nil, earned: nil, reason: L10n.text("设置月薪后查看今日收入")) }
             let divisor = settings.payMode == .fixedDays ? settings.fixedDays : Decimal(ScheduleCalculator.plannedDays(now: now, settings: settings))
-            guard divisor > 0 else { return EarningsSnapshot(daily: nil, earned: nil, reason: "当月计划工作日为 0，请修改工作安排") }
+            guard divisor > 0 else { return EarningsSnapshot(daily: nil, earned: nil, reason: L10n.text("当月计划工作日为 0，请修改工作安排")) }
             daily = salary / divisor
         }
         if work.state == .rest { return EarningsSnapshot(daily: 0, earned: 0, reason: nil) }
-        guard work.totalSeconds > 0 else { return EarningsSnapshot(daily: nil, earned: nil, reason: "当天有效工时为 0（时区时间跳变），请修改安排") }
+        guard work.totalSeconds > 0 else { return EarningsSnapshot(daily: nil, earned: nil, reason: L10n.text("当天有效工时为 0（时区时间跳变），请修改安排")) }
         // Convert absolute durations once; never accumulate rounded money on timer ticks.
         let earned = daily * Decimal(work.workedSeconds) / Decimal(work.totalSeconds)
         return EarningsSnapshot(daily: daily, earned: earned, reason: nil)
@@ -85,14 +85,14 @@ public enum EarningsCalculator {
 public enum DisplayFormatter {
     public static func menu(settings: WorkSettings, work: WorkSnapshot, earnings: EarningsSnapshot) -> String {
         if settings.menuMode == .icon { return "" }
-        if work.state == .rest { return "休息日" }
+        if work.state == .rest { return L10n.text("休息日") }
         if settings.menuMode == .earnings {
-            guard let earned = earnings.earned else { return settings.payMode == .customDaily ? "待设置日薪" : earnings.reason?.contains("为 0") == true ? "无法估算工资" : "待设置月薪" }
-            return "今日 " + (settings.hideEarnings ? "¥••••" : Money.formatted(earned))
+            guard let earned = earnings.earned else { return settings.payMode == .customDaily ? L10n.text("待设置日薪") : settings.monthlySalary != nil ? L10n.text("无法估算工资") : L10n.text("待设置月薪") }
+            return L10n.text("今日 ") + (settings.hideEarnings ? "¥••••" : Money.formatted(earned))
         }
         switch work.state {
         case .before, .after, .rest: return work.state.title
-        case .working, .lunch: return (work.state == .lunch ? "午休 · " : "") + "下班 " + ScheduleCalculator.countdown(work.remaining)
+        case .working, .lunch: return (work.state == .lunch ? L10n.text("午休 · ") : "") + L10n.text("下班 ") + ScheduleCalculator.countdown(work.remaining)
         }
     }
 }

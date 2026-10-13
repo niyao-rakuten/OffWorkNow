@@ -2,7 +2,7 @@ import Foundation
 
 public enum SpritePlayback: String, Codable, CaseIterable, Sendable {
     case loop, pingPong
-    public var title: String { self == .loop ? "顺序循环" : "往返播放" }
+    public var title: String { self == .loop ? L10n.text("顺序循环") : L10n.text("往返播放") }
 }
 
 public struct SpriteFrameRange: Codable, Equatable, Hashable, Sendable {
@@ -51,15 +51,15 @@ public struct CustomPetConfiguration: Codable, Equatable, Hashable, Sendable {
     }
 
     public func validated() throws -> Self {
-        guard (1...4096).contains(pixelWidth), (1...4096).contains(pixelHeight) else { throw ValidationError("图集长宽须为 1–4096 像素") }
-        guard (1...32).contains(columns), (1...32).contains(rows), columns * rows <= 256 else { throw ValidationError("行列须为 1–32，总格数不能超过 256") }
-        guard pixelWidth % columns == 0, pixelHeight % rows == 0 else { throw ValidationError("图片宽度须能整除列数，高度须能整除行数") }
-        guard (1...(columns * rows)).contains(frameCount) else { throw ValidationError("有效帧数须为 1–\(columns * rows)") }
-        guard (1...30).contains(framesPerSecond) else { throw ValidationError("播放速度须为 1–30 帧/秒") }
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, name.count <= 80 else { throw ValidationError("动画名称须为 1–80 个字符") }
+        guard (1...4096).contains(pixelWidth), (1...4096).contains(pixelHeight) else { throw ValidationError(L10n.text("图集长宽须为 1–4096 像素")) }
+        guard (1...32).contains(columns), (1...32).contains(rows), columns * rows <= 256 else { throw ValidationError(L10n.text("行列须为 1–32，总格数不能超过 256")) }
+        guard pixelWidth % columns == 0, pixelHeight % rows == 0 else { throw ValidationError(L10n.text("图片宽度须能整除列数，高度须能整除行数")) }
+        guard (1...(columns * rows)).contains(frameCount) else { throw ValidationError(L10n.format("有效帧数须为 1–{0}", String(describing: columns * rows))) }
+        guard (1...30).contains(framesPerSecond) else { throw ValidationError(L10n.text("播放速度须为 1–30 帧/秒")) }
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, name.count <= 80 else { throw ValidationError(L10n.text("动画名称须为 1–80 个字符")) }
         if let drinkingFrames {
             guard drinkingFrames.first >= 1, drinkingFrames.last >= drinkingFrames.first,
-                  drinkingFrames.last <= columns * rows else { throw ValidationError("喝水动作起止帧须在图集格数范围内（从第 1 帧开始）") }
+                  drinkingFrames.last <= columns * rows else { throw ValidationError(L10n.text("喝水动作起止帧须在图集格数范围内（从第 1 帧开始）")) }
         }
         return self
     }

@@ -40,12 +40,12 @@ enum CustomPetLibrary {
         defer { try? handle.close() }
         let limit = 32 * 1024 * 1024
         guard let data = try handle.read(upToCount: limit + 1), !data.isEmpty, data.count <= limit else {
-            throw ValidationError("请选择不超过 32 MB 的 PNG 图集")
+            throw ValidationError(L10n.text("请选择不超过 32 MB 的 PNG 图集"))
         }
         let dimensions = try inspect(data)
         let name = String(url.deletingPathExtension().lastPathComponent.prefix(80))
         // A single frame is safe by default; do not guess how the user's sheet is arranged.
-        var value = CustomPetConfiguration(name: name.isEmpty ? "我的伙伴" : name,
+        var value = CustomPetConfiguration(name: name.isEmpty ? L10n.text("我的伙伴") : name,
                                            pixelWidth: dimensions.0, pixelHeight: dimensions.1)
         value.automaticFrameCount = true
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -62,7 +62,7 @@ enum CustomPetLibrary {
               let height = properties[kCGImagePropertyPixelHeight] as? Int,
               (1...4096).contains(width), (1...4096).contains(height),
               CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCache: false] as CFDictionary) != nil else {
-            throw ValidationError("需要有效的静态 PNG 图集，长宽不超过 4096 像素；不支持 APNG/GIF 动图")
+            throw ValidationError(L10n.text("需要有效的静态 PNG 图集，长宽不超过 4096 像素；不支持 APNG/GIF 动图"))
         }
         return (width, height)
     }
@@ -70,10 +70,10 @@ enum CustomPetLibrary {
     static func validateFile(_ value: CustomPetConfiguration) throws {
         _ = try value.validated()
         guard let data = try? Data(contentsOf: url(for: value.assetID)), data.count <= 32 * 1024 * 1024 else {
-            throw ValidationError("自定义图集已丢失，请重新导入")
+            throw ValidationError(L10n.text("自定义图集已丢失，请重新导入"))
         }
         let size = try inspect(data)
-        guard size.0 == value.pixelWidth, size.1 == value.pixelHeight else { throw ValidationError("图集尺寸已改变，请重新导入") }
+        guard size.0 == value.pixelWidth, size.1 == value.pixelHeight else { throw ValidationError(L10n.text("图集尺寸已改变，请重新导入")) }
     }
 
     static func discard(_ ids: Set<UUID>, keeping: UUID?) {

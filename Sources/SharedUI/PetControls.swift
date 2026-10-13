@@ -1,7 +1,9 @@
 import SwiftUI
+import WorkdayCore
 
 /// Compact illustrated controls; live text keeps time, counts and accessibility accurate.
 struct PetControls: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let time: String
     let timeDescription: String
     let cups: Int
@@ -26,10 +28,10 @@ struct PetControls: View {
                 }
                 .frame(width: 66, height: 36).contentShape(Capsule())
             }
-            .accessibilityLabel("喝一杯水，\(cupVolume)毫升")
-            .accessibilityValue("今天\(cups)杯，共\(totalML)毫升")
-            .help("喝一杯 +\(cupVolume) ml · 今天共 \(totalML) ml")
-            .contextMenu { Button("撤销上一杯", action: undoDrink).disabled(cups == 0) }
+            .accessibilityLabel(L10n.format("喝一杯水，{0}毫升", String(describing: cupVolume)))
+            .accessibilityValue(L10n.format("今天{0}杯，共{1}毫升", String(describing: cups), String(describing: totalML)))
+            .help(L10n.format("喝一杯 +{0} ml · 今天共 {1} ml", String(describing: cupVolume), String(describing: totalML)))
+            .contextMenu { Button(L10n.text("撤销上一杯"), action: undoDrink).disabled(cups == 0) }
 
             Button(action: openSettings) {
                 Text(time)
@@ -40,8 +42,8 @@ struct PetControls: View {
                     .contentShape(Capsule())
             }
             .accessibilityLabel(timeDescription)
-            .accessibilityHint("打开时间与提醒设置")
-            .help(timeDescription + " · 点击设置")
+            .accessibilityHint(L10n.text("打开时间与提醒设置"))
+            .help(timeDescription + L10n.text(" · 点击设置"))
         }
         .buttonStyle(PetPressStyle())
     }
@@ -49,13 +51,14 @@ struct PetControls: View {
 
 /// Reserve the same footer height while hidden so the pet does not move at clock-out time.
 struct PetCheckoutButton: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let visible: Bool
     let checkout: () -> Void
     var body: some View {
         ZStack {
             if visible {
                 Button(action: checkout) {
-                    Text("打卡下班")
+                    Text(L10n.text("打卡下班"))
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(Color(red: 0.29, green: 0.20, blue: 0.14))
                         .padding(.leading, 10)
@@ -64,8 +67,8 @@ struct PetCheckoutButton: View {
                         .contentShape(Capsule())
                 }
                 .buttonStyle(PetPressStyle())
-                .accessibilityHint("记录今天下班并停止当天提醒")
-                .help("打卡下班，停止今天的提醒")
+                .accessibilityHint(L10n.text("记录今天下班并停止当天提醒"))
+                .help(L10n.text("打卡下班，停止今天的提醒"))
             }
         }.frame(width: 111, height: 36)
     }

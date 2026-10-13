@@ -1,7 +1,7 @@
 import XCTest
 @testable import WorkdayCore
 
-final class OvertimeTests: XCTestCase {
+final class OvertimeTests: ChineseLocalizationTestCase {
     let helper = CalculationTests()
     func settings() -> WorkSettings { var s = helper.settings(); s.overtimeEnabled = true; return s }
     func snapshot(_ time: String, checkout: CheckoutRecord? = nil) -> CheckoutSnapshot {

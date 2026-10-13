@@ -4,6 +4,10 @@ English | [简体中文](README.zh-CN.md)
 
 A little companion for counting down to the end of your workday, drinking water, and clocking out. macOS includes a menu bar utility and a persistent desktop pet; iOS includes an in-app companion and countdown. Both platforms share `WorkdayCore` for schedules, `Decimal` earnings estimates, clock-out records, overtime calculations, and hydration tracking. No third-party runtime dependencies, accounts, or network requests.
 
+## App language
+
+Both macOS and iOS support English and Simplified Chinese. On macOS, open Settings → General → Language; on iOS, open Settings → Language. Choose Follow System, 简体中文, or English. The choice is saved immediately and updates open views without restarting, independently of other settings drafts. Other system languages fall back to English. Salary remains denominated in CNY; the optional Chinese spoken-time feature still uses a Chinese voice.
+
 ## What's available
 
 The single-frame custom animation issue is fixed: after you configure the grid of an imported sprite sheet, the app automatically calculates the regular animation frame count and reserves drinking frames separately. Existing configurations with only one frame show an explanation and a one-click correction; save to apply it. Turn off automatic mode to set the frame count manually.

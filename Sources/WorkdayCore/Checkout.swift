@@ -25,7 +25,7 @@ public enum OvertimeCalculator {
     public static func reminderInterval(settings: WorkSettings) -> TimeInterval { TimeInterval(settings.overtimeIntervalMinutes) * 60 }
     public static func parseInterval(_ input: String) throws -> Int {
         let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text.range(of: #"^[0-9]+$"#, options: .regularExpression) != nil, let value = Int(text), (1...240).contains(value) else { throw ValidationError("加班提示间隔须为 1–240 分钟的整数") }
+        guard text.range(of: #"^[0-9]+$"#, options: .regularExpression) != nil, let value = Int(text), (1...240).contains(value) else { throw ValidationError(L10n.text("加班提示间隔须为 1–240 分钟的整数")) }
         return value
     }
     public static func snapshot(now: Date, settings: WorkSettings, work: WorkSnapshot, checkout: CheckoutRecord?) -> CheckoutSnapshot {
@@ -41,7 +41,7 @@ public enum OvertimeCalculator {
     public static func message(seconds: TimeInterval, intervalMinutes: Int = 5) -> String {
         let step = max(1, Int(seconds / (TimeInterval(max(1, intervalMinutes)) * 60)))
         let time = duration(seconds)
-        return step.isMultiple(of: 2) ? "已经加班\(time)！不要再当牛马了，快点下班" : "你怎么又在加班？已经加班\(time)了"
+        return step.isMultiple(of: 2) ? L10n.format("已经加班{0}！不要再当牛马了，快点下班", String(describing: time)) : L10n.format("你怎么又在加班？已经加班{0}了", String(describing: time))
     }
     public static func next(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, ledger: ReminderLedger) -> ReminderEvent? {
         guard settings.overtimeEnabled, !(checkout?.applies(now: now, settings: settings) ?? false) else { return nil }

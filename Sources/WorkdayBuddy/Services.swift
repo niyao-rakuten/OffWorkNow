@@ -13,7 +13,7 @@ import WorkdayCore
         self.defaults = defaults
         if let data = defaults.data(forKey: "settings") {
             do { settings = try SettingsCodec.decode(data) }
-            catch { settings = WorkSettings(); recoveryMessage = "本地配置损坏或版本不支持，已恢复默认设置。"; defaults.removeObject(forKey: "settings") }
+            catch { settings = WorkSettings(); recoveryMessage = L10n.text("本地配置损坏或版本不支持，已恢复默认设置。"); defaults.removeObject(forKey: "settings") }
         } else { settings = WorkSettings() }
         // Persist the initial timezone immediately; travel must not silently change it.
         if let data = try? JSONEncoder().encode(settings) { defaults.set(data, forKey: "settings") }
@@ -61,13 +61,13 @@ import WorkdayCore
     private let center = UNUserNotificationCenter.current()
     override init() { super.init(); center.delegate = self; refresh() }
     var statusText: String {
-        switch status { case .authorized, .provisional: return "通知已开启（可见性由系统控制）"; case .denied: return "通知未开启"; case .notDetermined: return "尚未授权通知"; @unknown default: return "通知状态未知" }
+        switch status { case .authorized, .provisional: return L10n.text("通知已开启（可见性由系统控制）"); case .denied: return L10n.text("通知未开启"); case .notDetermined: return L10n.text("尚未授权通知"); @unknown default: return L10n.text("通知状态未知") }
     }
     var authorized: Bool { status == .authorized || status == .provisional }
     func refresh() { Task { let value = await center.notificationSettings(); status = value.authorizationStatus } }
     func request() {
         guard status == .notDetermined else { openSystemSettings(); return }
-        Task { do { _ = try await center.requestAuthorization(options: [.alert, .sound]); refresh() } catch { issue = "无法请求通知权限：\(error.localizedDescription)" } }
+        Task { do { _ = try await center.requestAuthorization(options: [.alert, .sound]); refresh() } catch { issue = L10n.format("无法请求通知权限：{0}", String(describing: error.localizedDescription)) } }
     }
     func openSystemSettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") { NSWorkspace.shared.open(url) }
@@ -79,7 +79,7 @@ import WorkdayCore
         let content = UNMutableNotificationContent(); content.title = title; content.body = body
         if sound { content.sound = .default }
         do { try await center.add(UNNotificationRequest(identifier: id, content: content, trigger: nil)); return "submitted" }
-        catch { issue = "通知发送失败：\(error.localizedDescription)"; return "failed" }
+        catch { issue = L10n.format("通知发送失败：{0}", String(describing: error.localizedDescription)); return "failed" }
     }
     func clearPending() { center.removeAllPendingNotificationRequests() }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .sound]) }
@@ -89,7 +89,7 @@ import WorkdayCore
     @Published var sessionSafe = false
     private let synth = AVSpeechSynthesizer()
     var chineseVoice: AVSpeechSynthesisVoice? { AVSpeechSynthesisVoice.speechVoices().first { $0.language.hasPrefix("zh") } }
-    var statusText: String { chineseVoice == nil ? "无可用中文语音，已静默降级" : !sessionSafe ? "设备锁定、睡眠或无法确认会话，语音暂停" : "系统中文语音可用" }
+    var statusText: String { chineseVoice == nil ? L10n.text("无可用中文语音，已静默降级") : !sessionSafe ? L10n.text("设备锁定、睡眠或无法确认会话，语音暂停") : L10n.text("系统中文语音可用") }
     func refreshSession() {
         // Read-only public Quartz session information; unknown state always suppresses speech.
         guard let session = CGSessionCopyCurrentDictionary() as? [String: Any],
@@ -113,12 +113,12 @@ import WorkdayCore
     @Published var issue: String?
     var enabled: Bool { status == .enabled || status == .requiresApproval }
     var statusText: String {
-        switch status { case .enabled: return "已注册开机启动"; case .requiresApproval: return "需要在系统设置中允许"; case .notRegistered: return "未开启开机启动"; case .notFound: return "服务未找到，请使用固定路径的 .app"; @unknown default: return "未知注册状态" }
+        switch status { case .enabled: return L10n.text("已注册开机启动"); case .requiresApproval: return L10n.text("需要在系统设置中允许"); case .notRegistered: return L10n.text("未开启开机启动"); case .notFound: return L10n.text("服务未找到，请使用固定路径的 .app"); @unknown default: return L10n.text("未知注册状态") }
     }
     func refresh() { status = SMAppService.mainApp.status }
     func setEnabled(_ enabled: Bool) throws {
         do { if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }; refresh(); issue = nil }
-        catch { refresh(); issue = "开机启动失败：\(error.localizedDescription)"; throw ValidationError(issue!) }
+        catch { refresh(); issue = L10n.format("开机启动失败：{0}", String(describing: error.localizedDescription)); throw ValidationError(issue!) }
     }
     func openSettings() { SMAppService.openSystemSettingsLoginItems() }
 }
@@ -189,21 +189,21 @@ import WorkdayCore
         timer.tolerance = 0.2; self.timer = timer; RunLoop.main.add(timer, forMode: .common)
     }
     private func content(_ event: ReminderEvent) -> (String, String) {
-        if event.kind == .offwork { return ("下班啦", "下班时间到啦！点击“打卡下班”，今天辛苦了。") }
+        if event.kind == .offwork { return (L10n.text("下班啦"), L10n.text("下班时间到啦！点击“打卡下班”，今天辛苦了。")) }
         if event.kind == .overtime {
             let work = ScheduleCalculator.snapshot(now: event.date, settings: settings)
             let message = OvertimeCalculator.message(seconds: event.date.timeIntervalSince(work.end), intervalMinutes: settings.overtimeIntervalMinutes)
             overtimeMessage = message
             overtimeMessageDate = work.dateKey
-            return ("加班提醒 · 下班啦", message)
+            return (L10n.text("加班提醒 · 下班啦"), message)
         }
         let text = HealthMessages.choose(categories: settings.categories, previous: ledger.lastMessage)
         ledger.lastMessage = text
         let hour = settings.calendar.component(.hour, from: event.date)
         let remaining = ScheduleCalculator.snapshot(now: event.date, settings: settings).remaining
         let minutes = Int(ceil(remaining / 60))
-        let duration = minutes >= 60 ? "\(minutes / 60) 小时" + (minutes % 60 > 0 ? " \(minutes % 60) 分钟" : "") : "\(minutes) 分钟"
-        return (String(format: "现在是 %02d:00", hour), text + "距离下班还有 \(duration)。")
+        let duration = minutes >= 60 ? L10n.format("{0} 小时", String(describing: minutes / 60)) + (minutes % 60 > 0 ? L10n.format(" {0} 分钟", String(describing: minutes % 60)) : "") : L10n.format("{0} 分钟", String(describing: minutes))
+        return (String(format: L10n.text("现在是 %02d:00"), hour), text + L10n.format("距离下班还有 {0}。", String(describing: duration)))
     }
     private func deliver(_ event: ReminderEvent) {
         guard ledger.records[event.id] == nil else { return }
@@ -223,9 +223,9 @@ import WorkdayCore
         }
     }
     func test(settings testSettings: WorkSettings) {
-        var text = "工作辛苦了，记得适当休息"
+        var text = L10n.text("工作辛苦了，记得适当休息")
         if testSettings.hourlyEnabled { text = HealthMessages.choose(categories: testSettings.categories, previous: nil) }
-        if testSettings.speechEnabled { _ = speech.speak("测试提醒。" + text) }
-        Task { _ = await notifications.send(id: "test.\(UUID().uuidString)", title: "测试提醒", body: text, sound: testSettings.notificationSound) }
+        if testSettings.speechEnabled { _ = speech.speak(L10n.text("测试提醒。") + text) }
+        Task { _ = await notifications.send(id: "test.\(UUID().uuidString)", title: L10n.text("测试提醒"), body: text, sound: testSettings.notificationSound) }
     }
 }
