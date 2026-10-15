@@ -20,6 +20,11 @@ import WorkdayCore
     let checkoutStore = CheckoutStore()
     let hydrationStore = HydrationStore()
     let reports = DailyReportStore()
+    let assistant = AssistantStore()
+    @Published var chatVisible = false {
+        didSet { assistant.setPanelVisible(chatVisible) }
+    }
+    @Published var selectedSettingsTab = "schedule"
     @Published var waterIssue: String?
     @Published var animationsActive = true
     @Published private(set) var drinkAnimationID = 0
@@ -36,6 +41,9 @@ import WorkdayCore
         work = initialWork
         earnings = EarningsCalculator.calculate(now: clock.now, settings: store.settings, work: initialWork)
         reminders = ReminderCoordinator(notifications: notifications, speech: speech, clock: clock)
+        reminders.onMessage = { [weak self] title, body in
+            self?.assistant.receive(title + "\n" + body)
+        }
     }
     func refresh(forceReport: Bool = false) {
         now = clock.now; work = ScheduleCalculator.snapshot(now: now, settings: settings)
@@ -79,8 +87,25 @@ import WorkdayCore
         refresh(); guard checkout.canCheckout else { return }
         checkoutStore.checkout(now: now, settings: settings)
         reminders.configure(settings, checkout: checkoutStore.record); refresh(forceReport: true)
+        chatVisible = true
+        let report = DailyReport.snapshot(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration)
+        assistant.generateDailyReport(report, hideEarnings: settings.hideEarnings)
     }
     func undoCheckout() { checkoutStore.undo(); reminders.configure(settings); refresh(forceReport: true) }
+    #if DEBUG
+    func debugClearData(on date: Date) throws {
+        guard !assistant.isStreaming else { throw ValidationError("请先停止 AI 回复，再清除数据。") }
+        let key = ScheduleCalculator.key(date, calendar: settings.calendar)
+        try reports.debugClear(dateKey: key, timeZoneID: settings.timeZoneID)
+        try assistant.debugClear(dateKey: key, calendar: settings.calendar)
+        checkoutStore.debugClear(dateKey: key, timeZoneID: settings.timeZoneID)
+        hydrationStore.debugClear(dateKey: key, timeZoneID: settings.timeZoneID)
+        reminders.debugClear(dateKey: key, timeZoneID: settings.timeZoneID)
+        reminders.configure(settings, checkout: checkoutStore.record)
+        waterIssue = nil
+        refresh()
+    }
+    #endif
     var statusTitle: String { checkout.isCheckedOut ? L10n.text("已打卡下班") : checkout.isOvertime ? L10n.text("加班中") : work.state.title }
     func amount(_ value: Decimal?) -> String { settings.hideEarnings ? "¥••••" : value.map(Money.formatted) ?? "—" }
     var menuTitle: String {
@@ -108,6 +133,9 @@ import WorkdayCore
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
     private var subscription: AnyCancellable?
     private var languageSubscription: AnyCancellable?
+    private var chatSubscription: AnyCancellable?
+    private var chatWindowExpanded = false
+    private var chatCloseTask: Task<Void, Never>?
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         model = AppModel()
@@ -131,13 +159,36 @@ import WorkdayCore
         popover.contentSize = NSSize(width: 360, height: 660)
         popover.contentViewController = NSHostingController(rootView: AppLanguageView { MenuPanelView(model: self.model, openReports: { [weak self] in self?.showReports() }, openSettings: { [weak self] in self?.showSettings() }) })
         subscription = model.objectWillChange.sink { [weak self] _ in
-            DispatchQueue.main.async { self?.updateTitle() }
+            DispatchQueue.main.async { self?.updateTitle(); self?.resizePetWindow() }
         }
         settingsSubscription = model.store.$settings.dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { self?.syncPetWindow(); self?.refreshDisplay() }
         }
         model.reminders.configure(model.settings, checkout: model.checkoutStore.record, startup: true)
         syncPetWindow()
+        chatSubscription = model.$chatVisible.dropFirst().sink { [weak self] visible in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.chatCloseTask?.cancel()
+                if visible {
+                    self.chatWindowExpanded = true
+                    self.popover.performClose(nil)
+                    self.syncPetWindow()
+                    self.resizePetWindow()
+                    self.petWindow?.orderFrontRegardless()
+                } else {
+                    // Keep the panel wide until SwiftUI finishes fading the chat out.
+                    self.chatCloseTask = Task { @MainActor [weak self] in
+                        do { try await Task.sleep(nanoseconds: 220_000_000) }
+                        catch { return }
+                        guard let self, !self.model.chatVisible else { return }
+                        self.chatWindowExpanded = false
+                        self.resizePetWindow()
+                        self.syncPetWindow()
+                    }
+                }
+            }
+        }
         model.refresh(forceReport: true)
         showReports()
         watch(NSWorkspace.shared.notificationCenter, NSWorkspace.willSleepNotification) { [weak self] in self?.displayTimer?.invalidate(); self?.model.animationsActive = false; self?.model.reminders.suspend() }
@@ -177,6 +228,10 @@ import WorkdayCore
         refreshDisplay()
     }
     func popoverDidClose(_ notification: Notification) { refreshDisplay() }
+    func showAssistantSettings() {
+        model.selectedSettingsTab = "assistant"
+        showSettings()
+    }
     func showSettings() {
         popover.performClose(nil)
         if let settingsWindow { NSApp.activate(ignoringOtherApps: true); settingsWindow.makeKeyAndOrderFront(nil); return }
@@ -188,13 +243,13 @@ import WorkdayCore
         settingsWindow = window; window.center(); NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
     }
     private func syncPetWindow() {
-        guard model.settings.petEnabled else { petWindow?.orderOut(nil); return }
+        guard model.settings.petEnabled || model.chatVisible || chatWindowExpanded else { petWindow?.orderOut(nil); return }
         if petWindow == nil {
-            let panel = DesktopPetPanel(contentRect: NSRect(x: 0, y: 0, width: 240, height: 290), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+            let panel = DesktopPetPanel(contentRect: NSRect(x: 0, y: 0, width: 240, height: 330), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             panel.backgroundColor = .clear; panel.isOpaque = false; panel.hasShadow = false
             panel.isMovableByWindowBackground = true; panel.hidesOnDeactivate = false
             panel.isReleasedWhenClosed = false; panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            panel.contentViewController = NSHostingController(rootView: AppLanguageView { DesktopPetView(model: self.model, openSettings: { [weak self] in self?.showSettings() }) })
+            panel.contentViewController = NSHostingController(rootView: AppLanguageView { DesktopPetView(model: self.model, openSettings: { [weak self] in self?.showSettings() }, openAssistantSettings: { [weak self] in self?.showAssistantSettings() }) })
             if !panel.setFrameUsingName("DesktopPet") {
                 let area = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
                 panel.setFrameOrigin(NSPoint(x: area.maxX - 260, y: area.minY + 24))
@@ -203,11 +258,22 @@ import WorkdayCore
                 let area = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
                 panel.setFrameOrigin(NSPoint(x: area.maxX - 260, y: area.minY + 24))
             }
-            panel.setContentSize(NSSize(width: 240, height: 290))
+            panel.setContentSize(NSSize(width: 240, height: 330))
             panel.setFrameAutosaveName("DesktopPet"); petWindow = panel
         }
         petWindow?.level = model.settings.petAlwaysOnTop ? .floating : .normal
         petWindow?.orderFrontRegardless()
+    }
+    private func resizePetWindow() {
+        guard let panel = petWindow else { return }
+        let size = NSSize(width: model.chatVisible || chatWindowExpanded ? 600 : 240, height: 330)
+        guard panel.frame.size != size else { return }
+        var frame = panel.frame
+        frame.size = size
+        if let area = panel.screen?.visibleFrame {
+            frame.origin.x = min(max(frame.minX, area.minX), area.maxX - size.width)
+        }
+        panel.setFrame(frame, display: true)
     }
     func showReports() {
         popover.performClose(nil)
@@ -226,6 +292,7 @@ import WorkdayCore
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
     func applicationWillTerminate(_ notification: Notification) {
+        chatCloseTask?.cancel()
         model.refresh(forceReport: true)
         displayTimer?.invalidate(); petWindow?.saveFrame(usingName: "DesktopPet"); model.reminders.stop()
         for (center, token) in observers { center.removeObserver(token) }

@@ -37,6 +37,11 @@ public enum L10n {
     public static func text(_ key: String, language: AppLanguage? = nil) -> String {
         catalogs[(language ?? selection).resolved().rawValue]?[key] ?? key
     }
+    /// Recover a catalog key for a selected canned message without choosing a new message.
+    public static func sourceKey(for text: String) -> String {
+        if catalogs["zh-Hans"]?[text] != nil { return text }
+        return catalogs["en"]?.first(where: { $0.value == text })?.key ?? text
+    }
     public static func format(_ key: String, _ arguments: String..., language: AppLanguage? = nil) -> String {
         // Substitute once, so user-provided text resembling a placeholder stays intact.
         let template = text(key, language: language)

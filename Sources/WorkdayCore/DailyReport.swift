@@ -19,6 +19,40 @@ public struct DailyReport: Codable, Equatable, Identifiable {
     public var overtimeSeconds: TimeInterval
     public var checkedOutAt: Date?
     public var id: String { timeZoneID + "/" + dateKey }
+    public func assistantSummary(hideEarnings: Bool, language: AppLanguage? = nil) -> String {
+        var lines = [waterML < 1500
+            ? L10n.text("今天喝水有点少哦，要多喝水才能促进代谢，身体才能棒棒～", language: language)
+            : L10n.format("今天喝了{0}ml水，乖乖喝水的宝宝最棒了！", String(waterML), language: language)]
+        if !hideEarnings, let earned {
+            lines.append(L10n.format("今天收入{0}元，底薪到手，快乐下班～", String(Money.formatted(earned).dropFirst()), language: language))
+        }
+        switch ReportMood.overtime(overtimeSeconds) {
+        case .happy: lines.append(L10n.text("今天没有加班，宝贝真棒～ 快点回去休息吧", language: language))
+        case .neutral: lines.append(L10n.text("快点回家，不要让底薪被稀释", language: language))
+        case .crying:
+            let minutes = max(0, Int(overtimeSeconds / 60))
+            lines.append(L10n.format("天呐噜！今天竟然加班 {0} h,{1} min，也太辛苦了吧，快点回家休息！明天不许这样了", String(minutes / 60), String(minutes % 60), language: language))
+        }
+        return lines.joined(separator: "\n\n")
+    }
+    /// A checkout snapshot is the source of truth, independent of earlier chat messages.
+    public func assistantReport(hideEarnings: Bool, language: AppLanguage? = nil) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: timeZoneID)
+        formatter.dateFormat = "HH:mm:ss"
+        let checkoutTime = checkedOutAt.map(formatter.string(from:)) ?? L10n.text("未打卡", language: language)
+        let income = hideEarnings ? L10n.text("已隐藏", language: language) : earned.map { Money.formatted($0) + L10n.text("（估算，非实际工资）", language: language) } ?? L10n.text("未设置薪资", language: language)
+        return [
+            L10n.format("日期：{0}", dateKey, language: language),
+            L10n.format("时区：{0}", timeZoneID, language: language),
+            L10n.format("计划下班：{0}", formatter.string(from: scheduledEnd), language: language),
+            L10n.format("实际打卡：{0}", checkoutTime, language: language),
+            L10n.format("饮水：{0} ml，共 {1} 杯（仅应用记录）", String(waterML), String(cups), language: language),
+            L10n.format("今日收入：{0}", income, language: language),
+            L10n.format("加班：{0}", OvertimeCalculator.duration(overtimeSeconds), language: language)
+        ].joined(separator: "\n") + "\n\n" + assistantSummary(hideEarnings: hideEarnings, language: language)
+    }
     public var mood: ReportMood? {
         guard isWorkday, checkedOutAt != nil || updatedAt >= scheduledEnd else { return nil }
         return .overtime(overtimeSeconds)
@@ -71,6 +105,11 @@ public struct DailyReportArchive: Codable, Equatable {
     public var schemaVersion = 1
     public private(set) var records: [DailyReport] = []
     public init() {}
+    #if DEBUG
+    public mutating func debugRemove(dateKey: String, timeZoneID: String) {
+        records.removeAll { $0.dateKey == dateKey && $0.timeZoneID == timeZoneID }
+    }
+    #endif
     public mutating func upsert(_ report: DailyReport) throws {
         _ = try report.validated()
         if let index = records.firstIndex(where: { $0.id == report.id }) { if report.updatedAt >= records[index].updatedAt { records[index] = report } }

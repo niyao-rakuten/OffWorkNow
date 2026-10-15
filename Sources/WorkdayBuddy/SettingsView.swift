@@ -1,5 +1,51 @@
 import SwiftUI
+import AppKit
 import WorkdayCore
+
+#if DEBUG
+private struct DebugDailyDataView: View {
+    @ObservedObject var model: AppModel
+    @ObservedObject var assistant: AssistantStore
+    @State private var taps = 0
+    @State private var lastTap: Date?
+    @State private var unlocked = false
+    @State private var date = Date()
+    @State private var confirmClear = false
+    @State private var status: String?
+    private var dateKey: String { ScheduleCalculator.key(date, calendar: model.settings.calendar) }
+    var body: some View {
+        Section {
+            Button(L10n.text("工作安排")) {
+                let now = Date()
+                taps = lastTap.map { now.timeIntervalSince($0) <= 1.5 } == true ? taps + 1 : 1
+                lastTap = now
+                if taps >= 7 { unlocked = true }
+            }.buttonStyle(.plain).foregroundStyle(.secondary).font(.caption)
+            if unlocked {
+                Text("DEBUG · 清除指定日期数据").font(.headline)
+                DatePicker("日期（已保存的工作时区）", selection: $date, displayedComponents: .date)
+                    .environment(\.timeZone, model.settings.calendar.timeZone)
+                    .environment(\.calendar, model.settings.calendar)
+                Text("时区：\(model.settings.timeZoneID)\n清除打卡、饮水、日报、提醒记录和该日聊天消息。保留工作安排和薪资设置。清除今天后，可重新打卡测试日报。")
+                    .font(.caption).foregroundStyle(.secondary)
+                Button("清除 \(dateKey) 的数据", role: .destructive) { confirmClear = true }
+                    .disabled(assistant.isStreaming)
+                if assistant.isStreaming { Text("请先停止 AI 回复，再清除数据。").font(.caption) }
+                if let status { Text(status).font(.caption).textSelection(.enabled) }
+            }
+        }
+        .alert("清除 \(dateKey) 的数据？", isPresented: $confirmClear) {
+            Button("取消", role: .cancel) {}
+            Button("清除", role: .destructive) {
+                do { try model.debugClearData(on: date); status = "已清除 \(dateKey) 的数据。" }
+                catch { status = "清除失败：\(error.localizedDescription)" }
+            }
+        } message: {
+            Text("工作时区：\(model.settings.timeZoneID)。此操作立即生效，无法撤销。")
+        }
+    }
+}
+#endif
 
 struct SettingsView: View {
     @ObservedObject private var language = AppLanguageStore.shared
@@ -36,11 +82,12 @@ struct SettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            TabView {
-                scheduleTab.tabItem { Label(L10n.text("工作安排"), systemImage: "calendar") }
-                payTab.tabItem { Label(L10n.text("工资"), systemImage: "yensign.circle") }
-                remindersTab.tabItem { Label(L10n.text("提醒"), systemImage: "bell") }
-                generalTab.tabItem { Label(L10n.text("通用"), systemImage: "gearshape") }
+            TabView(selection: $model.selectedSettingsTab) {
+                scheduleTab.tabItem { Label(L10n.text("工作安排"), systemImage: "calendar") }.tag("schedule")
+                payTab.tabItem { Label(L10n.text("工资"), systemImage: "yensign.circle") }.tag("pay")
+                remindersTab.tabItem { Label(L10n.text("提醒"), systemImage: "bell") }.tag("reminders")
+                AssistantSettingsView(store: model.assistant).tabItem { Label("AI 助手", systemImage: "bubble.left.and.bubble.right") }.tag("assistant")
+                generalTab.tabItem { Label(L10n.text("通用"), systemImage: "gearshape") }.tag("general")
             }.padding(16)
             Divider()
             VStack(alignment: .leading, spacing: 8) {
@@ -114,6 +161,9 @@ struct SettingsView: View {
                     HStack { Text(key).monospacedDigit(); Text(draft.overrides[key] == true ? L10n.text("工作") : L10n.text("休息")); Spacer(); Button(L10n.text("删除")) { draft.overrides.removeValue(forKey: key) } }
                 }
             }
+            #if DEBUG
+            DebugDailyDataView(model: model, assistant: model.assistant)
+            #endif
         }.formStyle(.grouped)
     }
     private var payTab: some View {
@@ -263,5 +313,85 @@ private struct LoginStatusView: View {
         Text(service.statusText).font(.caption).foregroundStyle(.secondary)
         if service.status == .requiresApproval { Button(L10n.text("打开登录项设置")) { service.openSettings() } }
         if let issue = service.issue { Text(issue).font(.caption).foregroundStyle(.orange) }
+    }
+}
+
+struct AssistantSettingsView: View {
+    @ObservedObject var store: AssistantStore
+    @State private var apiKey = ""
+    @State private var status: String?
+    var body: some View {
+        Form {
+            Section("AI 助手") {
+                TextField("称谓", text: $store.ownerName)
+                Picker("AI 模型", selection: $store.modelID) {
+                    if store.selectedModel == nil { Text("请选择模型（原模型：\(store.modelID)）").tag(store.modelID) }
+                    ForEach(store.availableModels) { model in
+                        Text(model.name + (model.isFree ? " · 免费" : " · 低价")).tag(model.id)
+                    }
+                }
+                if let model = store.selectedModel {
+                    Text(model.isFree ? "免费模型，额度与可用性由 OpenRouter 控制。" : String(format: "每百万 token：输入 $%.3f · 输出 $%.3f", model.inputPrice * 1_000_000, model.outputPrice * 1_000_000))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Button(store.refreshingModels ? "正在刷新…" : "刷新可用模型") { Task { await store.refreshModels() } }.disabled(store.refreshingModels)
+                if let issue = store.modelIssue { Text(issue).font(.caption).foregroundStyle(.orange) }
+                Text("助手设置修改后立即保存。优先提供免费模型和低价开放权重模型；价格以 OpenRouter 实际结算为准。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("OpenRouter") {
+                SecureField("API Key", text: $apiKey)
+                Button("保存密钥") {
+                    do { try AssistantCredential.save(apiKey); apiKey = ""; status = "密钥已保存到本机应用数据。" }
+                    catch { status = error.localizedDescription }
+                }.disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                if let status { Text(status).font(.caption).foregroundStyle(.secondary) }
+            }
+            Section("用量") {
+                if let usage = store.latestUsage {
+                    LabeledContent("最近一次输入 / 输出", value: "\(usage.promptTokens) / \(usage.completionTokens) token")
+                    if let model = store.messages.last(where: { $0.usage != nil })?.modelID {
+                        LabeledContent("最近一次实际模型", value: model)
+                    }
+                    LabeledContent("最近一次总量", value: "\(usage.totalTokens) token")
+                    LabeledContent("最近一次费用", value: usage.cost.map { String(format: "$%.6f", $0) } ?? "未返回")
+                } else { Text("尚未收到用量统计").foregroundStyle(.secondary) }
+                LabeledContent("本机已记录用量", value: "\(store.recordedUsages.reduce(0) { $0 + $1.totalTokens }) token · \(store.recordedUsages.count) 次")
+                LabeledContent("本机已记录费用", value: String(format: "$%.6f", store.recordedUsages.compactMap(\.cost).reduce(0, +)))
+                Text("仅统计本机聊天收到的实际用量；中断请求或旧消息可能缺失统计，不代表账户总用量。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("对话上下文") {
+                Text("最多携带最近 6 轮完整对话。输入预算上限 4096，回复上限 1024 token；按 UTF-8 字节保守估算输入，超出预算时裁减较早对话。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("聊天历史 · \(store.messages.count) 条") {
+                Button("导出 JSON", action: export)
+                if store.messages.isEmpty { Text("暂无聊天记录").foregroundStyle(.secondary) }
+                ForEach(store.messages) { message in
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack {
+                            Text(message.role == .user ? "你" : "AI 助手").font(.caption.bold())
+                            Text(message.date, style: .date).font(.caption).foregroundStyle(.secondary)
+                            Text(message.date, style: .time).font(.caption).foregroundStyle(.secondary)
+                            if !message.complete { Text("未完成").font(.caption).foregroundStyle(.secondary) }
+                        }
+                        Text(message.content.isEmpty ? "未收到回复" : message.content).textSelection(.enabled)
+                        if let model = message.modelID { Text(model).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
+                        if let usage = message.usage {
+                            Text("\(usage.totalTokens) token" + (usage.cost.map { String(format: " · $%.6f", $0) } ?? " · 费用未返回"))
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }.padding(.vertical, 4)
+                }
+            }
+        }.formStyle(.grouped)
+            .task { await store.refreshModels() }
+    }
+    private func export() {
+        let panel = NSSavePanel(); panel.nameFieldStringValue = "pet-chat-history.json"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do { try store.export(to: url); status = "聊天历史已导出。" }
+        catch { status = "导出失败：\(error.localizedDescription)" }
     }
 }

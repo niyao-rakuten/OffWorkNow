@@ -9,7 +9,7 @@ public enum MenuMode: String, Codable, CaseIterable { case countdown, earnings, 
 public enum ReminderCategory: String, Codable, CaseIterable { case walk, water, eyes
     public var title: String { switch self { case .walk: return L10n.text("走动"); case .water: return L10n.text("喝水"); case .eyes: return L10n.text("护眼") } }
 }
-public enum PetKind: String, Codable, CaseIterable { case cat, dog, worker, goldfish, fox, bunGirl, custom
+public enum PetKind: String, Codable, CaseIterable { case bunGirl, worker, cat, dog, goldfish, fox, custom
     public var title: String { switch self { case .cat: return L10n.text("下班猫"); case .dog: return L10n.text("摸鱼狗"); case .worker: return L10n.text("打工人"); case .goldfish: return L10n.text("小金鱼"); case .fox: return L10n.text("小狐妖"); case .bunGirl: return L10n.text("丸子头女生"); case .custom: return L10n.text("自定义动画") } }
     public var isOfficeWorker: Bool { self == .worker || self == .bunGirl }
 }

@@ -8,7 +8,7 @@ import WorkdayCore
     private static var frames: [String: [CGImage]] = [:]
     private static var controls: [CGImage] = []
     private static var reportIcons: [CGImage] = []
-    enum Control: Int { case cup, clock, checkout, checkedOut }
+    enum Control: Int { case cup, clock, checkout, checkedOut, chat, close, send, stop }
 
     static func frame(kind: PetKind, row: Int, column: Int) -> CGImage? {
         guard kind != .custom, (0..<6).contains(row), (0..<6).contains(column) else { return nil }
@@ -24,7 +24,23 @@ import WorkdayCore
         return images[index]
     }
 
+    private static var standaloneControls: [String: CGImage] = [:]
     static func control(_ control: Control) -> CGImage? {
+        if [.chat, .close, .send, .stop].contains(control) {
+            let name: String
+            switch control {
+            case .chat: name = "chat"
+            case .close: name = "close"
+            case .send: name = "send"
+            default: name = "stop"
+            }
+            if standaloneControls[name] == nil, let directory = resourceDirectory,
+               let source = CGImageSourceCreateWithURL(directory.appendingPathComponent(name + ".png") as CFURL, nil),
+               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) {
+                standaloneControls[name] = trimTransparentMargin(image)
+            }
+            return standaloneControls[name]
+        }
         if controls.isEmpty { controls = loadCells("controls", columns: 2, rows: 2).map(trimTransparentMargin) }
         guard controls.indices.contains(control.rawValue) else { return nil }
         return controls[control.rawValue]

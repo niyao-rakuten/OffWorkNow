@@ -9,6 +9,17 @@ import WorkdayCore
     private var lastMinute: Int?
     private var lastDay: String?
     private var readable = true
+    #if DEBUG
+    private var debugClearedDays: Set<String> = []
+    func debugClear(dateKey: String, timeZoneID: String) throws {
+        guard readable else { throw ValidationError(issue ?? "日报无法读取") }
+        var next = archive
+        next.debugRemove(dateKey: dateKey, timeZoneID: timeZoneID)
+        defaults.set(try JSONEncoder().encode(next), forKey: "dailyReportArchive")
+        archive = next
+        debugClearedDays.insert(timeZoneID + "/" + dateKey)
+    }
+    #endif
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let data = defaults.data(forKey: "dailyReportArchive") {
@@ -19,6 +30,10 @@ import WorkdayCore
     func capture(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, hydration: HydrationSummary, force: Bool = false) {
         guard readable else { return }
         let day = settings.timeZoneID + "/" + ScheduleCalculator.key(now, calendar: settings.calendar)
+        #if DEBUG
+        if force { debugClearedDays.remove(day) }
+        else if debugClearedDays.contains(day) { return }
+        #endif
         let minute = Int(now.timeIntervalSince1970 / 60)
         // Minute snapshots plus immediate action snapshots; no per-animation-frame disk writes.
         guard force || minute != lastMinute || day != lastDay else { return }

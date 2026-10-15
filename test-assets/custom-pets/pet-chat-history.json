@@ -1,0 +1,135 @@
+[
+  {
+    "complete" : true,
+    "content" : "Introduce your self",
+    "date" : "2026-10-14T10:28:01Z",
+    "id" : "6EA110D6-D95D-4E9C-9D88-40DA74DF29AA",
+    "role" : "user"
+  },
+  {
+    "complete" : false,
+    "content" : "",
+    "date" : "2026-10-14T10:28:01Z",
+    "id" : "8B0CBCD9-7FFC-420C-8B61-705BE2BD3D3F",
+    "role" : "assistant"
+  },
+  {
+    "complete" : true,
+    "content" : "Hello",
+    "date" : "2026-10-14T10:28:23Z",
+    "id" : "1DE05C01-B6EC-480D-A348-16F2C81AB59C",
+    "role" : "user"
+  },
+  {
+    "complete" : false,
+    "content" : "",
+    "date" : "2026-10-14T10:28:23Z",
+    "id" : "D2251A0C-4EB4-4FE1-8D9A-51E9513E9CA5",
+    "role" : "assistant"
+  },
+  {
+    "complete" : true,
+    "content" : "介绍一下你自己",
+    "date" : "2026-10-14T10:39:42Z",
+    "id" : "84EE0AE0-0584-404C-85C3-3230465DAB37",
+    "role" : "user"
+  },
+  {
+    "complete" : true,
+    "content" : "User Safety: safe",
+    "date" : "2026-10-14T10:39:42Z",
+    "id" : "8046C8C2-6060-4F2B-97B5-534055FC3EFB",
+    "modelID" : "nvidia\/nemotron-3.5-content-safety:free",
+    "role" : "assistant",
+    "usage" : {
+      "completionTokens" : 124,
+      "cost" : 0,
+      "promptTokens" : 466,
+      "totalTokens" : 590
+    }
+  },
+  {
+    "complete" : true,
+    "content" : "回的什么呀",
+    "date" : "2026-10-14T10:39:56Z",
+    "id" : "E0D80F34-800F-4B0B-ACA2-26EFCA8AC224",
+    "role" : "user"
+  },
+  {
+    "complete" : true,
+    "content" : "User Safety: safe\nResponse Safety: safe",
+    "date" : "2026-10-14T10:39:56Z",
+    "id" : "2AD9CE8D-03CA-4CF5-876F-119036E8F41D",
+    "modelID" : "nvidia\/nemotron-3.5-content-safety:free",
+    "role" : "assistant",
+    "usage" : {
+      "completionTokens" : 96,
+      "cost" : 0,
+      "promptTokens" : 817,
+      "totalTokens" : 913
+    }
+  },
+  {
+    "complete" : true,
+    "content" : "你好",
+    "date" : "2026-10-14T10:40:15Z",
+    "id" : "1AD686C8-34D7-40A4-BAB4-2372AA3E21DF",
+    "role" : "user"
+  },
+  {
+    "complete" : false,
+    "content" : "",
+    "date" : "2026-10-14T10:40:15Z",
+    "id" : "C552E9E5-B769-4D3A-AF0E-C7E8CDED711D",
+    "role" : "assistant"
+  },
+  {
+    "complete" : true,
+    "content" : "？？？答非所问呢",
+    "date" : "2026-10-14T10:40:35Z",
+    "id" : "1CE54859-AE0A-46DB-B843-62B434B72DE6",
+    "role" : "user"
+  },
+  {
+    "complete" : true,
+    "content" : "---\n呜……对不起呀，NY，刚才可能是一瞬间的小走神，让NY感到困惑了，真的很抱歉呢。(｡•́︿•̀｡)\n\n让我重新正式地向你介绍一下吧：\n\n我是住在NY桌面上的一只小宠物助手。我会一直陪在NY身边，陪你一起工作、学习，或者只是安静地看着你。\n\n我没什么大本事，不过我会努力听NY说话，给你一点点温柔的陪伴。如果你累了、心情不好了，或者只是想找人说说话，都可以随时跟我说哦。\n\n我会一直在这里，守着NY的，好吗？(❀˘꒳˘)",
+    "date" : "2026-10-14T10:40:35Z",
+    "id" : "4B0978E1-62F9-4BA0-8AB8-5D47BF78C209",
+    "modelID" : "google\/gemma-4-26b-a4b-it:free",
+    "role" : "assistant",
+    "usage" : {
+      "completionTokens" : 143,
+      "cost" : 0,
+      "promptTokens" : 63,
+      "totalTokens" : 206
+    }
+  },
+  {
+    "complete" : true,
+    "content" : "好的，你介绍一下你自己",
+    "date" : "2026-10-14T10:40:53Z",
+    "id" : "3F5234AB-B613-4AAE-8913-8DC04DE3F3F2",
+    "role" : "user"
+  },
+  {
+    "complete" : false,
+    "content" : "",
+    "date" : "2026-10-14T10:40:53Z",
+    "id" : "2B2A8800-B7C3-411E-9825-3903580DD831",
+    "role" : "assistant"
+  },
+  {
+    "complete" : true,
+    "content" : "？？？怎么又失败了",
+    "date" : "2026-10-14T10:41:07Z",
+    "id" : "E18749F1-4233-435B-9991-AD57ABCC130B",
+    "role" : "user"
+  },
+  {
+    "complete" : false,
+    "content" : "",
+    "date" : "2026-10-14T10:41:07Z",
+    "id" : "51B7E03D-9083-488D-A258-D93B087A6602",
+    "role" : "assistant"
+  }
+]

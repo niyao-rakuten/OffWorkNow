@@ -61,11 +61,14 @@ final class CustomPetTests: ChineseLocalizationTestCase {
     func testSwitchCyclesBuiltinsAndIncludesCustomOnlyWhenAvailable() {
         XCTAssertEqual(PetKind.cat.next(customAvailable: false), .dog)
         XCTAssertEqual(PetKind.goldfish.next(customAvailable: false), .fox)
+        XCTAssertEqual(PetKind.allCases, [.bunGirl, .worker, .cat, .dog, .goldfish, .fox, .custom])
         XCTAssertEqual(PetKind.fox.next(customAvailable: false), .bunGirl)
-        XCTAssertEqual(PetKind.bunGirl.next(customAvailable: false), .cat)
-        XCTAssertEqual(PetKind.bunGirl.next(customAvailable: true), .custom)
-        XCTAssertEqual(PetKind.custom.next(customAvailable: true), .cat)
-        XCTAssertEqual(PetKind.custom.next(customAvailable: false), .cat)
+        XCTAssertEqual(PetKind.fox.next(customAvailable: true), .custom)
+        XCTAssertEqual(PetKind.bunGirl.next(customAvailable: false), .worker)
+        XCTAssertEqual(PetKind.bunGirl.next(customAvailable: true), .worker)
+        XCTAssertEqual(PetKind.worker.next(customAvailable: false), .cat)
+        XCTAssertEqual(PetKind.custom.next(customAvailable: true), .bunGirl)
+        XCTAssertEqual(PetKind.custom.next(customAvailable: false), .bunGirl)
     }
 
     func testImportGridAutomaticallyGrowsBeyondOneFrame() throws {

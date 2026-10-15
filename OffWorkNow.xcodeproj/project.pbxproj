@@ -1,112 +1,598 @@
 // !$*UTF8*$!
-{ archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
-93FF29654B5407EC1978D3B2 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-D487B5DF482136B38F44D599 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopPetView.swift; sourceTree = "<group>"; };
-E0CB785678393CF6896DFF1A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPanelView.swift; sourceTree = "<group>"; };
-52A5435348A58AF9E2383EDC = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetDragHandle.swift; sourceTree = "<group>"; };
-8C8BC670E746FA93C6CA908F = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
-1A4EB2AAF468E1411282CDD2 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-7D1043473D55BFA90E8530D3 = { isa = PBXGroup; children = (93FF29654B5407EC1978D3B2, D487B5DF482136B38F44D599, E0CB785678393CF6896DFF1A, 52A5435348A58AF9E2383EDC, 8C8BC670E746FA93C6CA908F, 1A4EB2AAF468E1411282CDD2,); path = Sources/WorkdayBuddy; sourceTree = "<group>"; };
-AD0DB8768DAF15D90BF42247 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSApp.swift; sourceTree = "<group>"; };
-7DA9FE01A3181A3D36F96826 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSettings.swift; sourceTree = "<group>"; };
-0F8D25735FF76A079D6C88C1 = { isa = PBXGroup; children = (AD0DB8768DAF15D90BF42247, 7DA9FE01A3181A3D36F96826,); path = Sources/OffWorkNowIOS; sourceTree = "<group>"; };
-1507BF6FBBA09DE66170DF9F = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguageView.swift; sourceTree = "<group>"; };
-389EF726A5C56E18568ECC71 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPetEditor.swift; sourceTree = "<group>"; };
-59CEE785ABF79E4E5FA5AABB = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPetLibrary.swift; sourceTree = "<group>"; };
-5BB9D60E998F806C4D6DDB7E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportStore.swift; sourceTree = "<group>"; };
-88A7AD251BFC30AD6DB9C034 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportsView.swift; sourceTree = "<group>"; };
-1074CB611E191F8D1C958DAE = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetArtwork.swift; sourceTree = "<group>"; };
-DA14D537F331606EC2B40819 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetAvatar.swift; sourceTree = "<group>"; };
-1FA12BB8E2DEA6B01A643447 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetControls.swift; sourceTree = "<group>"; };
-D18AAC96B905B4B3C839891B = { isa = PBXGroup; children = (1507BF6FBBA09DE66170DF9F, 389EF726A5C56E18568ECC71, 59CEE785ABF79E4E5FA5AABB, 5BB9D60E998F806C4D6DDB7E, 88A7AD251BFC30AD6DB9C034, 1074CB611E191F8D1C958DAE, DA14D537F331606EC2B40819, 1FA12BB8E2DEA6B01A643447,); path = Sources/SharedUI; sourceTree = "<group>"; };
-6FFE11322718BB1B2B7076EC = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTests.swift; sourceTree = "<group>"; };
-DA8A2E9F2A9B5CD3B02D27EC = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPetTests.swift; sourceTree = "<group>"; };
-03BC6E13B87A5C3022D54BC7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportTests.swift; sourceTree = "<group>"; };
-5D93F3A3DCDC6B9109DA5212 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleScheduleTests.swift; sourceTree = "<group>"; };
-4D6DB513EA91312BBD19CAE4 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationTests.swift; sourceTree = "<group>"; };
-414322BAC4EC35A2927F9406 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
-5333758B3C911AC5FCE8FCB3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvertimeTests.swift; sourceTree = "<group>"; };
-92C93D7A0C9A9310CFD703DC = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTests.swift; sourceTree = "<group>"; };
-04D13FD0AA6F0197CF2C9990 = { isa = PBXGroup; children = (6FFE11322718BB1B2B7076EC, DA8A2E9F2A9B5CD3B02D27EC, 03BC6E13B87A5C3022D54BC7, 5D93F3A3DCDC6B9109DA5212, 4D6DB513EA91312BBD19CAE4, 414322BAC4EC35A2927F9406, 5333758B3C911AC5FCE8FCB3, 92C93D7A0C9A9310CFD703DC,); path = Tests/WorkdayCoreTests; sourceTree = "<group>"; };
-3685E330EC5277A9DD5661C6 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
-30D17215B9DB97D2CF8BFB4A = { isa = PBXFileReference; lastKnownFileType = folder; path = Resources/PetArt; sourceTree = "<group>"; };
-96ED5C5789B174A01557791C = { isa = PBXFileReference; lastKnownFileType = text.xml; path = Configuration/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-0112DAE3F84CB4DF5179BE01 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-7AE678F955832F9AA2C9AACD = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info-iOS.plist; sourceTree = "<group>"; };
-E7B1BFA482251F04722B6837 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = OffWorkNow.entitlements; sourceTree = "<group>"; };
-0652E436F42D75F5672A8BD9 = { isa = PBXGroup; children = (0112DAE3F84CB4DF5179BE01, 7AE678F955832F9AA2C9AACD, E7B1BFA482251F04722B6837,); path = Configuration; sourceTree = "<group>"; };
-C27E4B6BEEEBEE564F55E421 = { isa = XCLocalSwiftPackageReference; relativePath = .; };
-8BCD5BC4CDFDF0918087C782 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = "下班啦.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-D001546E28B0519F9AA3A09F = { isa = XCSwiftPackageProductDependency; package = C27E4B6BEEEBEE564F55E421; productName = WorkdayCore; };
-BF21D3E8E2E8D2AD6A0FDCE8 = { isa = PBXBuildFile; productRef = D001546E28B0519F9AA3A09F; };
-12384B5908BE5FE5B3301CEE = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (BF21D3E8E2E8D2AD6A0FDCE8,); runOnlyForDeploymentPostprocessing = 0; };
-B43EB7F304EFF2068DC291AD = { isa = PBXBuildFile; fileRef = 93FF29654B5407EC1978D3B2; };
-027C155896125707339CAA79 = { isa = PBXBuildFile; fileRef = D487B5DF482136B38F44D599; };
-CC532F98845C1C8B71D63036 = { isa = PBXBuildFile; fileRef = E0CB785678393CF6896DFF1A; };
-A942BC52FE424A9B62001D00 = { isa = PBXBuildFile; fileRef = 52A5435348A58AF9E2383EDC; };
-59DFFE01F54ACEE6ED87BCB6 = { isa = PBXBuildFile; fileRef = 8C8BC670E746FA93C6CA908F; };
-F3F1EEBD5B3CE00FC73F1669 = { isa = PBXBuildFile; fileRef = 1A4EB2AAF468E1411282CDD2; };
-27BB9227B0784589E804C43D = { isa = PBXBuildFile; fileRef = 1507BF6FBBA09DE66170DF9F; };
-C1B25999340C8CB6EBC55920 = { isa = PBXBuildFile; fileRef = 389EF726A5C56E18568ECC71; };
-A4B0FD9A29D39C1058AA6B1B = { isa = PBXBuildFile; fileRef = 59CEE785ABF79E4E5FA5AABB; };
-A642429C203273A093D25EC8 = { isa = PBXBuildFile; fileRef = 5BB9D60E998F806C4D6DDB7E; };
-7776EDC271F44D165BD49870 = { isa = PBXBuildFile; fileRef = 88A7AD251BFC30AD6DB9C034; };
-A7D5D856D3DC3C73C1AC7D5E = { isa = PBXBuildFile; fileRef = 1074CB611E191F8D1C958DAE; };
-296B63C6578B8CB08CE30FE7 = { isa = PBXBuildFile; fileRef = DA14D537F331606EC2B40819; };
-10C8EDEDB833A7376CB92F87 = { isa = PBXBuildFile; fileRef = 1FA12BB8E2DEA6B01A643447; };
-2D764CD838DB39F040AA7EC4 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B43EB7F304EFF2068DC291AD, 027C155896125707339CAA79, CC532F98845C1C8B71D63036, A942BC52FE424A9B62001D00, 59DFFE01F54ACEE6ED87BCB6, F3F1EEBD5B3CE00FC73F1669, 27BB9227B0784589E804C43D, C1B25999340C8CB6EBC55920, A4B0FD9A29D39C1058AA6B1B, A642429C203273A093D25EC8, 7776EDC271F44D165BD49870, A7D5D856D3DC3C73C1AC7D5E, 296B63C6578B8CB08CE30FE7, 10C8EDEDB833A7376CB92F87,); runOnlyForDeploymentPostprocessing = 0; };
-C89E8AAA4E01FF104AF5E666 = { isa = PBXBuildFile; fileRef = 3685E330EC5277A9DD5661C6; };
-5A68E105B283244388112639 = { isa = PBXBuildFile; fileRef = 96ED5C5789B174A01557791C; };
-76E959A34BC86BE51DBE6E9E = { isa = PBXBuildFile; fileRef = 30D17215B9DB97D2CF8BFB4A; };
-06F5DC629BD46AAFD46564D1 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C89E8AAA4E01FF104AF5E666, 5A68E105B283244388112639, 76E959A34BC86BE51DBE6E9E,); runOnlyForDeploymentPostprocessing = 0; };
-E9B2E96ABC5F6856F2BE79CF = { isa = XCBuildConfiguration; name = Debug; buildSettings = { SWIFT_VERSION = 5.0; CODE_SIGN_STYLE = Automatic; SDKROOT = macosx; MACOSX_DEPLOYMENT_TARGET = 13.0; ARCHS = "$(NATIVE_ARCH_ACTUAL)"; ONLY_ACTIVE_ARCH = YES; PRODUCT_MODULE_NAME = WorkdayBuddy; INFOPLIST_FILE = Configuration/Info.plist; CODE_SIGN_ENTITLEMENTS = Configuration/OffWorkNow.entitlements; ENABLE_APP_SANDBOX = YES; ENABLE_HARDENED_RUNTIME = YES; COMBINE_HIDPI_IMAGES = YES; PRODUCT_NAME = "下班啦"; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.1.0; SKIP_INSTALL = NO; CODE_SIGN_IDENTITY = "-"; }; };
-5A8C91857F674E16E2724F47 = { isa = XCBuildConfiguration; name = Release; buildSettings = { SWIFT_VERSION = 5.0; CODE_SIGN_STYLE = Automatic; SDKROOT = macosx; MACOSX_DEPLOYMENT_TARGET = 13.0; ARCHS = "$(NATIVE_ARCH_ACTUAL)"; ONLY_ACTIVE_ARCH = YES; PRODUCT_MODULE_NAME = WorkdayBuddy; INFOPLIST_FILE = Configuration/Info.plist; CODE_SIGN_ENTITLEMENTS = Configuration/OffWorkNow.entitlements; ENABLE_APP_SANDBOX = YES; ENABLE_HARDENED_RUNTIME = YES; COMBINE_HIDPI_IMAGES = YES; PRODUCT_NAME = "下班啦"; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.1.0; SKIP_INSTALL = NO; }; };
-DA1189605F4160DBE5714E93 = { isa = XCConfigurationList; buildConfigurations = (E9B2E96ABC5F6856F2BE79CF, 5A8C91857F674E16E2724F47,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-4F6027D858B72CC70E5CC8E9 = { isa = PBXNativeTarget; name = "OffWorkNow"; buildConfigurationList = DA1189605F4160DBE5714E93; buildPhases = (2D764CD838DB39F040AA7EC4, 12384B5908BE5FE5B3301CEE, 06F5DC629BD46AAFD46564D1,); buildRules = (); dependencies = (); packageProductDependencies = (D001546E28B0519F9AA3A09F,); productReference = 8BCD5BC4CDFDF0918087C782; productType = "com.apple.product-type.application"; };
-3CAF6B70679465BCA9418B78 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = "下班啦.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-F17155D5D2A335750B7FDF77 = { isa = XCSwiftPackageProductDependency; package = C27E4B6BEEEBEE564F55E421; productName = WorkdayCore; };
-2FF9B833FDD95EFF72EA1B3E = { isa = PBXBuildFile; productRef = F17155D5D2A335750B7FDF77; };
-529C4359507DD00DB78C80CA = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (2FF9B833FDD95EFF72EA1B3E,); runOnlyForDeploymentPostprocessing = 0; };
-2E29F365101DB78D1F89A015 = { isa = PBXBuildFile; fileRef = AD0DB8768DAF15D90BF42247; };
-1006233B9DEB9559FDD3D137 = { isa = PBXBuildFile; fileRef = 7DA9FE01A3181A3D36F96826; };
-895F3A00F99340D8EF171741 = { isa = PBXBuildFile; fileRef = 1507BF6FBBA09DE66170DF9F; };
-FA0866BA96AD0BAB541FF551 = { isa = PBXBuildFile; fileRef = 389EF726A5C56E18568ECC71; };
-269A5E2AE5682E1D10AE8387 = { isa = PBXBuildFile; fileRef = 59CEE785ABF79E4E5FA5AABB; };
-18A350A9585C735F7197558D = { isa = PBXBuildFile; fileRef = 5BB9D60E998F806C4D6DDB7E; };
-E248B7792096E573B6A6188D = { isa = PBXBuildFile; fileRef = 88A7AD251BFC30AD6DB9C034; };
-B1DDD9435DDB878E2E29992A = { isa = PBXBuildFile; fileRef = 1074CB611E191F8D1C958DAE; };
-C88ABACA591DE8D1A3B0BB1D = { isa = PBXBuildFile; fileRef = DA14D537F331606EC2B40819; };
-C5F13A9B8EF72BE3AAFD6128 = { isa = PBXBuildFile; fileRef = 1FA12BB8E2DEA6B01A643447; };
-04486FF46B95201A121FECA1 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (2E29F365101DB78D1F89A015, 1006233B9DEB9559FDD3D137, 895F3A00F99340D8EF171741, FA0866BA96AD0BAB541FF551, 269A5E2AE5682E1D10AE8387, 18A350A9585C735F7197558D, E248B7792096E573B6A6188D, B1DDD9435DDB878E2E29992A, C88ABACA591DE8D1A3B0BB1D, C5F13A9B8EF72BE3AAFD6128,); runOnlyForDeploymentPostprocessing = 0; };
-E26B0D6360625AD71AD49653 = { isa = PBXBuildFile; fileRef = 3685E330EC5277A9DD5661C6; };
-AE34FF0AC2D85389627DB1C2 = { isa = PBXBuildFile; fileRef = 96ED5C5789B174A01557791C; };
-2DA2F21C812575294FAA2F69 = { isa = PBXBuildFile; fileRef = 30D17215B9DB97D2CF8BFB4A; };
-BDADC39D7A7CE2D7EE08D240 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (E26B0D6360625AD71AD49653, AE34FF0AC2D85389627DB1C2, 2DA2F21C812575294FAA2F69,); runOnlyForDeploymentPostprocessing = 0; };
-C71788DF4F81C9137989F291 = { isa = XCBuildConfiguration; name = Debug; buildSettings = { SWIFT_VERSION = 5.0; CODE_SIGN_STYLE = Automatic; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 16.0; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; PRODUCT_MODULE_NAME = OffWorkNowIOS; INFOPLIST_FILE = Configuration/Info-iOS.plist; SUPPORTS_MACCATALYST = NO; PRODUCT_NAME = "下班啦"; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.1.0; SKIP_INSTALL = NO; }; };
-1614696E664D13E2EAB2EFEC = { isa = XCBuildConfiguration; name = Release; buildSettings = { SWIFT_VERSION = 5.0; CODE_SIGN_STYLE = Automatic; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 16.0; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; PRODUCT_MODULE_NAME = OffWorkNowIOS; INFOPLIST_FILE = Configuration/Info-iOS.plist; SUPPORTS_MACCATALYST = NO; PRODUCT_NAME = "下班啦"; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.1.0; SKIP_INSTALL = NO; }; };
-D5BEDEF3AE377A2DD5274EFB = { isa = XCConfigurationList; buildConfigurations = (C71788DF4F81C9137989F291, 1614696E664D13E2EAB2EFEC,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-C03BF38BB1358F6E46EF9C01 = { isa = PBXNativeTarget; name = "OffWorkNow-iOS"; buildConfigurationList = D5BEDEF3AE377A2DD5274EFB; buildPhases = (04486FF46B95201A121FECA1, 529C4359507DD00DB78C80CA, BDADC39D7A7CE2D7EE08D240,); buildRules = (); dependencies = (); packageProductDependencies = (F17155D5D2A335750B7FDF77,); productReference = 3CAF6B70679465BCA9418B78; productType = "com.apple.product-type.application"; };
-F219C0274590DA45E4BEF1EA = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = "WorkdayCoreTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-28752BEEED317D763354E011 = { isa = XCSwiftPackageProductDependency; package = C27E4B6BEEEBEE564F55E421; productName = WorkdayCore; };
-628DB08C05CCFBE195F2D0B9 = { isa = PBXBuildFile; productRef = 28752BEEED317D763354E011; };
-99C7943D90D870A50ADE9160 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (628DB08C05CCFBE195F2D0B9,); runOnlyForDeploymentPostprocessing = 0; };
-32DF968A8C3ADD83DFDEF32F = { isa = PBXBuildFile; fileRef = 6FFE11322718BB1B2B7076EC; };
-15958B04FA99B8103C8724E2 = { isa = PBXBuildFile; fileRef = DA8A2E9F2A9B5CD3B02D27EC; };
-473F095DF866DAA60B44CA23 = { isa = PBXBuildFile; fileRef = 03BC6E13B87A5C3022D54BC7; };
-07A38404A2996815458F9CB2 = { isa = PBXBuildFile; fileRef = 5D93F3A3DCDC6B9109DA5212; };
-94E7A21A3082A1E29ED3894B = { isa = PBXBuildFile; fileRef = 4D6DB513EA91312BBD19CAE4; };
-D0DB8EB5D44EAD8578756EA3 = { isa = PBXBuildFile; fileRef = 414322BAC4EC35A2927F9406; };
-F5434A7C8A90E8769388982B = { isa = PBXBuildFile; fileRef = 5333758B3C911AC5FCE8FCB3; };
-78B06DAD13A912D5B51B141A = { isa = PBXBuildFile; fileRef = 92C93D7A0C9A9310CFD703DC; };
-9F3002A5D69B22D357A58AA9 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (32DF968A8C3ADD83DFDEF32F, 15958B04FA99B8103C8724E2, 473F095DF866DAA60B44CA23, 07A38404A2996815458F9CB2, 94E7A21A3082A1E29ED3894B, D0DB8EB5D44EAD8578756EA3, F5434A7C8A90E8769388982B, 78B06DAD13A912D5B51B141A,); runOnlyForDeploymentPostprocessing = 0; };
-FCB48D8F88BCDB0ED9FADFD7 = { isa = XCBuildConfiguration; name = Debug; buildSettings = { SWIFT_VERSION = 5.0; CODE_SIGN_STYLE = Automatic; SDKROOT = macosx; MACOSX_DEPLOYMENT_TARGET = 13.0; ARCHS = "$(NATIVE_ARCH_ACTUAL)"; ONLY_ACTIVE_ARCH = YES; PRODUCT_NAME = WorkdayCoreTests; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.tests; GENERATE_INFOPLIST_FILE = YES; CODE_SIGN_IDENTITY = "-"; }; };
-942EEBBACD6C88CAE7F29B29 = { isa = XCBuildConfiguration; name = Release; buildSettings = { SWIFT_VERSION = 5.0; CODE_SIGN_STYLE = Automatic; SDKROOT = macosx; MACOSX_DEPLOYMENT_TARGET = 13.0; ARCHS = "$(NATIVE_ARCH_ACTUAL)"; ONLY_ACTIVE_ARCH = YES; PRODUCT_NAME = WorkdayCoreTests; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.tests; GENERATE_INFOPLIST_FILE = YES; CODE_SIGN_IDENTITY = "-"; }; };
-9EF6890AD16AE447862048D8 = { isa = XCConfigurationList; buildConfigurations = (FCB48D8F88BCDB0ED9FADFD7, 942EEBBACD6C88CAE7F29B29,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-0A06C5E2DA34E686D888A695 = { isa = PBXNativeTarget; name = "WorkdayCoreTests"; buildConfigurationList = 9EF6890AD16AE447862048D8; buildPhases = (9F3002A5D69B22D357A58AA9, 99C7943D90D870A50ADE9160,); buildRules = (); dependencies = (); packageProductDependencies = (28752BEEED317D763354E011,); productReference = F219C0274590DA45E4BEF1EA; productType = "com.apple.product-type.bundle.unit-test"; };
-FBDC4F23F93125BBEEAE800C = { isa = PBXGroup; children = (8BCD5BC4CDFDF0918087C782, 3CAF6B70679465BCA9418B78, F219C0274590DA45E4BEF1EA,); name = Products; sourceTree = "<group>"; };
-DC76E9F0C0006E8F919E0C51 = { isa = PBXGroup; children = (7D1043473D55BFA90E8530D3, 0F8D25735FF76A079D6C88C1, D18AAC96B905B4B3C839891B, 04D13FD0AA6F0197CF2C9990, 0652E436F42D75F5672A8BD9, 3685E330EC5277A9DD5661C6, 96ED5C5789B174A01557791C, 30D17215B9DB97D2CF8BFB4A, FBDC4F23F93125BBEEAE800C,); sourceTree = "<group>"; };
-89E1FD6268CC0F221A2BE178 = { isa = XCBuildConfiguration; name = Debug; buildSettings = { CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 5.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; ENABLE_TESTABILITY = YES; DEBUG_INFORMATION_FORMAT = dwarf; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; }; };
-E6DE6C99132752C914FEF632 = { isa = XCBuildConfiguration; name = Release; buildSettings = { CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 5.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; }; };
-F8C70E4123C9AE82C42562CC = { isa = XCConfigurationList; buildConfigurations = (89E1FD6268CC0F221A2BE178, E6DE6C99132752C914FEF632,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-98F54143AB4E86B28C3AFEE0 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2600; }; buildConfigurationList = F8C70E4123C9AE82C42562CC; compatibilityVersion = "Xcode 14.0"; developmentRegion = zh_CN; hasScannedForEncodings = 0; knownRegions = (zh_CN, en, Base); mainGroup = DC76E9F0C0006E8F919E0C51; productRefGroup = FBDC4F23F93125BBEEAE800C; projectDirPath = ""; projectRoot = ""; packageReferences = (C27E4B6BEEEBEE564F55E421,); targets = (4F6027D858B72CC70E5CC8E9, C03BF38BB1358F6E46EF9C01, 0A06C5E2DA34E686D888A695,); };
-}; rootObject = 98F54143AB4E86B28C3AFEE0; }
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		027C155896125707339CAA79 /* DesktopPetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D487B5DF482136B38F44D599 /* DesktopPetView.swift */; };
+		07A38404A2996815458F9CB2 /* FlexibleScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D93F3A3DCDC6B9109DA5212 /* FlexibleScheduleTests.swift */; };
+		1006233B9DEB9559FDD3D137 /* MobileSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA9FE01A3181A3D36F96826 /* MobileSettings.swift */; };
+		10C8EDEDB833A7376CB92F87 /* PetControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA12BB8E2DEA6B01A643447 /* PetControls.swift */; };
+		15958B04FA99B8103C8724E2 /* CustomPetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA8A2E9F2A9B5CD3B02D27EC /* CustomPetTests.swift */; };
+		18A350A9585C735F7197558D /* DailyReportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB9D60E998F806C4D6DDB7E /* DailyReportStore.swift */; };
+		269A5E2AE5682E1D10AE8387 /* CustomPetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59CEE785ABF79E4E5FA5AABB /* CustomPetLibrary.swift */; };
+		27BB9227B0784589E804C43D /* AppLanguageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1507BF6FBBA09DE66170DF9F /* AppLanguageView.swift */; };
+		296B63C6578B8CB08CE30FE7 /* PetAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA14D537F331606EC2B40819 /* PetAvatar.swift */; };
+		2DA2F21C812575294FAA2F69 /* Resources/PetArt in Resources */ = {isa = PBXBuildFile; fileRef = 30D17215B9DB97D2CF8BFB4A /* Resources/PetArt */; };
+		2E29F365101DB78D1F89A015 /* IOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0DB8768DAF15D90BF42247 /* IOSApp.swift */; };
+		2FF9B833FDD95EFF72EA1B3E /* WorkdayCore in Frameworks */ = {isa = PBXBuildFile; productRef = F17155D5D2A335750B7FDF77 /* WorkdayCore */; };
+		32DF968A8C3ADD83DFDEF32F /* CalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFE11322718BB1B2B7076EC /* CalculationTests.swift */; };
+		473F095DF866DAA60B44CA23 /* DailyReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BC6E13B87A5C3022D54BC7 /* DailyReportTests.swift */; };
+		59DFFE01F54ACEE6ED87BCB6 /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8BC670E746FA93C6CA908F /* Services.swift */; };
+		5A68E105B283244388112639 /* Configuration/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 96ED5C5789B174A01557791C /* Configuration/PrivacyInfo.xcprivacy */; };
+		628DB08C05CCFBE195F2D0B9 /* WorkdayCore in Frameworks */ = {isa = PBXBuildFile; productRef = 28752BEEED317D763354E011 /* WorkdayCore */; };
+		76E959A34BC86BE51DBE6E9E /* Resources/PetArt in Resources */ = {isa = PBXBuildFile; fileRef = 30D17215B9DB97D2CF8BFB4A /* Resources/PetArt */; };
+		7776EDC271F44D165BD49870 /* DailyReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A7AD251BFC30AD6DB9C034 /* DailyReportsView.swift */; };
+		78B06DAD13A912D5B51B141A /* ReminderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C93D7A0C9A9310CFD703DC /* ReminderTests.swift */; };
+		895F3A00F99340D8EF171741 /* AppLanguageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1507BF6FBBA09DE66170DF9F /* AppLanguageView.swift */; };
+		94E7A21A3082A1E29ED3894B /* HydrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D6DB513EA91312BBD19CAE4 /* HydrationTests.swift */; };
+		97E31481AB19D911C402C91A /* OpenRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C44E0E8CBE0E1DD0705C13 /* OpenRouterTests.swift */; };
+		A4B0FD9A29D39C1058AA6B1B /* CustomPetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59CEE785ABF79E4E5FA5AABB /* CustomPetLibrary.swift */; };
+		A642429C203273A093D25EC8 /* DailyReportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB9D60E998F806C4D6DDB7E /* DailyReportStore.swift */; };
+		A7D5D856D3DC3C73C1AC7D5E /* PetArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1074CB611E191F8D1C958DAE /* PetArtwork.swift */; };
+		A942BC52FE424A9B62001D00 /* PetDragHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A5435348A58AF9E2383EDC /* PetDragHandle.swift */; };
+		AE34FF0AC2D85389627DB1C2 /* Configuration/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 96ED5C5789B174A01557791C /* Configuration/PrivacyInfo.xcprivacy */; };
+		B1DDD9435DDB878E2E29992A /* PetArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1074CB611E191F8D1C958DAE /* PetArtwork.swift */; };
+		B43EB7F304EFF2068DC291AD /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93FF29654B5407EC1978D3B2 /* App.swift */; };
+		BF21D3E8E2E8D2AD6A0FDCE8 /* WorkdayCore in Frameworks */ = {isa = PBXBuildFile; productRef = D001546E28B0519F9AA3A09F /* WorkdayCore */; };
+		C1B25999340C8CB6EBC55920 /* CustomPetEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389EF726A5C56E18568ECC71 /* CustomPetEditor.swift */; };
+		C5F13A9B8EF72BE3AAFD6128 /* PetControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA12BB8E2DEA6B01A643447 /* PetControls.swift */; };
+		C88ABACA591DE8D1A3B0BB1D /* PetAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA14D537F331606EC2B40819 /* PetAvatar.swift */; };
+		C89E8AAA4E01FF104AF5E666 /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3685E330EC5277A9DD5661C6 /* Resources/Assets.xcassets */; };
+		CC532F98845C1C8B71D63036 /* MenuPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0CB785678393CF6896DFF1A /* MenuPanelView.swift */; };
+		D0DB8EB5D44EAD8578756EA3 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414322BAC4EC35A2927F9406 /* LocalizationTests.swift */; };
+		E248B7792096E573B6A6188D /* DailyReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A7AD251BFC30AD6DB9C034 /* DailyReportsView.swift */; };
+		E26B0D6360625AD71AD49653 /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3685E330EC5277A9DD5661C6 /* Resources/Assets.xcassets */; };
+		F3F1EEBD5B3CE00FC73F1669 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EB2AAF468E1411282CDD2 /* SettingsView.swift */; };
+		F5434A7C8A90E8769388982B /* OvertimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5333758B3C911AC5FCE8FCB3 /* OvertimeTests.swift */; };
+		FA0866BA96AD0BAB541FF551 /* CustomPetEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389EF726A5C56E18568ECC71 /* CustomPetEditor.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0112DAE3F84CB4DF5179BE01 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		03BC6E13B87A5C3022D54BC7 /* DailyReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportTests.swift; sourceTree = "<group>"; };
+		1074CB611E191F8D1C958DAE /* PetArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetArtwork.swift; sourceTree = "<group>"; };
+		1507BF6FBBA09DE66170DF9F /* AppLanguageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguageView.swift; sourceTree = "<group>"; };
+		1A4EB2AAF468E1411282CDD2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1FA12BB8E2DEA6B01A643447 /* PetControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetControls.swift; sourceTree = "<group>"; };
+		30D17215B9DB97D2CF8BFB4A /* Resources/PetArt */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/PetArt; sourceTree = "<group>"; };
+		3685E330EC5277A9DD5661C6 /* Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		389EF726A5C56E18568ECC71 /* CustomPetEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPetEditor.swift; sourceTree = "<group>"; };
+		3CAF6B70679465BCA9418B78 /* 下班啦.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "下班啦.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		414322BAC4EC35A2927F9406 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
+		49C44E0E8CBE0E1DD0705C13 /* OpenRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterTests.swift; sourceTree = "<group>"; };
+		4D6DB513EA91312BBD19CAE4 /* HydrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationTests.swift; sourceTree = "<group>"; };
+		52A5435348A58AF9E2383EDC /* PetDragHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetDragHandle.swift; sourceTree = "<group>"; };
+		5333758B3C911AC5FCE8FCB3 /* OvertimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvertimeTests.swift; sourceTree = "<group>"; };
+		59CEE785ABF79E4E5FA5AABB /* CustomPetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPetLibrary.swift; sourceTree = "<group>"; };
+		5BB9D60E998F806C4D6DDB7E /* DailyReportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportStore.swift; sourceTree = "<group>"; };
+		5D93F3A3DCDC6B9109DA5212 /* FlexibleScheduleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleScheduleTests.swift; sourceTree = "<group>"; };
+		6FFE11322718BB1B2B7076EC /* CalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTests.swift; sourceTree = "<group>"; };
+		7AE678F955832F9AA2C9AACD /* Info-iOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-iOS.plist"; sourceTree = "<group>"; };
+		7DA9FE01A3181A3D36F96826 /* MobileSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSettings.swift; sourceTree = "<group>"; };
+		88A7AD251BFC30AD6DB9C034 /* DailyReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReportsView.swift; sourceTree = "<group>"; };
+		8BCD5BC4CDFDF0918087C782 /* 下班啦.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = "下班啦.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C8BC670E746FA93C6CA908F /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
+		92C93D7A0C9A9310CFD703DC /* ReminderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTests.swift; sourceTree = "<group>"; };
+		93FF29654B5407EC1978D3B2 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		96ED5C5789B174A01557791C /* Configuration/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Configuration/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AD0DB8768DAF15D90BF42247 /* IOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSApp.swift; sourceTree = "<group>"; };
+		D487B5DF482136B38F44D599 /* DesktopPetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopPetView.swift; sourceTree = "<group>"; };
+		DA14D537F331606EC2B40819 /* PetAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetAvatar.swift; sourceTree = "<group>"; };
+		DA8A2E9F2A9B5CD3B02D27EC /* CustomPetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPetTests.swift; sourceTree = "<group>"; };
+		E0CB785678393CF6896DFF1A /* MenuPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPanelView.swift; sourceTree = "<group>"; };
+		E7B1BFA482251F04722B6837 /* OffWorkNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = OffWorkNow.entitlements; sourceTree = "<group>"; };
+		F219C0274590DA45E4BEF1EA /* WorkdayCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = WorkdayCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		12384B5908BE5FE5B3301CEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF21D3E8E2E8D2AD6A0FDCE8 /* WorkdayCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		529C4359507DD00DB78C80CA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2FF9B833FDD95EFF72EA1B3E /* WorkdayCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99C7943D90D870A50ADE9160 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				628DB08C05CCFBE195F2D0B9 /* WorkdayCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		04D13FD0AA6F0197CF2C9990 /* Tests/WorkdayCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				6FFE11322718BB1B2B7076EC /* CalculationTests.swift */,
+				DA8A2E9F2A9B5CD3B02D27EC /* CustomPetTests.swift */,
+				03BC6E13B87A5C3022D54BC7 /* DailyReportTests.swift */,
+				5D93F3A3DCDC6B9109DA5212 /* FlexibleScheduleTests.swift */,
+				4D6DB513EA91312BBD19CAE4 /* HydrationTests.swift */,
+				414322BAC4EC35A2927F9406 /* LocalizationTests.swift */,
+				49C44E0E8CBE0E1DD0705C13 /* OpenRouterTests.swift */,
+				5333758B3C911AC5FCE8FCB3 /* OvertimeTests.swift */,
+				92C93D7A0C9A9310CFD703DC /* ReminderTests.swift */,
+			);
+			path = Tests/WorkdayCoreTests;
+			sourceTree = "<group>";
+		};
+		0652E436F42D75F5672A8BD9 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				0112DAE3F84CB4DF5179BE01 /* Info.plist */,
+				7AE678F955832F9AA2C9AACD /* Info-iOS.plist */,
+				E7B1BFA482251F04722B6837 /* OffWorkNow.entitlements */,
+			);
+			path = Configuration;
+			sourceTree = "<group>";
+		};
+		0F8D25735FF76A079D6C88C1 /* Sources/OffWorkNowIOS */ = {
+			isa = PBXGroup;
+			children = (
+				AD0DB8768DAF15D90BF42247 /* IOSApp.swift */,
+				7DA9FE01A3181A3D36F96826 /* MobileSettings.swift */,
+			);
+			path = Sources/OffWorkNowIOS;
+			sourceTree = "<group>";
+		};
+		7D1043473D55BFA90E8530D3 /* Sources/WorkdayBuddy */ = {
+			isa = PBXGroup;
+			children = (
+				93FF29654B5407EC1978D3B2 /* App.swift */,
+				D487B5DF482136B38F44D599 /* DesktopPetView.swift */,
+				E0CB785678393CF6896DFF1A /* MenuPanelView.swift */,
+				52A5435348A58AF9E2383EDC /* PetDragHandle.swift */,
+				8C8BC670E746FA93C6CA908F /* Services.swift */,
+				1A4EB2AAF468E1411282CDD2 /* SettingsView.swift */,
+			);
+			path = Sources/WorkdayBuddy;
+			sourceTree = "<group>";
+		};
+		D18AAC96B905B4B3C839891B /* Sources/SharedUI */ = {
+			isa = PBXGroup;
+			children = (
+				1507BF6FBBA09DE66170DF9F /* AppLanguageView.swift */,
+				389EF726A5C56E18568ECC71 /* CustomPetEditor.swift */,
+				59CEE785ABF79E4E5FA5AABB /* CustomPetLibrary.swift */,
+				5BB9D60E998F806C4D6DDB7E /* DailyReportStore.swift */,
+				88A7AD251BFC30AD6DB9C034 /* DailyReportsView.swift */,
+				1074CB611E191F8D1C958DAE /* PetArtwork.swift */,
+				DA14D537F331606EC2B40819 /* PetAvatar.swift */,
+				1FA12BB8E2DEA6B01A643447 /* PetControls.swift */,
+			);
+			path = Sources/SharedUI;
+			sourceTree = "<group>";
+		};
+		DC76E9F0C0006E8F919E0C51 = {
+			isa = PBXGroup;
+			children = (
+				7D1043473D55BFA90E8530D3 /* Sources/WorkdayBuddy */,
+				0F8D25735FF76A079D6C88C1 /* Sources/OffWorkNowIOS */,
+				D18AAC96B905B4B3C839891B /* Sources/SharedUI */,
+				04D13FD0AA6F0197CF2C9990 /* Tests/WorkdayCoreTests */,
+				0652E436F42D75F5672A8BD9 /* Configuration */,
+				3685E330EC5277A9DD5661C6 /* Resources/Assets.xcassets */,
+				96ED5C5789B174A01557791C /* Configuration/PrivacyInfo.xcprivacy */,
+				30D17215B9DB97D2CF8BFB4A /* Resources/PetArt */,
+				FBDC4F23F93125BBEEAE800C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FBDC4F23F93125BBEEAE800C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8BCD5BC4CDFDF0918087C782 /* 下班啦.app */,
+				3CAF6B70679465BCA9418B78 /* 下班啦.app */,
+				F219C0274590DA45E4BEF1EA /* WorkdayCoreTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0A06C5E2DA34E686D888A695 /* WorkdayCoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9EF6890AD16AE447862048D8 /* Build configuration list for PBXNativeTarget "WorkdayCoreTests" */;
+			buildPhases = (
+				9F3002A5D69B22D357A58AA9 /* Sources */,
+				99C7943D90D870A50ADE9160 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WorkdayCoreTests;
+			packageProductDependencies = (
+				28752BEEED317D763354E011 /* WorkdayCore */,
+			);
+			productName = WorkdayCoreTests;
+			productReference = F219C0274590DA45E4BEF1EA /* WorkdayCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4F6027D858B72CC70E5CC8E9 /* OffWorkNow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA1189605F4160DBE5714E93 /* Build configuration list for PBXNativeTarget "OffWorkNow" */;
+			buildPhases = (
+				2D764CD838DB39F040AA7EC4 /* Sources */,
+				12384B5908BE5FE5B3301CEE /* Frameworks */,
+				06F5DC629BD46AAFD46564D1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OffWorkNow;
+			packageProductDependencies = (
+				D001546E28B0519F9AA3A09F /* WorkdayCore */,
+			);
+			productName = OffWorkNow;
+			productReference = 8BCD5BC4CDFDF0918087C782 /* 下班啦.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C03BF38BB1358F6E46EF9C01 /* OffWorkNow-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5BEDEF3AE377A2DD5274EFB /* Build configuration list for PBXNativeTarget "OffWorkNow-iOS" */;
+			buildPhases = (
+				04486FF46B95201A121FECA1 /* Sources */,
+				529C4359507DD00DB78C80CA /* Frameworks */,
+				BDADC39D7A7CE2D7EE08D240 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "OffWorkNow-iOS";
+			packageProductDependencies = (
+				F17155D5D2A335750B7FDF77 /* WorkdayCore */,
+			);
+			productName = "OffWorkNow-iOS";
+			productReference = 3CAF6B70679465BCA9418B78 /* 下班啦.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		98F54143AB4E86B28C3AFEE0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 2600;
+			};
+			buildConfigurationList = F8C70E4123C9AE82C42562CC /* Build configuration list for PBXProject "OffWorkNow" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh_CN;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				zh_CN,
+				en,
+				Base,
+			);
+			mainGroup = DC76E9F0C0006E8F919E0C51;
+			packageReferences = (
+				C27E4B6BEEEBEE564F55E421 /* XCLocalSwiftPackageReference "." */,
+			);
+			productRefGroup = FBDC4F23F93125BBEEAE800C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4F6027D858B72CC70E5CC8E9 /* OffWorkNow */,
+				C03BF38BB1358F6E46EF9C01 /* OffWorkNow-iOS */,
+				0A06C5E2DA34E686D888A695 /* WorkdayCoreTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		06F5DC629BD46AAFD46564D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C89E8AAA4E01FF104AF5E666 /* Resources/Assets.xcassets in Resources */,
+				5A68E105B283244388112639 /* Configuration/PrivacyInfo.xcprivacy in Resources */,
+				76E959A34BC86BE51DBE6E9E /* Resources/PetArt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BDADC39D7A7CE2D7EE08D240 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E26B0D6360625AD71AD49653 /* Resources/Assets.xcassets in Resources */,
+				AE34FF0AC2D85389627DB1C2 /* Configuration/PrivacyInfo.xcprivacy in Resources */,
+				2DA2F21C812575294FAA2F69 /* Resources/PetArt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		04486FF46B95201A121FECA1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E29F365101DB78D1F89A015 /* IOSApp.swift in Sources */,
+				1006233B9DEB9559FDD3D137 /* MobileSettings.swift in Sources */,
+				895F3A00F99340D8EF171741 /* AppLanguageView.swift in Sources */,
+				FA0866BA96AD0BAB541FF551 /* CustomPetEditor.swift in Sources */,
+				269A5E2AE5682E1D10AE8387 /* CustomPetLibrary.swift in Sources */,
+				18A350A9585C735F7197558D /* DailyReportStore.swift in Sources */,
+				E248B7792096E573B6A6188D /* DailyReportsView.swift in Sources */,
+				B1DDD9435DDB878E2E29992A /* PetArtwork.swift in Sources */,
+				C88ABACA591DE8D1A3B0BB1D /* PetAvatar.swift in Sources */,
+				C5F13A9B8EF72BE3AAFD6128 /* PetControls.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2D764CD838DB39F040AA7EC4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B43EB7F304EFF2068DC291AD /* App.swift in Sources */,
+				027C155896125707339CAA79 /* DesktopPetView.swift in Sources */,
+				CC532F98845C1C8B71D63036 /* MenuPanelView.swift in Sources */,
+				A942BC52FE424A9B62001D00 /* PetDragHandle.swift in Sources */,
+				59DFFE01F54ACEE6ED87BCB6 /* Services.swift in Sources */,
+				F3F1EEBD5B3CE00FC73F1669 /* SettingsView.swift in Sources */,
+				27BB9227B0784589E804C43D /* AppLanguageView.swift in Sources */,
+				C1B25999340C8CB6EBC55920 /* CustomPetEditor.swift in Sources */,
+				A4B0FD9A29D39C1058AA6B1B /* CustomPetLibrary.swift in Sources */,
+				A642429C203273A093D25EC8 /* DailyReportStore.swift in Sources */,
+				7776EDC271F44D165BD49870 /* DailyReportsView.swift in Sources */,
+				A7D5D856D3DC3C73C1AC7D5E /* PetArtwork.swift in Sources */,
+				296B63C6578B8CB08CE30FE7 /* PetAvatar.swift in Sources */,
+				10C8EDEDB833A7376CB92F87 /* PetControls.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F3002A5D69B22D357A58AA9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				32DF968A8C3ADD83DFDEF32F /* CalculationTests.swift in Sources */,
+				15958B04FA99B8103C8724E2 /* CustomPetTests.swift in Sources */,
+				473F095DF866DAA60B44CA23 /* DailyReportTests.swift in Sources */,
+				07A38404A2996815458F9CB2 /* FlexibleScheduleTests.swift in Sources */,
+				94E7A21A3082A1E29ED3894B /* HydrationTests.swift in Sources */,
+				D0DB8EB5D44EAD8578756EA3 /* LocalizationTests.swift in Sources */,
+				97E31481AB19D911C402C91A /* OpenRouterTests.swift in Sources */,
+				F5434A7C8A90E8769388982B /* OvertimeTests.swift in Sources */,
+				78B06DAD13A912D5B51B141A /* ReminderTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1614696E664D13E2EAB2EFEC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				INFOPLIST_FILE = "Configuration/Info-iOS.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app;
+				PRODUCT_MODULE_NAME = OffWorkNowIOS;
+				PRODUCT_NAME = "下班啦";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5A8C91857F674E16E2724F47 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Configuration/OffWorkNow.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = P66P3CXU58;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Configuration/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.2.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app;
+				PRODUCT_MODULE_NAME = WorkdayBuddy;
+				PRODUCT_NAME = "下班啦";
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		89E1FD6268CC0F221A2BE178 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		942EEBBACD6C88CAE7F29B29 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.tests;
+				PRODUCT_NAME = WorkdayCoreTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C71788DF4F81C9137989F291 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				INFOPLIST_FILE = "Configuration/Info-iOS.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app;
+				PRODUCT_MODULE_NAME = OffWorkNowIOS;
+				PRODUCT_NAME = "下班啦";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E6DE6C99132752C914FEF632 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E9B2E96ABC5F6856F2BE79CF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Configuration/OffWorkNow.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = P66P3CXU58;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Configuration/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.2.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app;
+				PRODUCT_MODULE_NAME = WorkdayBuddy;
+				PRODUCT_NAME = "下班啦";
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FCB48D8F88BCDB0ED9FADFD7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.tests;
+				PRODUCT_NAME = WorkdayCoreTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9EF6890AD16AE447862048D8 /* Build configuration list for PBXNativeTarget "WorkdayCoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FCB48D8F88BCDB0ED9FADFD7 /* Debug */,
+				942EEBBACD6C88CAE7F29B29 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D5BEDEF3AE377A2DD5274EFB /* Build configuration list for PBXNativeTarget "OffWorkNow-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C71788DF4F81C9137989F291 /* Debug */,
+				1614696E664D13E2EAB2EFEC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DA1189605F4160DBE5714E93 /* Build configuration list for PBXNativeTarget "OffWorkNow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9B2E96ABC5F6856F2BE79CF /* Debug */,
+				5A8C91857F674E16E2724F47 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F8C70E4123C9AE82C42562CC /* Build configuration list for PBXProject "OffWorkNow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				89E1FD6268CC0F221A2BE178 /* Debug */,
+				E6DE6C99132752C914FEF632 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C27E4B6BEEEBEE564F55E421 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		28752BEEED317D763354E011 /* WorkdayCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C27E4B6BEEEBEE564F55E421 /* XCLocalSwiftPackageReference "." */;
+			productName = WorkdayCore;
+		};
+		D001546E28B0519F9AA3A09F /* WorkdayCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C27E4B6BEEEBEE564F55E421 /* XCLocalSwiftPackageReference "." */;
+			productName = WorkdayCore;
+		};
+		F17155D5D2A335750B7FDF77 /* WorkdayCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C27E4B6BEEEBEE564F55E421 /* XCLocalSwiftPackageReference "." */;
+			productName = WorkdayCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+}
