@@ -26,12 +26,12 @@ public enum AssistantContext {
         }
         var selected: [AssistantMessage] = []
         for pair in pairs.reversed().prefix(maximumHistoryMessages / 2) {
-            let cost = pair.reduce(0) { $0 + estimatedTokens($1.content) }
+            let cost = pair.reduce(0) { $0 + estimatedTokens($1.displayedContent) }
             guard cost <= remaining else { break }
             remaining -= cost; selected.insert(contentsOf: pair, at: 0)
         }
         return [OpenRouterMessage(role: .system, content: system)] + selected.map {
-            OpenRouterMessage(role: $0.role == .user ? .user : .assistant, content: $0.content)
+            OpenRouterMessage(role: $0.role == .user ? .user : .assistant, content: $0.displayedContent)
         } + [OpenRouterMessage(role: .user, content: current)]
     }
 }

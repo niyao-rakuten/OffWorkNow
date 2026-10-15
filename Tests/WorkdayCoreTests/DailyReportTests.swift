@@ -2,6 +2,23 @@ import XCTest
 @testable import WorkdayCore
 
 final class DailyReportTests: ChineseLocalizationTestCase {
+    func testLocalPetReportSupportsBothLanguagesAcrossAllSummaryBranches() {
+        for (time, water) in [("18:00:00", 1499), ("18:15:00", 1500), ("19:31:00", 2000)] {
+            let report = report(time, water: water)
+            let english = report.assistantReport(hideEarnings: false, language: .english)
+            XCTAssertNil(english.range(of: "\\p{Han}", options: .regularExpression))
+            XCTAssertTrue(english.hasPrefix("Date: 2026-10-12\nTime zone:"))
+            XCTAssertTrue(english.contains("\nScheduled finish:"))
+            XCTAssertTrue(english.contains("\nClocked out:"))
+            XCTAssertTrue(english.contains("\nWater: \(water) ml"))
+            XCTAssertTrue(english.contains("\nToday’s earnings:"))
+            XCTAssertTrue(english.contains("\nOvertime:"))
+            XCTAssertTrue(report.assistantReport(hideEarnings: false, language: .simplifiedChinese).contains("日期：2026-10-12"))
+            XCTAssertFalse(report.assistantReport(hideEarnings: true, language: .english).contains("1,000.00"))
+        }
+        var missing = report(); missing.earned = nil
+        XCTAssertTrue(missing.assistantReport(hideEarnings: false, language: .english).contains("Salary not set"))
+    }
     #if DEBUG
     func testDebugClearOnlyRemovesRequestedDateAndZone() throws {
         var archive = DailyReportArchive()

@@ -40,8 +40,8 @@ struct DesktopPetView: View {
                         PetControlImage(asset: .cup).frame(width: 36, height: 36)
                         Text("×\(model.hydration.cups)").font(.system(size: 13, weight: .semibold, design: .rounded))
                     }
-                }.help("喝一杯水").accessibilityLabel("喝一杯水")
-                    .contextMenu { Button("撤销上一杯", action: model.undoWater).disabled(model.hydration.cups == 0) }
+                }.help(L10n.text("喝一杯水")).accessibilityLabel(L10n.text("喝一杯水"))
+                    .contextMenu { Button(L10n.text("撤销上一杯"), action: model.undoWater).disabled(model.hydration.cups == 0) }
                 AssistantChatButton(store: model.assistant) { model.chatVisible.toggle() }
             }.buttonStyle(.plain).foregroundStyle(AssistantArt.ink)
             PetCheckoutButton(visible: model.work.state == .after && model.checkout.canCheckout,
@@ -117,6 +117,7 @@ enum AssistantArt {
 }
 
 private struct AssistantChatButton: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var store: AssistantStore
     let action: () -> Void
     var body: some View {
@@ -130,12 +131,13 @@ private struct AssistantChatButton: View {
                             .allowsHitTesting(false).accessibilityHidden(true)
                     }
                 }
-        }.help(store.unreadMessageIDs.isEmpty ? "和小宠物聊聊" : "有未读消息，点击查看")
-            .accessibilityLabel(store.unreadMessageIDs.isEmpty ? "展开或收起聊天" : "展开聊天，有未读消息")
+        }.help(store.unreadMessageIDs.isEmpty ? L10n.text("和小宠物聊聊") : L10n.text("有未读消息，点击查看"))
+            .accessibilityLabel(store.unreadMessageIDs.isEmpty ? L10n.text("展开或收起聊天") : L10n.text("展开聊天，有未读消息"))
     }
 }
 
 struct AssistantChatView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var store: AssistantStore
     let openSettings: () -> Void
     let close: () -> Void
@@ -144,12 +146,12 @@ struct AssistantChatView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Text("小宠物的悄悄话").font(.system(size: 14, weight: .semibold, design: .rounded))
+                Text(L10n.text("小宠物的悄悄话")).font(.system(size: 14, weight: .semibold, design: .rounded))
                 Spacer()
                 Button(action: close) {
                     PetControlImage(asset: .close).frame(width: 20, height: 20)
                         .frame(width: 26, height: 26).contentShape(Rectangle())
-                }.buttonStyle(.plain).help("关闭对话").accessibilityLabel("关闭对话")
+                }.buttonStyle(.plain).help(L10n.text("关闭对话")).accessibilityLabel(L10n.text("关闭对话"))
             }
             AssistantMessagesView(store: store, isPresented: isPresented)
             if let issue = store.issue {
@@ -163,7 +165,7 @@ struct AssistantChatView: View {
                     })
             }
             if let usage = store.latestUsage, !store.isStreaming {
-                Text("最近一次 \(usage.totalTokens) token" + (usage.cost.map { String(format: " · $%.6f", $0) } ?? ""))
+                Text(L10n.format("最近一次 {0} token", String(usage.totalTokens)) + (usage.cost.map { String(format: " · $%.6f", $0) } ?? ""))
                     .font(.system(size: 10, design: .rounded)).foregroundStyle(AssistantArt.ink.opacity(0.7))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -177,8 +179,8 @@ struct AssistantChatView: View {
                         .opacity(!store.isStreaming && !canSend ? 0.35 : 1)
                         .contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(!store.isStreaming && !canSend)
-                    .accessibilityLabel(store.isStreaming ? "停止回复" : "发送消息")
-                    .help(store.isStreaming ? "停止回复，保留已接收内容" : "发送消息")
+                    .accessibilityLabel(store.isStreaming ? L10n.text("停止回复") : L10n.text("发送消息"))
+                    .help(store.isStreaming ? L10n.text("停止回复，保留已接收内容") : L10n.text("发送消息"))
             }
         }.padding(14).foregroundStyle(AssistantArt.ink)
             .background(AssistantArt.paper, in: SketchPaperShape())
@@ -205,6 +207,7 @@ struct AssistantChatView: View {
 }
 
 struct AssistantMessagesView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var store: AssistantStore
     var isPresented = true
     var body: some View {
@@ -241,6 +244,7 @@ struct AssistantMessagesView: View {
 
 /// Presentation-only typing: full messages remain available to history and AI context.
 private struct AssistantMessageBubble: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     let message: AssistantMessage
     let store: AssistantStore
     let isPresented: Bool
@@ -250,9 +254,9 @@ private struct AssistantMessageBubble: View {
     @State private var revealedCount = 0
     private var user: Bool { message.role == .user }
     private var displayedText: String {
-        if message.content.isEmpty { return !message.complete && store.isStreaming ? "小宠物正在想…" : "未收到回复" }
-        if user || reduceMotion || animate == false || (animate == nil && !store.needsTypingAnimation(for: message.id)) { return message.content }
-        return String(message.content.prefix(max(1, revealedCount)))
+        if message.displayedContent.isEmpty { return !message.complete && store.isStreaming ? L10n.text("小宠物正在想…") : L10n.text("未收到回复") }
+        if user || reduceMotion || animate == false || (animate == nil && !store.needsTypingAnimation(for: message.id)) { return message.displayedContent }
+        return String(message.displayedContent.prefix(max(1, revealedCount)))
     }
     var body: some View {
         HStack {
@@ -261,14 +265,14 @@ private struct AssistantMessageBubble: View {
                 .padding(10).background(user ? AssistantArt.sage : .white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(AssistantArt.ink.opacity(0.2), lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityLabel(message.content.isEmpty ? displayedText : message.content)
+                .accessibilityLabel(message.displayedContent.isEmpty ? displayedText : message.displayedContent)
             if !user { Spacer(minLength: 24) }
         }
-        .task(id: message.content + (isPresented ? "visible" : "hidden")) {
+        .task(id: message.displayedContent + (isPresented ? "visible" : "hidden")) {
             guard isPresented else { return }
             if animate == nil { animate = !user && store.takeTypingAnimation(for: message.id) }
             guard animate == true, !reduceMotion else { return }
-            let count = message.content.count
+            let count = message.displayedContent.count
             // Catch up gently when a large SSE chunk arrives, without delaying the first character.
             while revealedCount < count {
                 guard !Task.isCancelled else { return }
@@ -277,6 +281,10 @@ private struct AssistantMessageBubble: View {
                 do { try await Task.sleep(nanoseconds: 20_000_000) }
                 catch { return }
             }
+        }
+        .onChange(of: language.selection) { _ in
+            animate = false
+            didRevealText()
         }
     }
 }

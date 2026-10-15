@@ -135,7 +135,7 @@ import WorkdayCore
 }
 
 @MainActor final class ReminderCoordinator: ObservableObject {
-    var onMessage: ((String, String) -> Void)?
+    var onMessage: (([String: String]) -> Void)?
     @Published private(set) var pause: ReminderPause?
     @Published private(set) var nextEvent: ReminderEvent?
     @Published private(set) var overtimeMessage: String?
@@ -209,30 +209,36 @@ import WorkdayCore
         }
         timer.tolerance = 0.2; self.timer = timer; RunLoop.main.add(timer, forMode: .common)
     }
-    private func content(_ event: ReminderEvent) -> (String, String) {
-        if event.kind == .offwork { return (L10n.text("下班啦"), L10n.text("下班时间到啦！点击“打卡下班”，今天辛苦了。")) }
+    private func content(_ event: ReminderEvent, language: AppLanguage, healthKey: String) -> (String, String) {
+        if event.kind == .offwork { return (L10n.text("下班啦", language: language), L10n.text("下班时间到啦！点击“打卡下班”，今天辛苦了。", language: language)) }
         if event.kind == .overtime {
             let work = ScheduleCalculator.snapshot(now: event.date, settings: settings)
-            let message = OvertimeCalculator.message(seconds: event.date.timeIntervalSince(work.end), intervalMinutes: settings.overtimeIntervalMinutes)
+            let message = OvertimeCalculator.message(seconds: event.date.timeIntervalSince(work.end), intervalMinutes: settings.overtimeIntervalMinutes, language: language)
             overtimeMessage = message
             overtimeMessageDate = work.dateKey
-            return (L10n.text("加班提醒 · 下班啦"), message)
+            return (L10n.text("加班提醒 · 下班啦", language: language), message)
         }
-        let text = HealthMessages.choose(categories: settings.categories, previous: ledger.lastMessage)
-        ledger.lastMessage = text
+        let text = L10n.text(healthKey, language: language)
         let hour = settings.calendar.component(.hour, from: event.date)
         let remaining = ScheduleCalculator.snapshot(now: event.date, settings: settings).remaining
         let minutes = Int(ceil(remaining / 60))
-        let duration = minutes >= 60 ? L10n.format("{0} 小时", String(describing: minutes / 60)) + (minutes % 60 > 0 ? L10n.format(" {0} 分钟", String(describing: minutes % 60)) : "") : L10n.format("{0} 分钟", String(describing: minutes))
-        return (String(format: L10n.text("现在是 %02d:00"), hour), text + L10n.format("距离下班还有 {0}。", String(describing: duration)))
+        let duration = minutes >= 60 ? L10n.format("{0} 小时", String(describing: minutes / 60), language: language) + (minutes % 60 > 0 ? L10n.format(" {0} 分钟", String(describing: minutes % 60), language: language) : "") : L10n.format("{0} 分钟", String(describing: minutes), language: language)
+        return (String(format: L10n.text("现在是 %02d:00", language: language), hour), text + " " + L10n.format("距离下班还有 {0}。", String(describing: duration), language: language))
     }
     private func deliver(_ event: ReminderEvent) {
         guard ledger.records[event.id] == nil else { return }
-        let (title, body) = content(event)
+        let healthKey = event.kind == .hourly ? L10n.sourceKey(for: HealthMessages.choose(categories: settings.categories, previous: ledger.lastMessage)) : ""
+        var localized: [String: String] = [:]
+        for language in [AppLanguage.simplifiedChinese, .english] {
+            let (title, body) = content(event, language: language, healthKey: healthKey)
+            localized[language.rawValue] = title + "\n" + body
+        }
+        let (title, body) = content(event, language: L10n.selection.resolved(), healthKey: healthKey)
+        if event.kind == .hourly { ledger.lastMessage = L10n.text(healthKey) }
         var record = EventRecord(notification: "reserved", speech: "skipped")
         // Reserve before any asynchronous channel so restart/permission changes cannot duplicate it.
         ledger.consume(event, record: record); persistLedger()
-        onMessage?(title, body)
+        onMessage?(localized)
         if event.kind == .hourly && settings.speechEnabled { record.speech = speech.speak(title + "。" + body) }
         ledger.records[event.id] = record; persistLedger()
         let sound = settings.notificationSound
@@ -248,7 +254,10 @@ import WorkdayCore
         var text = L10n.text("工作辛苦了，记得适当休息")
         if testSettings.hourlyEnabled { text = HealthMessages.choose(categories: testSettings.categories, previous: nil) }
         if testSettings.speechEnabled { _ = speech.speak(L10n.text("测试提醒。") + text) }
-        onMessage?(L10n.text("测试提醒"), text)
+        let key = L10n.sourceKey(for: text)
+        onMessage?(Dictionary(uniqueKeysWithValues: [AppLanguage.simplifiedChinese, .english].map {
+            ($0.rawValue, L10n.text("测试提醒", language: $0) + "\n" + L10n.text(key, language: $0))
+        }))
         Task { _ = await notifications.send(id: "test.\(UUID().uuidString)", title: L10n.text("测试提醒"), body: text, sound: testSettings.notificationSound) }
     }
 }
@@ -263,8 +272,9 @@ import WorkdayCore
     private func persistUnread() {
         defaults.set(unreadMessageIDs.map(\.uuidString), forKey: "assistant.unreadMessages")
     }
-    func receive(_ text: String) {
-        let message = AssistantMessage(role: .assistant, content: text, proactive: true)
+    func receive(_ localized: [String: String]) {
+        var message = AssistantMessage(role: .assistant, content: localized[L10n.selection.resolved().rawValue] ?? "", proactive: true)
+        message.localizedContents = localized
         unpresentedReplyIDs.insert(message.id)
         messages.append(message)
         if !panelVisible { unreadMessageIDs.insert(message.id) }
@@ -293,9 +303,14 @@ import WorkdayCore
     }
     func generateDailyReport(_ report: DailyReport, hideEarnings: Bool) {
         // Checkout reports are local, complete pet messages, even during another reply.
-        receive(report.assistantReport(hideEarnings: hideEarnings))
+        receive(Dictionary(uniqueKeysWithValues: [AppLanguage.simplifiedChinese, .english].map {
+            ($0.rawValue, report.assistantReport(hideEarnings: hideEarnings, language: $0))
+        }))
     }
-    var greeting: String { "Hi \(ownerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "主人" : ownerName)，您有什么吩咐？" }
+    var greeting: String {
+        let name = ownerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return L10n.format("Hi {0}，您有什么吩咐？", name.isEmpty || name == "主人" ? L10n.text("主人") : name)
+    }
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let savedModel = defaults.string(forKey: "assistant.model") ?? "nvidia/nemotron-3-super-120b-a12b:free"

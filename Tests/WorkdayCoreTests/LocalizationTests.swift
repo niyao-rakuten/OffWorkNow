@@ -17,6 +17,29 @@ class ChineseLocalizationTestCase: XCTestCase {
 }
 
 final class LocalizationTests: ChineseLocalizationTestCase {
+    func testProactiveHistorySwitchesLanguageAndPreservesUserText() throws {
+        var pet = AssistantMessage(role: .assistant, content: "中文提醒", proactive: true)
+        pet.localizedContents = ["zh-Hans": "中文提醒", "en": "Water reminder"]
+        let decoded = try JSONDecoder().decode(AssistantMessage.self, from: JSONEncoder().encode(pet))
+        XCTAssertEqual(decoded.displayedContent, "中文提醒")
+        let user = AssistantMessage(role: .user, content: "用户原文")
+        UserDefaults.standard.set("en", forKey: L10n.preferenceKey)
+        XCTAssertEqual(decoded.displayedContent, "Water reminder")
+        XCTAssertEqual(user.displayedContent, "用户原文")
+        XCTAssertEqual(pet.content, "中文提醒")
+    }
+    func testReminderCatalogCanRenderTheSameChosenMessageInEitherLanguage() {
+        for message in HealthMessages.messages.values.flatMap({ $0 }) {
+            let key = L10n.sourceKey(for: message)
+            let english = L10n.text(key, language: .english)
+            XCTAssertNil(english.range(of: "\\p{Han}", options: .regularExpression))
+            XCTAssertEqual(L10n.sourceKey(for: english), key)
+            XCTAssertEqual(L10n.text(key, language: .simplifiedChinese), message)
+        }
+        for seconds in [300.0, 600.0] {
+            XCTAssertNil(OvertimeCalculator.message(seconds: seconds, language: .english).range(of: "\\p{Han}", options: .regularExpression))
+        }
+    }
     func testExplicitLanguagesAndFallback() {
         XCTAssertEqual(L10n.text("打卡下班", language: .english), "Clock Out")
         XCTAssertEqual(L10n.text("打卡下班", language: .simplifiedChinese), "打卡下班")

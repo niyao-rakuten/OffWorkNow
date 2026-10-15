@@ -41,8 +41,8 @@ import WorkdayCore
         work = initialWork
         earnings = EarningsCalculator.calculate(now: clock.now, settings: store.settings, work: initialWork)
         reminders = ReminderCoordinator(notifications: notifications, speech: speech, clock: clock)
-        reminders.onMessage = { [weak self] title, body in
-            self?.assistant.receive(title + "\n" + body)
+        reminders.onMessage = { [weak self] localized in
+            self?.assistant.receive(localized)
         }
     }
     func refresh(forceReport: Bool = false) {
