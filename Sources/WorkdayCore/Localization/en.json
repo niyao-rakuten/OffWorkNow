@@ -553,5 +553,10 @@
   "复制全部": "Copy all",
   "关闭": "Close",
   "默认上海，每次启动重新查询天气；问候仅每天首次启动展示。修改城市后下次启动生效。": "Defaults to Shanghai. Weather is fetched on every launch; the greeting appears only on the first launch each day. City changes take effect on the next launch.",
-  "展开": "Expand"
+  "展开": "Expand",
+  "管理日期覆盖": "Manage date overrides",
+  "返回工作安排": "Back to work schedule",
+  "已设置日期": "Configured dates",
+  "暂无日期覆盖": "No date overrides",
+  "修改后点击下方“保存”生效。": "Click Save below to apply your changes."
 }

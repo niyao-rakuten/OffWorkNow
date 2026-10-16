@@ -65,8 +65,6 @@ struct SettingsView: View {
     @State private var lunchStart: String
     @State private var lunchEnd: String
     @State private var launchAtLogin: Bool
-    @State private var selectedDate = Date()
-    @State private var overrideWorkday = true
     @State private var errors: [String: String] = [:]
     @State private var confirmReset = false
     @State private var importedAssets: Set<UUID> = []
@@ -119,6 +117,9 @@ struct SettingsView: View {
         } message: { Text(L10n.text("将清除草稿中的月薪、日期覆盖和提醒偏好，并关闭开机启动。点击保存后生效，不改变系统通知授权。")) }
     }
     private var scheduleTab: some View {
+        NavigationStack { scheduleForm }
+    }
+    private var scheduleForm: some View {
         Form {
             Section(L10n.text("工作时区")) {
                 Picker(L10n.text("时区"), selection: $draft.timeZoneID) {
@@ -152,13 +153,14 @@ struct SettingsView: View {
                 Text(L10n.text("仅支持当天内班次。任务栏修改今日上班会同步到此处，并立即更新倒计时。")).font(.caption).foregroundStyle(.secondary)
             }
             Section(L10n.text("指定日期覆盖")) {
-                DatePicker(L10n.text("日期（工作时区）"), selection: $selectedDate, displayedComponents: .date).environment(\.timeZone, draft.calendar.timeZone).environment(\.calendar, draft.calendar)
-                HStack {
-                    Picker(L10n.text("安排"), selection: $overrideWorkday) { Text(L10n.text("工作")).tag(true); Text(L10n.text("休息")).tag(false) }.pickerStyle(.segmented)
-                    Button(L10n.text("添加 / 更新")) { draft.overrides[ScheduleCalculator.key(selectedDate, calendar: draft.calendar)] = overrideWorkday }
-                }
-                ForEach(draft.overrides.keys.sorted(), id: \.self) { key in
-                    HStack { Text(key).monospacedDigit(); Text(draft.overrides[key] == true ? L10n.text("工作") : L10n.text("休息")); Spacer(); Button(L10n.text("删除")) { draft.overrides.removeValue(forKey: key) } }
+                NavigationLink {
+                    DateOverridesView(overrides: $draft.overrides, calendar: draft.calendar)
+                } label: {
+                    HStack {
+                        Text(L10n.text("管理日期覆盖"))
+                        Spacer()
+                        Text(L10n.format("{0} 条记录", String(draft.overrides.count))).foregroundStyle(.secondary)
+                    }
                 }
             }
             HolidayImportSection(overrides: $draft.overrides, calendar: draft.calendar)
@@ -317,6 +319,55 @@ private struct LoginStatusView: View {
         Text(service.statusText).font(.caption).foregroundStyle(.secondary)
         if service.status == .requiresApproval { Button(L10n.text("打开登录项设置")) { service.openSettings() } }
         if let issue = service.issue { Text(issue).font(.caption).foregroundStyle(.orange) }
+    }
+}
+
+private struct DateOverridesView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    @Binding var overrides: [String: Bool]
+    let calendar: Calendar
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedDate = Date()
+    @State private var workday = true
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Button { dismiss() } label: {
+                    Label(L10n.text("返回工作安排"), systemImage: "chevron.left")
+                }
+                Spacer()
+                Text(L10n.format("{0} 条记录", String(overrides.count))).foregroundStyle(.secondary)
+            }.padding(.horizontal, 20).padding(.top, 12)
+            Form {
+                Section(L10n.text("指定日期覆盖")) {
+                    DatePicker(L10n.text("日期（工作时区）"), selection: $selectedDate, displayedComponents: .date)
+                    HStack {
+                        Picker(L10n.text("安排"), selection: $workday) {
+                            Text(L10n.text("工作")).tag(true)
+                            Text(L10n.text("休息")).tag(false)
+                        }.pickerStyle(.segmented)
+                        Button(L10n.text("添加 / 更新")) {
+                            overrides[ScheduleCalculator.key(selectedDate, calendar: calendar)] = workday
+                        }
+                    }
+                    Text(L10n.text("修改后点击下方“保存”生效。")).font(.caption).foregroundStyle(.secondary)
+                }
+                Section(L10n.text("已设置日期")) {
+                    if overrides.isEmpty {
+                        Text(L10n.text("暂无日期覆盖")).foregroundStyle(.secondary)
+                    }
+                    ForEach(overrides.keys.sorted(), id: \.self) { key in
+                        HStack {
+                            Text(key).monospacedDigit()
+                            Text(L10n.text(overrides[key] == true ? "工作" : "休息"))
+                            Spacer()
+                            Button(L10n.text("删除")) { overrides.removeValue(forKey: key) }
+                        }
+                    }
+                }
+            }.formStyle(.grouped)
+        }.navigationTitle(L10n.text("指定日期覆盖"))
+            .environment(\.calendar, calendar).environment(\.timeZone, calendar.timeZone)
     }
 }
 
