@@ -321,6 +321,7 @@ private struct LoginStatusView: View {
 }
 
 struct AssistantSettingsView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var store: AssistantStore
     @State private var apiKey = ""
     @State private var status: String?
@@ -328,17 +329,36 @@ struct AssistantSettingsView: View {
         Form {
             Section("AI 助手") {
                 TextField("称谓", text: $store.ownerName)
-                Picker("AI 模型", selection: $store.modelID) {
+                Picker(L10n.text("AI 模型"), selection: $store.modelID) {
                     if store.selectedModel == nil { Text("请选择模型（原模型：\(store.modelID)）").tag(store.modelID) }
                     ForEach(store.availableModels) { model in
-                        Text(model.name + (model.isFree ? " · 免费" : " · 低价")).tag(model.id)
+                        Text(model.name + " · " + L10n.text(model.isFree ? "免费" : "低价") + (model.supportsImages ? " · " + L10n.text("视觉") : "")).tag(model.id)
                     }
                 }
                 if let model = store.selectedModel {
-                    Text(model.isFree ? "免费模型，额度与可用性由 OpenRouter 控制。" : String(format: "每百万 token：输入 $%.3f · 输出 $%.3f", model.inputPrice * 1_000_000, model.outputPrice * 1_000_000))
+                    Text(model.isFree ? L10n.text("免费模型，额度与可用性由 OpenRouter 控制。") : L10n.format("基础价格 / 百万 token：输入 ${0} · 输出 ${1}", String(format: "%.3f", model.inputPrice * 1_000_000), String(format: "%.3f", model.outputPrice * 1_000_000)))
                         .font(.caption).foregroundStyle(.secondary)
+                    if model.supportsImages {
+                        Text(L10n.text("该模型支持图片输入；当前 App 聊天仅发送文字。"))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    if let expiration = model.expirationDate {
+                        Text(L10n.format("预览版预计于 {0} 下线。", expiration))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    LabeledContent(L10n.text("模型上下文上限"), value: "\(model.contextLength) token")
+                    if let maximum = model.maximumOutputTokens {
+                        LabeledContent(L10n.text("模型回复上限"), value: "\(maximum) token")
+                    }
+                    if model.effectiveContextLength < model.contextLength {
+                        LabeledContent(L10n.text("当前供应商上下文上限"), value: "\(model.effectiveContextLength) token")
+                    }
+                    if model.hasTieredPricing == true {
+                        Text(L10n.text("该模型按上下文长度分档计价，长上下文价格可能高于基础价格。"))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
-                Button(store.refreshingModels ? "正在刷新…" : "刷新可用模型") { Task { await store.refreshModels() } }.disabled(store.refreshingModels)
+                Button(L10n.text(store.refreshingModels ? "正在刷新…" : "刷新可用模型")) { Task { await store.refreshModels() } }.disabled(store.refreshingModels)
                 if let issue = store.modelIssue { Text(issue).font(.caption).foregroundStyle(.orange) }
                 Text("助手设置修改后立即保存。优先提供免费模型和低价开放权重模型；价格以 OpenRouter 实际结算为准。")
                     .font(.caption).foregroundStyle(.secondary)
@@ -365,8 +385,18 @@ struct AssistantSettingsView: View {
                 Text("仅统计本机聊天收到的实际用量；中断请求或旧消息可能缺失统计，不代表账户总用量。")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("对话上下文") {
-                Text("最多携带最近 6 轮完整对话。输入预算上限 4096，回复上限 1024 token；按 UTF-8 字节保守估算输入，超出预算时裁减较早对话。")
+            Section(L10n.text("对话上下文")) {
+                Picker(L10n.text("输入上下文预算"), selection: $store.inputTokenBudget) {
+                    ForEach(AssistantContext.inputBudgetOptions, id: \.self) { Text("\($0) token").tag($0) }
+                }
+                Picker(L10n.text("单次回复上限"), selection: $store.outputTokenLimit) {
+                    ForEach(AssistantContext.outputTokenOptions, id: \.self) { Text("\($0) token").tag($0) }
+                }
+                if let limits = store.effectiveTokenLimits {
+                    Text(L10n.format("当前实际限额：输入 {0}，回复 {1} token。", String(limits.inputBudget), String(limits.outputTokens)))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Text(L10n.text("最多携带最近 6 轮完整对话。输入按 UTF-8 字节保守估算；实际限额会按模型和供应商容量自动缩减。增加上限可能增加费用。"))
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("聊天历史 · \(store.messages.count) 条") {

@@ -283,6 +283,11 @@ import WorkdayCore
     var recordedUsages: [AssistantUsage] { messages.compactMap(\.usage) }
     @Published var modelID: String { didSet { defaults.set(modelID, forKey: "assistant.model") } }
     @Published var ownerName: String { didSet { defaults.set(ownerName, forKey: "assistant.owner") } }
+    @Published var inputTokenBudget: Int { didSet { defaults.set(inputTokenBudget, forKey: "assistant.inputTokenBudget") } }
+    @Published var outputTokenLimit: Int { didSet { defaults.set(outputTokenLimit, forKey: "assistant.outputTokenLimit") } }
+    var effectiveTokenLimits: AssistantRequestLimits? {
+        selectedModel.flatMap { try? AssistantContext.limits(for: $0, inputBudget: inputTokenBudget, outputTokens: outputTokenLimit) }
+    }
     private let defaults: UserDefaults
     private let historyURL: URL
     private var requestTask: Task<Void, Never>?
@@ -300,8 +305,12 @@ import WorkdayCore
         let savedModel = defaults.string(forKey: "assistant.model") ?? "nvidia/nemotron-3-super-120b-a12b:free"
         modelID = savedModel == "openrouter/free" ? "nvidia/nemotron-3-super-120b-a12b:free" : savedModel
         if savedModel == "openrouter/free" { defaults.set("nvidia/nemotron-3-super-120b-a12b:free", forKey: "assistant.model") }
-        if let data = defaults.data(forKey: "assistant.models"), let models = try? JSONDecoder().decode([AssistantModelOption].self, from: data), !models.isEmpty { availableModels = models.filter { AssistantModelOption.recommendedIDs.contains($0.id) } }
+        if let data = defaults.data(forKey: "assistant.models"), let models = try? JSONDecoder().decode([AssistantModelOption].self, from: data) { availableModels = AssistantModelOption.restoring(models) }
         ownerName = defaults.string(forKey: "assistant.owner") ?? "主人"
+        let savedInput = defaults.integer(forKey: "assistant.inputTokenBudget")
+        let savedOutput = defaults.integer(forKey: "assistant.outputTokenLimit")
+        inputTokenBudget = AssistantContext.inputBudgetOptions.contains(savedInput) ? savedInput : AssistantContext.defaultInputBudget
+        outputTokenLimit = AssistantContext.outputTokenOptions.contains(savedOutput) ? savedOutput : AssistantContext.defaultOutputTokens
         historyURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("OffWorkNow/assistant-history.json")
         if FileManager.default.fileExists(atPath: historyURL.path) {
@@ -319,17 +328,20 @@ import WorkdayCore
         guard !modelID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { issue = "请先设置模型 ID。"; return false }
         guard let model = selectedModel else { issue = "请先在 AI 助手设置中选择可用模型。"; return false }
         let system = "你是桌面精灵 AI 助手。首先准确回答用户当前的问题，遵循用户的任务与语言；表达温和简洁，不要让角色扮演妨碍回答。用户称谓是\(String(ownerName.prefix(64)))，自然地称呼即可，无需每句重复。不能编造模型身份、能力或已经执行的操作。"
+        let history = messages
+        let requestedInput = inputTokenBudget, requestedOutput = outputTokenLimit
         let context: [OpenRouterMessage]
+        let limits: AssistantRequestLimits
         do {
-            context = try AssistantContext.build(history: messages, system: system, current: text,
-                inputBudget: min(AssistantContext.maximumInputBudget, model.contextLength - AssistantContext.maximumOutputTokens - 512))
+            limits = try AssistantContext.limits(for: model, inputBudget: requestedInput, outputTokens: requestedOutput)
+            context = try AssistantContext.build(history: history, system: system, current: text, inputBudget: limits.inputBudget)
         } catch { issue = error.localizedDescription; return false }
         issue = nil
         messages.append(AssistantMessage(role: .user, content: text))
         let reply = AssistantMessage(role: .assistant, content: "", complete: false)
         unpresentedReplyIDs.insert(reply.id)
         messages.append(reply); persist(); isStreaming = true
-        let request = OpenRouterRequest(model: model.id, messages: context, maxTokens: AssistantContext.maximumOutputTokens)
+        let request = OpenRouterRequest(model: model.id, messages: context, maxTokens: limits.outputTokens, additionalParameters: model.chatParameters)
         requestTask = Task { [weak self] in
             guard let self else { return }
             defer {
@@ -361,6 +373,10 @@ import WorkdayCore
                         let provider = model.id.split(separator: "/").first
                         guard let alternative = alternatives.first(where: { $0.id.split(separator: "/").first != provider }) ?? alternatives.first else { throw error }
                         activeRequest.model = alternative.id
+                        let alternativeLimits = try AssistantContext.limits(for: alternative, inputBudget: requestedInput, outputTokens: requestedOutput)
+                        activeRequest.messages = try AssistantContext.build(history: history, system: system, current: text, inputBudget: alternativeLimits.inputBudget)
+                        activeRequest.maxTokens = alternativeLimits.outputTokens
+                        activeRequest.additionalParameters = alternative.chatParameters
                         self.issue = "所选免费模型暂时繁忙，正在尝试 \(alternative.name)…"
                     }
                 }

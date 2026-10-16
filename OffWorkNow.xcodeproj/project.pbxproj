@@ -55,6 +55,7 @@
 		D2A70675BDEE41AEBFEBD14D /* AIBotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445D48E90C5E1988A3BB1F8E /* AIBotTests.swift */; };
 		B99A20AE592843F03CEA8ED5 /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 178E5423449B221626194C79 /* MarkdownMessageView.swift */; };
 		95168DA37D703791D532D50E /* MessagePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031985092D4BB54DB915AD8E /* MessagePresentationTests.swift */; };
+		E69797EF62AF6744D1241C3E /* AssistantCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4426EBA6CD6EEBA411841BFE /* AssistantCatalogTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,6 +98,7 @@
 		445D48E90C5E1988A3BB1F8E /* AIBotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBotTests.swift; sourceTree = "<group>"; };
 		178E5423449B221626194C79 /* MarkdownMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownMessageView.swift; sourceTree = "<group>"; };
 		031985092D4BB54DB915AD8E /* MessagePresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePresentationTests.swift; sourceTree = "<group>"; };
+		4426EBA6CD6EEBA411841BFE /* AssistantCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantCatalogTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 				6FFE11322718BB1B2B7076EC /* CalculationTests.swift */,
 				DA8A2E9F2A9B5CD3B02D27EC /* CustomPetTests.swift */,
 				03BC6E13B87A5C3022D54BC7 /* DailyReportTests.swift */,
+				4426EBA6CD6EEBA411841BFE /* AssistantCatalogTests.swift */,
 				031985092D4BB54DB915AD8E /* MessagePresentationTests.swift */,
 				445D48E90C5E1988A3BB1F8E /* AIBotTests.swift */,
 				11A7D5D21472B6F51FB707F4 /* HolidayImportTests.swift */,
@@ -386,6 +389,7 @@
 				32DF968A8C3ADD83DFDEF32F /* CalculationTests.swift in Sources */,
 				15958B04FA99B8103C8724E2 /* CustomPetTests.swift in Sources */,
 				473F095DF866DAA60B44CA23 /* DailyReportTests.swift in Sources */,
+				E69797EF62AF6744D1241C3E /* AssistantCatalogTests.swift in Sources */,
 				95168DA37D703791D532D50E /* MessagePresentationTests.swift in Sources */,
 				D2A70675BDEE41AEBFEBD14D /* AIBotTests.swift in Sources */,
 				BF81BCA76582DB7A53E2A6A1 /* HolidayImportTests.swift in Sources */,
