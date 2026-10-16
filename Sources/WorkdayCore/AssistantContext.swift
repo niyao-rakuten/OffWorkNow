@@ -25,12 +25,13 @@ public enum AssistantContext {
     }
     public static func estimatedTokens(_ text: String) -> Int { text.utf8.count + 24 }
     public static func build(history: [AssistantMessage], system: String, current: String, proactive: Bool = false,
-                             inputBudget: Int = defaultInputBudget) throws -> [OpenRouterMessage] {
+                             inputBudget: Int = defaultInputBudget, now: Date = Date(), calendar: Calendar = .current) throws -> [OpenRouterMessage] {
         var remaining = inputBudget - estimatedTokens(system) - estimatedTokens(current)
         guard remaining >= 0 else { throw ValidationError("消息过长，请缩短后再发送（本次上下文预算 \(inputBudget)）。") }
         if proactive {
             return [OpenRouterMessage(role: .system, content: system), OpenRouterMessage(role: .system, content: current)]
         }
+        let history = AssistantTimeline.today(history, now: now, calendar: calendar)
         var pairs: [[AssistantMessage]] = []
         for index in history.indices where history[index].role == .assistant && history[index].complete && !history[index].content.isEmpty && isConversationModel(history[index].modelID) {
             if history[index].proactive == true { pairs.append([history[index]]); continue }
@@ -39,12 +40,12 @@ public enum AssistantContext {
         }
         var selected: [AssistantMessage] = []
         for pair in pairs.reversed().prefix(maximumHistoryMessages / 2) {
-            let cost = pair.reduce(0) { $0 + estimatedTokens($1.displayedContent) }
+            let cost = pair.reduce(0) { $0 + estimatedTokens($1.contextContent) }
             guard cost <= remaining else { break }
             remaining -= cost; selected.insert(contentsOf: pair, at: 0)
         }
         return [OpenRouterMessage(role: .system, content: system)] + selected.map {
-            OpenRouterMessage(role: $0.role == .user ? .user : .assistant, content: $0.displayedContent)
+            OpenRouterMessage(role: $0.role == .user ? .user : .assistant, content: $0.contextContent)
         } + [OpenRouterMessage(role: .user, content: current)]
     }
 }

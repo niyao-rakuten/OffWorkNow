@@ -7,28 +7,12 @@ struct DesktopPetView: View {
     @ObservedObject var model: AppModel
     let openReports: () -> Void
     let openSettings: () -> Void
-    let openAssistantSettings: () -> Void
     @State private var petIssue: String?
-    @State private var chatPresented = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            petContent.offset(x: layout.petOrigin.x, y: layout.petOrigin.y)
-            AssistantChatView(store: model.assistant, openSettings: openAssistantSettings, close: { model.chatVisible = false }, isPresented: model.chatVisible)
-                .frame(width: PetPanelLayout.chatSize.width, height: PetPanelLayout.chatSize.height)
-                .offset(x: layout.chatOrigin.x, y: layout.chatOrigin.y)
-                .opacity(chatPresented ? 1 : 0)
-                .allowsHitTesting(model.chatVisible)
-                .accessibilityHidden(!model.chatVisible)
-        }.frame(width: layout.size.width, height: layout.size.height, alignment: .topLeading)
-        .onAppear { updateChatPresentation() }
-        .onChange(of: model.chatVisible) { _ in updateChatPresentation() }
+        petContent.frame(width: PetPanelLayout.petSize.width, height: PetPanelLayout.petSize.height)
         .alert(model.waterIssue != nil ? L10n.text("喝水记录未保存") : L10n.text("无法切换精灵"), isPresented: Binding(get: { model.waterIssue != nil || petIssue != nil }, set: { if !$0 { model.waterIssue = nil; petIssue = nil } })) {
             Button(L10n.text("好")) { model.waterIssue = nil; petIssue = nil }
         } message: { Text(model.waterIssue ?? petIssue ?? "") }
-    }
-    private var layout: PetPanelLayout {
-        PetPanelLayout(position: model.settings.chatPanelPosition, expanded: model.chatVisible || model.chatLayoutExpanded)
     }
     private var petContent: some View {
         VStack(spacing: 0) {
@@ -67,11 +51,6 @@ struct DesktopPetView: View {
                               checkout: model.checkoutNow)
         }
         .padding(.top, 4).frame(width: 240, height: 330, alignment: .top)
-    }
-    private func updateChatPresentation() {
-        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-            chatPresented = model.chatVisible
-        }
     }
     private func cyclePet() { do { try model.cyclePet() } catch { petIssue = error.localizedDescription } }
     private var time: String {
@@ -154,7 +133,6 @@ struct AssistantChatView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Text(L10n.text("精灵的悄悄话")).font(.system(size: 14, weight: .semibold, design: .rounded))
                 Spacer()
                 Button(action: close) {
                     PetControlImage(asset: .close).frame(width: 20, height: 20)
@@ -162,6 +140,7 @@ struct AssistantChatView: View {
                 }.buttonStyle(.plain).help(L10n.text("关闭对话")).accessibilityLabel(L10n.text("关闭对话"))
             }
             AssistantMessagesView(store: store, isPresented: isPresented)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             if let issue = store.issue {
                 Text(settingsLinkedIssue(issue)).font(.caption)
                     .tint(Color(red: 0.27, green: 0.43, blue: 0.27))
@@ -218,35 +197,182 @@ struct AssistantMessagesView: View {
     @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var store: AssistantStore
     var isPresented = true
+    @State private var scrollTask: Task<Void, Never>?
+    @State private var expandedMessage: AssistantMessage?
+    @State private var bottomScrollRequest = 0
+    @State private var earlierDays = 0
+    @State private var browsingHistory = false
+    @State private var loadingEarlier = false
+    private var sections: [AssistantDaySection] {
+        AssistantTimeline.sections(store.messages, now: store.timelineDate, calendar: store.conversationCalendar, earlierDays: earlierDays)
+    }
+    private var hasEarlier: Bool {
+        earlierDays < AssistantTimeline.earlierDayCount(store.messages, now: store.timelineDate, calendar: store.conversationCalendar)
+    }
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 10) {
-                    bubble(store.greeting, user: false)
-                    ForEach(store.messages) { message in
-                        AssistantMessageBubble(message: message, store: store, isPresented: isPresented) {
-                            proxy.scrollTo("latest", anchor: .bottom)
-                        }.id(message.id)
-                    }
-                    Color.clear.frame(height: 1).id("latest")
-                }.padding(2)
+            VStack(spacing: 4) {
+                if browsingHistory {
+                    Button(L10n.text("回到今天")) { resetToToday(proxy) }.font(.caption)
+                }
+                GeometryReader { viewport in
+                ScrollView {
+                    // Real row heights keep streaming Markdown and the bottom anchor in sync.
+                    VStack(alignment: .leading, spacing: 10) {
+                        if hasEarlier {
+                            Button(L10n.text("下拉查看更早的聊天记录")) { loadEarlier(proxy) }
+                                .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity).padding(.vertical, 8)
+                        }
+                        if sections.isEmpty {
+                            Text(L10n.text("今天还没有聊天记录")).font(.caption).foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity).padding(.vertical, 12)
+                        }
+                        ForEach(sections) { section in
+                            if !store.conversationCalendar.isDate(section.date, inSameDayAs: store.timelineDate) {
+                                Text(AssistantTimeline.dateLabel(section.date, calendar: store.conversationCalendar))
+                                    .font(.caption).foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity).padding(.vertical, 4)
+                            }
+                            ForEach(section.messages) { message in
+                                AssistantMessageBubble(message: message, store: store, isPresented: isPresented,
+                                                       viewportHeight: viewport.size.height, expand: { expandedMessage = message }) {
+                                    scheduleScroll(proxy)
+                                }.id(message.id)
+                            }
+                        }
+                        Color.clear.frame(height: 1).id("latest")
+                    }.padding(2)
+                        .background(GeometryReader { geometry in
+                            Color.clear.preference(key: ChatContentHeightKey.self, value: geometry.size.height)
+                        })
+                        .background(HistoryPullObserver(enabled: isPresented && hasEarlier && !loadingEarlier, followLatest: isPresented && !browsingHistory, scrollRequest: bottomScrollRequest) { loadEarlier(proxy) })
+                }
+                }
             }
-            .onAppear { proxy.scrollTo("latest", anchor: .bottom) }
+            .sheet(item: $expandedMessage) { message in
+                ExpandedAssistantMessageView(store: store, messageID: message.id)
+            }
+            .onAppear { if isPresented { resetToToday(proxy) } }
             .onChange(of: isPresented) { visible in
-                if visible { proxy.scrollTo("latest", anchor: .bottom) }
+                if visible { resetToToday(proxy) }
+                else { scrollTask?.cancel(); scrollTask = nil }
             }
-            .onChange(of: store.messages) { _ in proxy.scrollTo("latest", anchor: .bottom) }
+            .onChange(of: store.timelineDate) { _ in resetToToday(proxy) }
+            .onChange(of: store.conversationCalendar) { _ in resetToToday(proxy) }
+            .onPreferenceChange(ChatContentHeightKey.self) { _ in scheduleScroll(proxy) }
+            .onChange(of: store.messages.map(\.id)) { _ in scheduleScroll(proxy) }
+            .onChange(of: store.messages.last?.content) { _ in scheduleScroll(proxy) }
+            .onDisappear { scrollTask?.cancel(); scrollTask = nil }
         }
     }
-    private func bubble(_ text: String, user: Bool) -> some View {
-        HStack {
-            if user { Spacer(minLength: 24) }
-            Text(text).font(.system(size: 13, design: .rounded)).textSelection(.enabled)
-                .padding(10).background(user ? AssistantArt.sage : .white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(AssistantArt.ink.opacity(0.2), lineWidth: 1))
-                .fixedSize(horizontal: false, vertical: true)
-            if !user { Spacer(minLength: 24) }
+    private func resetToToday(_ proxy: ScrollViewProxy) {
+        scrollTask?.cancel(); scrollTask = nil
+        earlierDays = 0; browsingHistory = false; loadingEarlier = false
+        scheduleScroll(proxy)
+    }
+    private func loadEarlier(_ proxy: ScrollViewProxy) {
+        guard isPresented, hasEarlier, !loadingEarlier else { return }
+        let anchor = sections.first?.messages.first?.id
+        scrollTask?.cancel(); scrollTask = nil
+        browsingHistory = true; loadingEarlier = true; earlierDays += 1
+        scrollTask = Task { @MainActor in
+            do { try await Task.sleep(nanoseconds: 32_000_000) }
+            catch { return }
+            var transaction = Transaction(); transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                if let anchor { proxy.scrollTo(anchor, anchor: .top) }
+                else { proxy.scrollTo("latest", anchor: .bottom) }
+            }
+            loadingEarlier = false; scrollTask = nil
         }
+    }
+    private func scheduleScroll(_ proxy: ScrollViewProxy) {
+        guard isPresented, !browsingHistory, scrollTask == nil else { return }
+        scrollTask = Task { @MainActor in
+            do { try await Task.sleep(nanoseconds: 16_000_000) }
+            catch { return }
+            guard !Task.isCancelled else { return }
+            scrollTask = nil
+            var transaction = Transaction(); transaction.disablesAnimations = true
+            withTransaction(transaction) { bottomScrollRequest &+= 1 }
+        }
+    }
+}
+
+private struct ChatContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+/// macOS trackpad/mouse rubber-band pull, with the button above as a keyboard-accessible alternative.
+private struct HistoryPullObserver: NSViewRepresentable {
+    let enabled: Bool
+    let followLatest: Bool
+    let scrollRequest: Int
+    let pull: () -> Void
+    func makeNSView(context: Context) -> PullView { PullView() }
+    func updateNSView(_ view: PullView, context: Context) {
+        let resumed = followLatest && !view.followLatest
+        view.enabled = enabled; view.pull = pull; view.followLatest = followLatest
+        if resumed || view.scrollRequest != scrollRequest {
+            view.scrollRequest = scrollRequest
+            view.queueBottomScroll()
+        }
+    }
+    final class PullView: NSView {
+        var enabled = false
+        var followLatest = false
+        var scrollRequest = 0
+        var pull: (() -> Void)?
+        private var token: NSObjectProtocol?
+        private weak var clip: NSClipView?
+        private var pulled = false
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            if let token { NotificationCenter.default.removeObserver(token); self.token = nil }
+            guard window != nil else { return }
+            DispatchQueue.main.async { [weak self] in self?.observeScroll() }
+        }
+        func queueBottomScroll() {
+            let request = scrollRequest
+            DispatchQueue.main.async { [weak self] in self?.scrollToBottom() }
+            // SwiftUI can restore an old scroll offset after rebuilding day sections. Reapply
+            // after that layout pass, unless a newer request or history browsing superseded it.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                guard let self, self.scrollRequest == request else { return }
+                self.scrollToBottom()
+            }
+        }
+        private func scrollToBottom() {
+            guard followLatest, let scroll = enclosingScrollView, let document = scroll.documentView else { return }
+            scroll.layoutSubtreeIfNeeded()
+            let bottom = max(0, document.frame.height - scroll.contentView.bounds.height)
+            scroll.contentView.scroll(to: NSPoint(x: scroll.contentView.bounds.minX, y: bottom))
+            scroll.reflectScrolledClipView(scroll.contentView)
+        }
+        private func observeScroll() {
+            guard token == nil, let scroll = enclosingScrollView else { return }
+            scroll.verticalScrollElasticity = .allowed
+            clip = scroll.contentView
+            queueBottomScroll()
+            scroll.contentView.postsBoundsChangedNotifications = true
+            token = NotificationCenter.default.addObserver(forName: NSView.boundsDidChangeNotification, object: scroll.contentView, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.boundsChanged() }
+            }
+        }
+        private func boundsChanged() {
+            guard let clip else { return }
+            if clip.bounds.minY >= 0 { pulled = false }
+            guard enabled, !pulled, clip.bounds.minY < -40 else { return }
+            pulled = true
+            // Do not mutate SwiftUI state during the AppKit scroll layout callback.
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.enabled else { return }
+                self.pull?()
+            }
+        }
+        deinit { if let token { NotificationCenter.default.removeObserver(token) } }
     }
 }
 
@@ -256,10 +382,14 @@ private struct AssistantMessageBubble: View {
     let message: AssistantMessage
     let store: AssistantStore
     let isPresented: Bool
+    let viewportHeight: CGFloat
+    let expand: () -> Void
     let didRevealText: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animate: Bool?
     @State private var revealedCount = 0
+    @State private var animationSource = ""
+    @State private var contentHeight: CGFloat = 0
     private var user: Bool { message.role == .user }
     private var displayedText: String {
         if message.displayedContent.isEmpty { return !message.complete && store.isStreaming ? L10n.text("精灵正在想…") : L10n.text("未收到回复") }
@@ -269,17 +399,42 @@ private struct AssistantMessageBubble: View {
     var body: some View {
         HStack {
             if user { Spacer(minLength: 24) }
-            MarkdownMessageView(source: displayedText).font(.system(size: 13, design: .rounded)).textSelection(.enabled)
+            VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 10) {
+                    MarkdownMessageView(source: displayedText).textSelection(.enabled)
+                    if message.checklist != nil {
+                        BotChecklistView(store: store, messageID: message.id)
+                    }
+                }.background(GeometryReader { geometry in
+                    Color.clear.onAppear { contentHeight = geometry.size.height }
+                        .onChange(of: geometry.size.height) { contentHeight = $0 }
+                })
+                if viewportHeight > 0, contentHeight + 20 > viewportHeight {
+                    HStack {
+                        Spacer()
+                        Button(action: expand) {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(width: 28, height: 28)
+                                .background(AssistantArt.paper, in: Circle())
+                                .overlay(Circle().stroke(AssistantArt.ink.opacity(0.35), lineWidth: 1))
+                        }.buttonStyle(.plain).help(L10n.text("查看完整消息"))
+                            .accessibilityLabel(L10n.text("查看完整消息"))
+                    }
+                }
+            }.font(.system(size: 13, design: .rounded))
                 .padding(10).background(user ? AssistantArt.sage : .white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(AssistantArt.ink.opacity(0.2), lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityLabel(message.displayedContent.isEmpty ? displayedText : message.displayedContent)
+
             if !user { Spacer(minLength: 24) }
         }
         .task(id: message.displayedContent + (isPresented ? "visible" : "hidden")) {
             guard isPresented else { return }
             if animate == nil { animate = !user && store.takeTypingAnimation(for: message.id) }
             guard animate == true, !reduceMotion else { return }
+            if !message.displayedContent.hasPrefix(animationSource) { revealedCount = 0 }
+            animationSource = message.displayedContent
             let count = message.displayedContent.count
             // Catch up gently when a large SSE chunk arrives, without delaying the first character.
             while revealedCount < count {
@@ -294,6 +449,39 @@ private struct AssistantMessageBubble: View {
             animate = false
             didRevealText()
         }
+    }
+}
+
+private struct ExpandedAssistantMessageView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    @ObservedObject var store: AssistantStore
+    let messageID: UUID
+    @Environment(\.dismiss) private var dismiss
+    private var message: AssistantMessage? { store.messages.first { $0.id == messageID } }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text(L10n.text("完整消息")).font(.headline)
+                Spacer()
+                Button(L10n.text("复制全部")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(message?.contextContent ?? "", forType: .string)
+                }
+                Button(L10n.text("关闭")) { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+            if let message {
+                Text(message.date, format: .dateTime.year().month().day().hour().minute()).font(.caption).foregroundStyle(.secondary)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        MarkdownMessageView(source: message.displayedContent).textSelection(.enabled)
+                        if message.checklist != nil { BotChecklistView(store: store, messageID: messageID) }
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(4)
+                }
+            }
+        }.padding(20).font(.system(size: 14, design: .rounded))
+            .frame(width: min(680, (NSScreen.main?.visibleFrame.width ?? 900) - 80),
+                   height: min(600, (NSScreen.main?.visibleFrame.height ?? 800) - 100))
+            .environment(\.calendar, store.conversationCalendar).environment(\.timeZone, store.conversationCalendar.timeZone)
     }
 }
 
@@ -372,4 +560,40 @@ struct SketchPaperShape: Shape {
         p.closeSubpath()
         return p
     }
+}
+
+private struct BotChecklistView: View {
+    @ObservedObject var store: AssistantStore
+    let messageID: UUID
+    @State private var newItem = ""
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.text("待办清单")).font(.headline)
+            ForEach(store.messages.first(where: { $0.id == messageID })?.checklist?.items ?? []) { todo in
+                HStack(alignment: .top) {
+                    Toggle(L10n.text("完成"), isOn: Binding(get: { todo.done }, set: { _ in store.toggleChecklistItem(messageID: messageID, itemID: todo.id) }))
+                        .toggleStyle(.checkbox).labelsHidden().accessibilityLabel(todo.text)
+                    VStack(alignment: .leading) {
+                        if todo.done {
+                            Text(todo.text).strikethrough()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            TextField(L10n.text("待办内容"), text: Binding(get: { todo.text }, set: { store.editChecklistItem(messageID: messageID, itemID: todo.id, text: $0) }))
+                                .textFieldStyle(.plain)
+                        }
+                        if let due = todo.due { Text(due, format: .dateTime.month().day().hour().minute()).font(.caption).foregroundStyle(.secondary) }
+                    }
+                    Button { store.removeChecklistItem(messageID: messageID, itemID: todo.id) } label: { Image(systemName: "trash") }
+                        .buttonStyle(.plain).accessibilityLabel(L10n.text("删除待办"))
+                }
+            }
+            HStack {
+                TextField(L10n.text("添加待办事项"), text: $newItem).onSubmit(add)
+                Button(action: add) { Image(systemName: "plus") }.accessibilityLabel(L10n.text("添加待办事项"))
+                    .disabled(newItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }.padding(10)
+            .background(.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
+    }
+    private func add() { store.addChecklistItem(messageID: messageID, text: newItem); newItem = "" }
 }

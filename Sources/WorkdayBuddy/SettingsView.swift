@@ -326,9 +326,17 @@ struct AssistantSettingsView: View {
     @State private var apiKey = ""
     @State private var status: String?
     var body: some View {
+        NavigationStack { settingsForm }
+    }
+    private var settingsForm: some View {
         Form {
             Section("AI 助手") {
                 TextField("称谓", text: $store.ownerName)
+                TextField(L10n.text("天气城市"), text: $store.weatherCity)
+                Text(L10n.text("默认上海，每次启动重新查询天气；问候仅每天首次启动展示。修改城市后下次启动生效。"))
+                    .font(.caption).foregroundStyle(.secondary)
+                Link(L10n.text("天气数据：Open-Meteo"), destination: URL(string: "https://open-meteo.com/")!)
+                    .font(.caption)
                 Picker(L10n.text("AI 模型"), selection: $store.modelID) {
                     if store.selectedModel == nil { Text("请选择模型（原模型：\(store.modelID)）").tag(store.modelID) }
                     ForEach(store.availableModels) { model in
@@ -396,36 +404,68 @@ struct AssistantSettingsView: View {
                     Text(L10n.format("当前实际限额：输入 {0}，回复 {1} token。", String(limits.inputBudget), String(limits.outputTokens)))
                         .font(.caption).foregroundStyle(.secondary)
                 }
-                Text(L10n.text("最多携带最近 6 轮完整对话。输入按 UTF-8 字节保守估算；实际限额会按模型和供应商容量自动缩减。增加上限可能增加费用。"))
+                Text(L10n.text("仅携带当天最近 6 轮完整对话。输入按 UTF-8 字节保守估算；实际限额会按模型和供应商容量自动缩减。增加上限可能增加费用。"))
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("聊天历史 · \(store.messages.count) 条") {
-                Button("导出 JSON", action: export)
-                if store.messages.isEmpty { Text("暂无聊天记录").foregroundStyle(.secondary) }
-                ForEach(store.messages) { message in
-                    VStack(alignment: .leading, spacing: 5) {
-                        HStack {
-                            Text(message.role == .user ? "你" : "AI 助手").font(.caption.bold())
-                            Text(message.date, style: .date).font(.caption).foregroundStyle(.secondary)
-                            Text(message.date, style: .time).font(.caption).foregroundStyle(.secondary)
-                            if !message.complete { Text("未完成").font(.caption).foregroundStyle(.secondary) }
-                        }
-                        Text(message.content.isEmpty ? "未收到回复" : message.content).textSelection(.enabled)
-                        if let model = message.modelID { Text(model).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
-                        if let usage = message.usage {
-                            Text("\(usage.totalTokens) token" + (usage.cost.map { String(format: " · $%.6f", $0) } ?? " · 费用未返回"))
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                    }.padding(.vertical, 4)
+            Section(L10n.text("聊天历史")) {
+                NavigationLink {
+                    AssistantHistoryView(store: store)
+                } label: {
+                    HStack {
+                        Text(L10n.text("查看聊天历史"))
+                        Spacer()
+                        Text(L10n.format("{0} 条记录", String(store.messages.count))).foregroundStyle(.secondary)
+                    }
                 }
             }
         }.formStyle(.grouped)
             .task { await store.refreshModels() }
     }
+}
+
+private struct AssistantHistoryView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    @ObservedObject var store: AssistantStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var status: String?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Button { dismiss() } label: { Label(L10n.text("返回 AI 助手设置"), systemImage: "chevron.left") }
+                Spacer()
+                Text(L10n.format("{0} 条记录", String(store.messages.count))).foregroundStyle(.secondary)
+                Button(L10n.text("导出 JSON"), action: export)
+            }
+            if let status { Text(status).font(.caption).foregroundStyle(.secondary) }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    if store.messages.isEmpty { Text(L10n.text("暂无聊天记录")).foregroundStyle(.secondary) }
+                    ForEach(store.messages) { message in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text(L10n.text(message.role == .user ? "你" : "AI 助手")).font(.caption.bold())
+                                Text(message.date, style: .date).font(.caption).foregroundStyle(.secondary)
+                                Text(message.date, style: .time).font(.caption).foregroundStyle(.secondary)
+                                if !message.complete { Text(L10n.text("未完成")).font(.caption).foregroundStyle(.secondary) }
+                            }
+                            MarkdownMessageView(source: message.contextContent.isEmpty ? L10n.text("未收到回复") : message.contextContent).textSelection(.enabled)
+                            if let model = message.modelID { Text(model).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
+                            if let usage = message.usage {
+                                Text("\(usage.totalTokens) token" + (usage.cost.map { String(format: " · $%.6f", $0) } ?? " · " + L10n.text("费用未返回")))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            Divider().padding(.top, 8)
+                        }
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }.padding(20).navigationTitle(L10n.text("聊天历史"))
+            .environment(\.calendar, store.conversationCalendar).environment(\.timeZone, store.conversationCalendar.timeZone)
+    }
     private func export() {
         let panel = NSSavePanel(); panel.nameFieldStringValue = "pet-chat-history.json"
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        do { try store.export(to: url); status = "聊天历史已导出。" }
-        catch { status = "导出失败：\(error.localizedDescription)" }
+        do { try store.export(to: url); status = L10n.text("聊天历史已导出。") }
+        catch { status = L10n.format("导出失败：{0}", error.localizedDescription) }
     }
 }

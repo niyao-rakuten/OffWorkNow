@@ -92,7 +92,12 @@ import WorkdayCore
         do { try await center.add(UNNotificationRequest(identifier: id, content: content, trigger: nil)); return "submitted" }
         catch { issue = L10n.format("通知发送失败：{0}", String(describing: error.localizedDescription)); return "failed" }
     }
-    func clearPending() { center.removeAllPendingNotificationRequests() }
+    func clearPending() {
+        Task {
+            let requests = await center.pendingNotificationRequests()
+            center.removePendingNotificationRequests(withIdentifiers: requests.filter { !$0.identifier.hasPrefix("local.todo.") }.map(\.identifier))
+        }
+    }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .sound]) }
 }
 
@@ -253,6 +258,162 @@ import WorkdayCore
 }
 
 @MainActor final class AssistantStore: ObservableObject {
+    @Published private(set) var timelineDate = Date()
+    @Published private(set) var conversationCalendar = Calendar.current
+    @Published var weatherCity: String { didSet { defaults.set(weatherCity, forKey: "assistant.weatherCity") } }
+    private var startupGreetingStarted = false
+    private func refreshConversationDay() {
+        let now = Date(), calendar = botCalendar
+        if conversationCalendar != calendar || !calendar.isDate(timelineDate, inSameDayAs: now) {
+            conversationCalendar = calendar; timelineDate = now
+        }
+    }
+    func sendStartupGreeting() async {
+        guard !startupGreetingStarted else { return }
+        startupGreetingStarted = true
+        let date = Date(), calendar = botCalendar, name = ownerName
+        let trimmed = weatherCity.trimmingCharacters(in: .whitespacesAndNewlines)
+        let city = trimmed.isEmpty ? "上海" : trimmed
+        let day = AssistantGreetingPolicy.dayKey(now: date, calendar: calendar)
+        let post = AssistantGreetingPolicy.shouldPost(messages: messages, lastPostedDay: defaults.string(forKey: "assistant.greetingDay"), now: date, calendar: calendar)
+        var id: UUID?
+        if post {
+            receive(localBot.startupGreeting(name: name, city: city, date: date, calendar: calendar, weather: nil, pending: true), date: date)
+            id = messages.last?.id
+            messages[messages.count - 1].complete = false
+            messages[messages.count - 1].weatherFailure = "pending"
+            messages[messages.count - 1].greetingDay = day
+            persist()
+        }
+        defaults.set(day, forKey: "assistant.greetingDay")
+        let weather: StartupWeather?
+        let failure: String?
+        do { weather = try await StartupWeatherClient().fetch(city: city); failure = nil }
+        catch { weather = nil; failure = error.localizedDescription }
+        if let weather {
+            var snapshots = (defaults.data(forKey: "assistant.weatherSnapshots").flatMap { try? JSONDecoder().decode([StartupWeather].self, from: $0) }) ?? []
+            snapshots.append(weather)
+            if let data = try? JSONEncoder().encode(Array(snapshots.suffix(365))) { defaults.set(data, forKey: "assistant.weatherSnapshots") }
+        }
+        defaults.set(failure, forKey: "assistant.latestWeatherFailure")
+        guard let id, let index = messages.firstIndex(where: { $0.id == id }) else { return }
+        let localized = localBot.startupGreeting(name: name, city: city, date: date, calendar: calendar, weather: weather)
+        messages[index].weather = weather; messages[index].weatherFailure = failure
+        messages[index].localizedContents = localized
+        messages[index].content = localized[L10n.selection.resolved().rawValue] ?? ""
+        messages[index].complete = true
+        persist()
+    }
+    @Published private(set) var todos: [BotTodo] = []
+    @Published private(set) var dietEntries: [BotDietEntry] = []
+    private var localTimer: Timer?
+    private let localBot = AIBot()
+    private var botCalendar: Calendar {
+        guard let data = defaults.data(forKey: "settings"), let settings = try? SettingsCodec.decode(data) else { return .current }
+        return settings.calendar
+    }
+    deinit { localTimer?.invalidate() }
+    func addChecklistItem(messageID: UUID, text: String) {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, let index = messages.firstIndex(where: { $0.id == messageID }), messages[index].checklist != nil else { return }
+        messages[index].checklist?.items.append(BotTodo(text: text)); persist()
+    }
+    func editChecklistItem(messageID: UUID, itemID: UUID, text: String) {
+        guard let index = messages.firstIndex(where: { $0.id == messageID }),
+              let item = messages[index].checklist?.items.firstIndex(where: { $0.id == itemID }) else { return }
+        messages[index].checklist?.items[item].text = text; persist()
+    }
+    func toggleChecklistItem(messageID: UUID, itemID: UUID) {
+        guard let index = messages.firstIndex(where: { $0.id == messageID }),
+              let item = messages[index].checklist?.items.firstIndex(where: { $0.id == itemID }) else { return }
+        messages[index].checklist?.items[item].done.toggle(); persist()
+    }
+    func removeChecklistItem(messageID: UUID, itemID: UUID) {
+        guard let index = messages.firstIndex(where: { $0.id == messageID }) else { return }
+        messages[index].checklist?.items.removeAll { $0.id == itemID }; persist()
+    }
+    private func saveLocal() {
+        do {
+            let state = LocalBotState(todos: todos, diet: dietEntries)
+            defaults.set(try JSONEncoder().encode(state), forKey: "assistant.localBot")
+        } catch { issue = error.localizedDescription }
+    }
+    private struct LocalBotState: Codable { let todos: [BotTodo]; let diet: [BotDietEntry] }
+    func editTodo(_ id: UUID, text: String) {
+        guard let i = todos.firstIndex(where: { $0.id == id }) else { return }
+        todos[i].text = text; saveLocal()
+        scheduleTodo(todos[i])
+    }
+    func toggleTodo(_ id: UUID) {
+        guard let i = todos.firstIndex(where: { $0.id == id }) else { return }
+        todos[i].done.toggle(); saveLocal(); scheduleTodo(todos[i])
+    }
+    func removeTodo(_ id: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["local.todo." + id.uuidString])
+        todos.removeAll { $0.id == id }; saveLocal()
+    }
+    func addTodo(_ text: String) {
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return }
+        todos.append(BotTodo(text: value)); saveLocal()
+    }
+    private func scheduleTodo(_ todo: BotTodo) {
+        let center = UNUserNotificationCenter.current(), id = "local.todo." + todo.id.uuidString
+        center.removePendingNotificationRequests(withIdentifiers: [id])
+        guard let due = todo.due, due > Date(), !todo.done, !todo.delivered else { return }
+        let title = L10n.text("待办提醒"), body = todo.text
+        Task {
+            do {
+                let settings = await center.notificationSettings()
+                let authorized = settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional
+                if !authorized {
+                    if settings.authorizationStatus == .notDetermined {
+                        guard try await center.requestAuthorization(options: [.alert, .sound]) else { issue = L10n.text("系统通知未授权，提醒仍会在 App 运行时显示在消息面板。请在系统设置中开启通知。"); return }
+                    } else { issue = L10n.text("系统通知未授权，提醒仍会在 App 运行时显示在消息面板。请在系统设置中开启通知。"); return }
+                }
+                guard let latest = todos.first(where: { $0.id == todo.id }), latest == todo else { return }
+                let content = UNMutableNotificationContent(); content.title = title; content.body = body; content.sound = .default
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, due.timeIntervalSinceNow), repeats: false)
+                try await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+            } catch { issue = error.localizedDescription }
+        }
+    }
+    private func deliverLocalReminders() {
+        let due = todos.filter { !$0.done && !$0.delivered && ($0.due.map { $0 <= Date() } ?? false) }
+        for todo in due {
+            if let index = todos.firstIndex(where: { $0.id == todo.id }) { todos[index].delivered = true }
+            receive(localizedReply("待办提醒：{0}", todo.text))
+        }
+        if !due.isEmpty { saveLocal() }
+    }
+    private func localizedReply(_ key: String, _ values: String...) -> [String: String] {
+        Dictionary(uniqueKeysWithValues: [AppLanguage.simplifiedChinese, .english].map { language in
+            var text = L10n.text(key, language: language)
+            for (index, value) in values.enumerated() { text = text.replacingOccurrences(of: "{\(index)}", with: value) }
+            return (language.rawValue, text)
+        })
+    }
+    private func handleLocal(_ intent: LocalBotIntent, input: String) {
+        messages.append(AssistantMessage(role: .user, content: input))
+        switch intent {
+        case .diet(let text, let date):
+            dietEntries.append(BotDietEntry(date: date, text: text)); saveLocal()
+            let count = dietEntries.filter { botCalendar.isDate($0.date, inSameDayAs: date) }.count
+            receive(localizedReply("已记录饮食：{0}\n当天共 {1} 条记录。", text, String(count)))
+        case .dietSummary(let date):
+            let entries = dietEntries.filter { botCalendar.isDate($0.date, inSameDayAs: date) }
+            receive(localizedReply("当天共 {0} 条饮食记录：\n{1}", String(entries.count), entries.map { "- " + $0.text }.joined(separator: "\n")))
+        case .reminder(let text, let date):
+            let todo = BotTodo(text: text, due: date); todos.append(todo); saveLocal(); scheduleTodo(todo)
+            let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd HH:mm"; formatter.timeZone = botCalendar.timeZone
+            receive(localizedReply("已设置提醒：{0}\n{1}", formatter.string(from: date), text))
+        case .checklist(let items):
+            receive(localizedReply("已创建待办清单。"))
+            messages[messages.count - 1].checklist = BotChecklist(items: items.map { BotTodo(text: $0) })
+            persist()
+        case .clarification(let key): receive(localizedReply(key))
+        }
+    }
     @Published private(set) var unreadMessageIDs: Set<UUID> = []
     private var panelVisible = false
     func setPanelVisible(_ visible: Bool) {
@@ -262,8 +423,8 @@ import WorkdayCore
     private func persistUnread() {
         defaults.set(unreadMessageIDs.map(\.uuidString), forKey: "assistant.unreadMessages")
     }
-    func receive(_ localized: [String: String]) {
-        var message = AssistantMessage(role: .assistant, content: localized[L10n.selection.resolved().rawValue] ?? "", proactive: true)
+    func receive(_ localized: [String: String], date: Date = Date()) {
+        var message = AssistantMessage(role: .assistant, content: localized[L10n.selection.resolved().rawValue] ?? "", proactive: true, date: date)
         message.localizedContents = localized
         unpresentedReplyIDs.insert(message.id)
         messages.append(message)
@@ -296,12 +457,9 @@ import WorkdayCore
     func takeTypingAnimation(for id: UUID) -> Bool {
         unpresentedReplyIDs.remove(id) != nil
     }
-    var greeting: String {
-        let name = ownerName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return L10n.format("Hi {0}，您有什么吩咐？", name.isEmpty || name == "主人" ? L10n.text("主人") : name)
-    }
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, historyURL: URL? = nil) {
         self.defaults = defaults
+        weatherCity = defaults.string(forKey: "assistant.weatherCity") ?? "上海"
         let savedModel = defaults.string(forKey: "assistant.model") ?? "nvidia/nemotron-3-super-120b-a12b:free"
         modelID = savedModel == "openrouter/free" ? "nvidia/nemotron-3-super-120b-a12b:free" : savedModel
         if savedModel == "openrouter/free" { defaults.set("nvidia/nemotron-3-super-120b-a12b:free", forKey: "assistant.model") }
@@ -311,30 +469,62 @@ import WorkdayCore
         let savedOutput = defaults.integer(forKey: "assistant.outputTokenLimit")
         inputTokenBudget = AssistantContext.inputBudgetOptions.contains(savedInput) ? savedInput : AssistantContext.defaultInputBudget
         outputTokenLimit = AssistantContext.outputTokenOptions.contains(savedOutput) ? savedOutput : AssistantContext.defaultOutputTokens
-        historyURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        self.historyURL = historyURL ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("OffWorkNow/assistant-history.json")
-        if FileManager.default.fileExists(atPath: historyURL.path) {
-            do { messages = try AssistantHistory.load(from: historyURL) }
+        if FileManager.default.fileExists(atPath: self.historyURL.path) {
+            do { messages = try AssistantHistory.load(from: self.historyURL) }
             catch { issue = "聊天历史读取失败：\(error.localizedDescription)" }
+        }
+        for index in messages.indices where messages[index].weatherFailure == "pending" {
+            messages[index].complete = true; messages[index].weatherFailure = "interrupted"
+            if let texts = messages[index].localizedContents {
+                messages[index].localizedContents = Dictionary(uniqueKeysWithValues: texts.map { key, value in
+                    let language = AppLanguage(rawValue: key) ?? .english
+                    return (key, value.replacingOccurrences(of: L10n.text("正在获取天气…", language: language), with: L10n.text("天气暂不可用", language: language)))
+                })
+                messages[index].content = messages[index].localizedContents?[L10n.selection.resolved().rawValue] ?? messages[index].content
+            }
         }
         unreadMessageIDs = Set((defaults.stringArray(forKey: "assistant.unreadMessages") ?? []).compactMap(UUID.init(uuidString:)))
             .intersection(Set(messages.map(\.id)))
         unpresentedReplyIDs.formUnion(unreadMessageIDs)
+        if let data = defaults.data(forKey: "assistant.localBot") {
+            do { let state = try JSONDecoder().decode(LocalBotState.self, from: data); todos = state.todos; dietEntries = state.diet }
+            catch { issue = L10n.text("本地机器人数据读取失败，请保留数据并重试。") }
+        }
+        // Move the previous global checklist into its original reply; timed reminders stay separate.
+        if !messages.contains(where: { $0.checklist != nil }),
+           let index = messages.lastIndex(where: { $0.localizedContents?["zh-Hans"] == "已创建待办清单，可在下方添加、编辑和勾选事项。" || $0.content == "已创建待办清单，可在下方添加、编辑和勾选事项。" }) {
+            messages[index].checklist = BotChecklist(items: todos.filter { $0.due == nil })
+            messages[index].localizedContents = localizedReply("已创建待办清单。")
+            messages[index].content = messages[index].localizedContents?[L10n.selection.resolved().rawValue] ?? ""
+            todos.removeAll { $0.due == nil }; saveLocal(); persist()
+        }
+        refreshConversationDay()
+        for todo in todos { scheduleTodo(todo) }
+        deliverLocalReminders()
+        localTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refreshConversationDay(); self?.deliverLocalReminders() }
+        }
     }
     func send(_ text: String) -> Bool {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !isStreaming else { return false }
+        if let intent = localBot.interpret(text, now: Date(), calendar: botCalendar) {
+            issue = nil; handleLocal(intent, input: text); return true
+        }
         guard let key = AssistantCredential.read(), !key.isEmpty else { issue = "请先在 AI 助手设置中保存 OpenRouter API Key。"; return false }
         guard !modelID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { issue = "请先设置模型 ID。"; return false }
         guard let model = selectedModel else { issue = "请先在 AI 助手设置中选择可用模型。"; return false }
         let system = "你是桌面精灵 AI 助手。首先准确回答用户当前的问题，遵循用户的任务与语言；表达温和简洁，不要让角色扮演妨碍回答。用户称谓是\(String(ownerName.prefix(64)))，自然地称呼即可，无需每句重复。不能编造模型身份、能力或已经执行的操作。"
         let history = messages
+        let contextCalendar = botCalendar
         let requestedInput = inputTokenBudget, requestedOutput = outputTokenLimit
         let context: [OpenRouterMessage]
         let limits: AssistantRequestLimits
         do {
             limits = try AssistantContext.limits(for: model, inputBudget: requestedInput, outputTokens: requestedOutput)
-            context = try AssistantContext.build(history: history, system: system, current: text, inputBudget: limits.inputBudget)
+            context = try AssistantContext.build(history: history, system: system, current: text, inputBudget: limits.inputBudget, calendar: contextCalendar)
         } catch { issue = error.localizedDescription; return false }
         issue = nil
         messages.append(AssistantMessage(role: .user, content: text))
@@ -374,7 +564,7 @@ import WorkdayCore
                         guard let alternative = alternatives.first(where: { $0.id.split(separator: "/").first != provider }) ?? alternatives.first else { throw error }
                         activeRequest.model = alternative.id
                         let alternativeLimits = try AssistantContext.limits(for: alternative, inputBudget: requestedInput, outputTokens: requestedOutput)
-                        activeRequest.messages = try AssistantContext.build(history: history, system: system, current: text, inputBudget: alternativeLimits.inputBudget)
+                        activeRequest.messages = try AssistantContext.build(history: history, system: system, current: text, inputBudget: alternativeLimits.inputBudget, calendar: contextCalendar)
                         activeRequest.maxTokens = alternativeLimits.outputTokens
                         activeRequest.additionalParameters = alternative.chatParameters
                         self.issue = "所选免费模型暂时繁忙，正在尝试 \(alternative.name)…"
@@ -418,6 +608,9 @@ import WorkdayCore
         guard !isStreaming else { throw ValidationError("请先停止 AI 回复，再清除数据。") }
         let next = messages.filter { ScheduleCalculator.key($0.date, calendar: calendar) != dateKey }
         try AssistantHistory.save(next, to: historyURL)
+        if defaults.string(forKey: "assistant.greetingDay") == calendar.timeZone.identifier + "/" + dateKey {
+            defaults.removeObject(forKey: "assistant.greetingDay")
+        }
         messages = next; unpresentedReplyIDs.formIntersection(Set(next.map(\.id))); issue = nil
         unreadMessageIDs.formIntersection(Set(next.map(\.id))); persistUnread()
     }

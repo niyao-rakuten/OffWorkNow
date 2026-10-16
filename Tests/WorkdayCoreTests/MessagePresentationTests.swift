@@ -3,6 +3,31 @@ import CoreGraphics
 @testable import WorkdayCore
 
 final class MessagePresentationTests: ChineseLocalizationTestCase {
+    func testIndependentChatWindowNeverChangesPetAnchorInAnyDirection() {
+        let pet = CGRect(x: 600, y: 600, width: 240, height: 330)
+        for position in ChatPanelPosition.allCases {
+            let chat = PetPanelLayout.chatWindowFrame(relativeTo: pet, position: position)
+            XCTAssertEqual(chat.size, PetPanelLayout.chatSize)
+            XCTAssertFalse(chat.intersects(pet))
+            switch position {
+            case .left: XCTAssertEqual(chat.maxX, pet.minX - 8)
+            case .right: XCTAssertEqual(chat.minX, pet.maxX + 8)
+            case .above: XCTAssertEqual(chat.minY, pet.maxY + 8)
+            case .below: XCTAssertEqual(chat.maxY, pet.minY - 8)
+            }
+            let moved = pet.offsetBy(dx: 40, dy: -30)
+            XCTAssertEqual(PetPanelLayout.chatWindowFrame(relativeTo: moved, position: position), chat.offsetBy(dx: 40, dy: -30))
+        }
+    }
+    func testOnlyChatIsClampedAtScreenEdges() {
+        let area = CGRect(x: 0, y: 0, width: 1280, height: 900)
+        for pet in [CGRect(x: 0, y: 0, width: 240, height: 330), CGRect(x: 1040, y: 570, width: 240, height: 330)] {
+            for position in ChatPanelPosition.allCases {
+                XCTAssertTrue(area.contains(PetPanelLayout.chatWindowFrame(relativeTo: pet, position: position, visibleFrame: area)))
+                XCTAssertEqual(pet.size, PetPanelLayout.petSize)
+            }
+        }
+    }
     func testOldSettingsDefaultToRightAndAllPlacementsPersist() throws {
         XCTAssertEqual(try SettingsCodec.decode(Data("{}".utf8)).chatPanelPosition, .right)
         for position in ChatPanelPosition.allCases {

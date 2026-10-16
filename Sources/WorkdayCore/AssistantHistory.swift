@@ -10,12 +10,25 @@ public struct AssistantMessage: Codable, Identifiable, Equatable, Sendable {
     public var modelID: String?
     public var complete: Bool
     public var proactive: Bool?
+    public var greetingDay: String?
+    public var checklist: BotChecklist?
+    public var weather: StartupWeather?
+    public var weatherFailure: String?
     public var localizedContents: [String: String]?
     public var displayedContent: String {
         localizedContents?[L10n.selection.resolved().rawValue] ?? content
     }
-    public init(role: Role, content: String, complete: Bool = true, proactive: Bool = false) {
-        id = UUID(); date = Date(); self.role = role; self.content = content; self.complete = complete
+    public var isStartupGreeting: Bool {
+        role == .assistant && proactive == true && (greetingDay != nil || weather != nil || weatherFailure != nil
+            || content.contains("又是新的一天") || content.contains("A fresh new day")
+            || localizedContents?.values.contains(where: { $0.contains("又是新的一天") || $0.contains("A fresh new day") }) == true)
+    }
+    public var contextContent: String {
+        guard let checklist else { return displayedContent }
+        return displayedContent + "\n" + checklist.items.map { "- [" + ($0.done ? "x" : " ") + "] " + $0.text }.joined(separator: "\n")
+    }
+    public init(role: Role, content: String, complete: Bool = true, proactive: Bool = false, date: Date = Date()) {
+        id = UUID(); self.date = date; self.role = role; self.content = content; self.complete = complete
         self.proactive = proactive ? true : nil
     }
 }

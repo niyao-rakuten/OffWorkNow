@@ -49,6 +49,18 @@ public struct PetPanelLayout: Equatable {
             chatOrigin = CGPoint(x: 0, y: Self.petSize.height + gap)
         }
     }
+    /// An independent chat window follows the fixed pet window; only the chat is clamped at screen edges.
+    public static func chatWindowFrame(relativeTo pet: CGRect, position: ChatPanelPosition, visibleFrame: CGRect? = nil) -> CGRect {
+        let layout = PetPanelLayout(position: position, expanded: true)
+        var frame = CGRect(x: pet.minX + layout.chatOrigin.x - layout.petOrigin.x,
+                           y: pet.maxY + layout.petOrigin.y - layout.chatOrigin.y - chatSize.height,
+                           width: chatSize.width, height: chatSize.height)
+        if let area = visibleFrame {
+            frame.origin.x = min(max(frame.minX, area.minX), max(area.minX, area.maxX - frame.width))
+            frame.origin.y = min(max(frame.minY, area.minY), max(area.minY, area.maxY - frame.height))
+        }
+        return frame
+    }
     /// Native window frames use a bottom-left origin. Preserve the pet's screen position.
     public func windowFrame(from frame: CGRect, previous: PetPanelLayout, visibleFrame: CGRect? = nil) -> CGRect {
         let petX = frame.minX + previous.petOrigin.x
