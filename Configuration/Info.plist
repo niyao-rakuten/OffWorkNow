@@ -29,7 +29,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>下班啦 — 你的收工伙伴</string>
+	<string>下班啦 — 你的收工精灵</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

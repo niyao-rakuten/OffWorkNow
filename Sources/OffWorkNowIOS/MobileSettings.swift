@@ -55,6 +55,7 @@ struct MobileSettings: View {
                         HStack { Text(key); Spacer(); Text(draft.overrides[key] == true ? L10n.text("工作") : L10n.text("休息")); Button(role: .destructive) { draft.overrides.removeValue(forKey: key) } label: { Image(systemName: "trash") } }
                     }
                 }
+                HolidayImportSection(overrides: $draft.overrides, calendar: draft.calendar)
                 Section(L10n.text("工资估算")) {
                     TextField(L10n.text("月薪（可留空）"), text: $salary).keyboardType(.decimalPad)
                     Picker(L10n.text("折算方式"), selection: $draft.payMode) { ForEach(PayMode.allCases, id: \.self) { Text($0.title).tag($0) } }
@@ -67,13 +68,13 @@ struct MobileSettings: View {
                     TextField(L10n.text("每杯水量（ml）"), text: $cupVolume).keyboardType(.numberPad)
                     Text(L10n.text("1–2000 ml 的整数，每次记录一杯；修改杯量不改变已有记录。不规定每日饮水目标。")).font(.caption).foregroundStyle(.secondary)
                 }
-                Section(L10n.text("伙伴与提醒")) {
-                    Picker(L10n.text("伙伴"), selection: $draft.petKind) { ForEach(PetKind.allCases, id: \.self) { Text($0.title).tag($0) } }
+                Section(L10n.text("精灵与提醒")) {
+                    Picker(L10n.text("精灵"), selection: $draft.petKind) { ForEach(PetKind.allCases, id: \.self) { Text($0.title).tag($0) } }
                     Toggle(L10n.text("下班系统通知"), isOn: $draft.offworkEnabled)
                     Toggle(L10n.text("通知声音"), isOn: $draft.notificationSound)
                     Toggle(L10n.text("应用内加班文案"), isOn: $draft.overtimeEnabled)
                     TextField(L10n.text("提示间隔（分钟，默认 5）"), text: $overtimeGap).keyboardType(.numberPad)
-                    Text(L10n.text("iOS 预约未来 7 天的下班通知，每次打开重新计划。加班文案在应用内展示，不在后台运行宠物或每 5 分钟唤醒。")).font(.caption).foregroundStyle(.secondary)
+                    Text(L10n.text("iOS 预约未来 7 天的下班通知，每次打开重新计划。加班文案在应用内展示，不在后台运行精灵或每 5 分钟唤醒。")).font(.caption).foregroundStyle(.secondary)
                 }
                 CustomPetEditor(settings: $draft, onImport: { importedAssets.insert($0) })
                 if let error { Section { Text(error).foregroundStyle(.red) } }

@@ -37,7 +37,7 @@ import WorkdayCore
         let minute = Int(now.timeIntervalSince1970 / 60)
         // Minute snapshots plus immediate action snapshots; no per-animation-frame disk writes.
         guard force || minute != lastMinute || day != lastDay else { return }
-        let report = DailyReport.snapshot(now: now, settings: settings, checkout: checkout, hydration: hydration)
+        let report = AIBot().inspect(AIBotContext(now: now, settings: settings, checkout: checkout, hydration: hydration)).report
         do {
             var next = archive; try next.upsert(report)
             let data = try JSONEncoder().encode(next)

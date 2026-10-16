@@ -6,7 +6,7 @@ final class AssistantHistoryTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("history.json")
-        let messages = [AssistantMessage(role: .user, content: "你好\n小宠物 🐈"), AssistantMessage(role: .assistant, content: "Hi 主人", complete: false)]
+        let messages = [AssistantMessage(role: .user, content: "你好\n精灵 🐈"), AssistantMessage(role: .assistant, content: "Hi 主人", complete: false)]
         try AssistantHistory.save(messages, to: url)
         let loaded = try AssistantHistory.load(from: url)
         XCTAssertEqual(loaded.map(\.id), messages.map(\.id))

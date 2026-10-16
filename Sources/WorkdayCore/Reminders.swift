@@ -7,7 +7,7 @@ public struct ReminderPause: Codable, Equatable {
     public func active(now: Date, settings: WorkSettings) -> Bool { now < until && dateKey == ScheduleCalculator.key(now, calendar: settings.calendar) }
 }
 public enum EventKind: String, Codable, Sendable { case hourly, offwork, overtime }
-public struct ReminderEvent: Equatable, Sendable {
+public struct ReminderEvent: Codable, Equatable, Sendable {
     public let id: String
     public let date: Date
     public let kind: EventKind

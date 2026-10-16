@@ -132,7 +132,7 @@ struct SettingsView: View {
                         Toggle(dayName(day), isOn: Binding(get: { draft.weekdays.contains(day) }, set: { if $0 { draft.weekdays.insert(day) } else { draft.weekdays.remove(day) } })).toggleStyle(.checkbox)
                     }
                 }
-                Text(L10n.text("不自动识别法定节假日或调休，请使用日期覆盖。")).font(.caption).foregroundStyle(.secondary)
+                Text(L10n.text("可导入法定节假日通知，或手动添加日期覆盖。")).font(.caption).foregroundStyle(.secondary)
             }
             Section(L10n.text("弹性上班 · 每天可不同")) {
                 timeField(L10n.text("默认上班（HH:mm）"), value: $start, errorKey: "start")
@@ -161,6 +161,7 @@ struct SettingsView: View {
                     HStack { Text(key).monospacedDigit(); Text(draft.overrides[key] == true ? L10n.text("工作") : L10n.text("休息")); Spacer(); Button(L10n.text("删除")) { draft.overrides.removeValue(forKey: key) } }
                 }
             }
+            HolidayImportSection(overrides: $draft.overrides, calendar: draft.calendar)
             #if DEBUG
             DebugDailyDataView(model: model, assistant: model.assistant)
             #endif
@@ -202,7 +203,7 @@ struct SettingsView: View {
                 Toggle(L10n.text("启用加班提醒"), isOn: $draft.overtimeEnabled)
                 TextField(L10n.text("加班提示间隔（分钟）"), text: $overtimeGap).monospacedDigit()
                 if let error = errors["overtimeGap"] { Text(error).font(.caption).foregroundStyle(.red) }
-                Text(L10n.text("到下班时间仍未打卡则开始加班计时；按设定间隔（默认 5 分钟）弹出宠物文案并发送系统通知。点击“打卡下班”停止当天所有提醒，不计算加班工资。")).font(.caption).foregroundStyle(.secondary)
+                Text(L10n.text("到下班时间仍未打卡则开始加班计时；按设定间隔（默认 5 分钟）弹出精灵文案并发送系统通知。点击“打卡下班”停止当天所有提醒，不计算加班工资。")).font(.caption).foregroundStyle(.secondary)
             }
             Section(L10n.text("系统通知")) { NotificationSettingsView(service: model.notifications) }
             Section(L10n.text("测试")) {
@@ -223,12 +224,15 @@ struct SettingsView: View {
                 if let error = errors["cupVolume"] { Text(error).font(.caption).foregroundStyle(.red) }
                 Text(L10n.text("1–2000 ml 的整数。每次喝水打卡记录一杯，修改杯量不改变已有记录。显示当天杯数与总量，不规定每日饮水目标。")).font(.caption).foregroundStyle(.secondary)
             }
-            Section(L10n.text("桌面伙伴")) {
-                Toggle(L10n.text("显示常驻桌面宠物"), isOn: $draft.petEnabled)
-                Picker(L10n.text("选择伙伴"), selection: $draft.petKind) { ForEach(PetKind.allCases, id: \.self) { Text($0.title).tag($0) } }
-                Toggle(L10n.text("宠物置顶"), isOn: $draft.petAlwaysOnTop)
+            Section(L10n.text("桌面精灵")) {
+                Toggle(L10n.text("显示常驻桌面精灵"), isOn: $draft.petEnabled)
+                Picker(L10n.text("选择精灵"), selection: $draft.petKind) { ForEach(PetKind.allCases, id: \.self) { Text($0.title).tag($0) } }
+                Toggle(L10n.text("精灵置顶"), isOn: $draft.petAlwaysOnTop)
+                Picker(L10n.text("消息面板位置"), selection: $draft.chatPanelPosition) {
+                    ForEach(ChatPanelPosition.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
                 PetAvatar(kind: draft.petKind, custom: draft.customPet).frame(width: 110, height: 110)
-                Text(L10n.text("拖动宠物或空白处可移动；支持减少动态效果。隐藏宠物不关闭通知。")).font(.caption).foregroundStyle(.secondary)
+                Text(L10n.text("拖动精灵或空白处可移动；支持减少动态效果。隐藏精灵不关闭通知。")).font(.caption).foregroundStyle(.secondary)
             }
             CustomPetEditor(settings: $draft, onImport: { importedAssets.insert($0) })
             Section(L10n.text("开机启动")) {

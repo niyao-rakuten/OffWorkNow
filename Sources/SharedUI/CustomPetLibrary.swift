@@ -45,7 +45,7 @@ enum CustomPetLibrary {
         let dimensions = try inspect(data)
         let name = String(url.deletingPathExtension().lastPathComponent.prefix(80))
         // A single frame is safe by default; do not guess how the user's sheet is arranged.
-        var value = CustomPetConfiguration(name: name.isEmpty ? L10n.text("我的伙伴") : name,
+        var value = CustomPetConfiguration(name: name.isEmpty ? L10n.text("我的精灵") : name,
                                            pixelWidth: dimensions.0, pixelHeight: dimensions.1)
         value.automaticFrameCount = true
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

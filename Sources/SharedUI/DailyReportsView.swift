@@ -6,6 +6,8 @@ private enum DiaryStyle {
     static let ink = Color(red: 0.30, green: 0.23, blue: 0.20)
     static let paper = Color(red: 0.98, green: 0.96, blue: 0.90)
     static let accent = Color(red: 0.72, green: 0.40, blue: 0.28)
+    static let holidayRest = Color(red: 0.95, green: 0.33, blue: 0.40)
+    static let makeupWorkday = Color(red: 0.43, green: 0.67, blue: 0.88)
 }
 
 struct ReportIcon: View {
@@ -101,6 +103,13 @@ struct DailyReportsView: View {
                 }
             }
             HStack(spacing: 12) {
+                scheduleMark(workday: false)
+                Text(L10n.text("法定假期")).font(.caption2)
+                scheduleMark(workday: true)
+                Text(L10n.text("补班")).font(.caption2)
+                Spacer(minLength: 0)
+            }
+            HStack(spacing: 12) {
                 ForEach([ReportMood.happy, .neutral, .crying], id: \.rawValue) { mood in
                     HStack(spacing: 3) { ReportIcon(index: mood.rawValue).frame(width: 24, height: 24); Text(mood == .happy ? L10n.text("<15分") : mood == .neutral ? L10n.text("15–30分") : L10n.text("≥30分")).font(.caption2) }
                 }
@@ -111,17 +120,27 @@ struct DailyReportsView: View {
     private func calendarDay(_ date: Date) -> some View {
         let key = ScheduleCalculator.key(date, calendar: calendar)
         let record = records.first { $0.dateKey == key }
+        let override = settings.overrides[key]
         let activeKey = selectedKey ?? (monthOffset == 0 ? ScheduleCalculator.key(now, calendar: calendar) : records.last?.dateKey)
         return Button { selectedKey = key } label: {
             VStack(spacing: 3) {
-                Text("\(calendar.component(.day, from: date))").font(.system(size: 12, weight: .semibold, design: .rounded))
+                HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    Text("\(calendar.component(.day, from: date))").font(.system(size: 12, weight: .semibold, design: .rounded))
+                    if let override { scheduleMark(workday: override) }
+                }
                 if let mood = record?.mood { ReportIcon(index: mood.rawValue).frame(width: 30, height: 28) }
                 else { Text(record == nil ? "·" : record?.isWorkday == false ? L10n.text("休") : L10n.text("进行中")).font(.system(size: 9)).frame(height: 28) }
             }
             .frame(maxWidth: .infinity).frame(height: 63)
             .background(key == activeKey ? Color(red: 0.96, green: 0.85, blue: 0.71) : .clear, in: RoundedRectangle(cornerRadius: 12))
             .contentShape(RoundedRectangle(cornerRadius: 12))
-        }.buttonStyle(.plain).accessibilityLabel(key + "，" + (record?.mood?.title ?? (record == nil ? L10n.text("未记录") : L10n.text("尚无收工结果"))))
+        }.buttonStyle(.plain).accessibilityLabel(key + "，" + (override.map { L10n.text($0 ? "补班" : "休息日") } ?? "") + "，" + (record?.mood?.title ?? (record == nil ? L10n.text("未记录") : L10n.text("尚无收工结果"))))
+    }
+    private func scheduleMark(workday: Bool) -> some View {
+        Text(L10n.text(workday ? "班" : "休"))
+            .font(.system(size: 9, weight: .bold, design: .rounded))
+            .foregroundStyle(workday ? DiaryStyle.makeupWorkday : DiaryStyle.holidayRest)
+            .fixedSize()
     }
     private func reportCard(_ report: DailyReport) -> some View {
         VStack(alignment: .leading, spacing: 15) {

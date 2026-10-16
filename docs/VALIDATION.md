@@ -9,7 +9,7 @@ DMG 打包验证（2026-10-13）：`scripts/build-dmg.sh` 成功构建 Release �
 2026-10-13 增量验证：macOS **59 项测试、0 失败**，iOS Simulator 构建通过。新增 5 项自定义图集测试（迁移、网格校验、循环/往返、喝水帧段、形象切换）与 5 项日报测试（1500 ml 和 15/30 分钟边界、文案、打卡冻结、跨日历史、回拨保护和损坏校验）。以下 2026-10-12 表格为上一版本基线。
 
 - `scripts/validate-custom-pets.swift`：PNG 导入、本地副本在源文件移动后仍可用、24 帧读取、草稿清理，以及损坏/超大/缺失文件拒绝，全部通过。
-- `scripts/render-pet-previews.swift`：五种内置伙伴共 150 帧加载成功，查看喝水关键帧并导出 GIF。
+- `scripts/render-pet-previews.swift`：五种内置精灵共 150 帧加载成功，查看喝水关键帧并导出 GIF。
 - `scripts/render-report-preview.swift`：临时空间中 13 天记录重新加载一致，6 个图标加载成功，损坏存储保留原数据；预览使用合成数据，不改用户实际记录。
 - 新的 macOS 文件权限仅为用户选定文件只读，用于 PNG 导入。普通构建不注入测试权限。
 - 真实双击/拖动、文件选择器、日历点击与 iOS 真机交互仍需人工验收；离屏预览不等于桌面交互已验证。
@@ -20,7 +20,7 @@ DMG 打包验证（2026-10-13）：`scripts/build-dmg.sh` 成功构建 Release �
 
 | 操作 | 结果 | 证据 |
 |---|---|---|
-| macOS `OffWorkNow` Debug 测试构建（含四种宠物、喝水及加班） | **49 个测试，0 失败** | `build/offworknow-macos-test.log`，`build/OffWorkNowDerivedData/Logs/Test/*.xcresult` |
+| macOS `OffWorkNow` Debug 测试构建（含四种精灵、喝水及加班） | **49 个测试，0 失败** | `build/offworknow-macos-test.log`，`build/OffWorkNowDerivedData/Logs/Test/*.xcresult` |
 | macOS 普通 Debug 构建，关闭调试基础权限注入 | 成功 | `build/offworknow-macos-build.log` |
 | iOS `OffWorkNow-iOS`、generic iOS Simulator 目标编译 | 成功，未运行模拟器 | `build/offworknow-ios-build.log` |
 | Xcode 工程、两个 Info.plist、沙盒权限和隐私清单 lint | 通过 | `plutil -lint` |
@@ -28,8 +28,8 @@ DMG 打包验证（2026-10-13）：`scripts/build-dmg.sh` 成功构建 Release �
 | 本地 ad-hoc 签名严格验证 | 通过 | `codesign --verify --deep --strict` |
 | 成品显示名称/版本/系统下限/菜单栏属性 | 下班啦、1.1.0（2）、macOS 13、LSUIElement=true | `build/下班啦.app/Contents/Info.plist` |
 | App Sandbox 权限 | 源配置仅 app-sandbox=true；普通本地打包不注入测试临时权限 | `Configuration/OffWorkNow.entitlements`，成品 codesign entitlement 输出 |
-| imagegen 新美术资源 | 四种宠物共 96 帧、4 个 UI 图形；透明 PNG 与校准元数据已打包进两个平台 | `Resources/PetArt/`、`docs/pet-art-prompts.json` |
-| 原生 SwiftUI 离屏伙伴预览 | 验证 96 帧和 4 个按钮图片可加载，人工检查浅深色及动作关键帧；导出连续帧 GIF，未验证真实桌面交互 | `docs/assets/pets-light.png`、`docs/assets/pets-dark.png`、`docs/assets/pets-actions.gif` |
+| imagegen 新美术资源 | 四种精灵共 96 帧、4 个 UI 图形；透明 PNG 与校准元数据已打包进两个平台 | `Resources/PetArt/`、`docs/pet-art-prompts.json` |
+| 原生 SwiftUI 离屏精灵预览 | 验证 96 帧和 4 个按钮图片可加载，人工检查浅深色及动作关键帧；导出连续帧 GIF，未验证真实桌面交互 | `docs/assets/pets-light.png`、`docs/assets/pets-dark.png`、`docs/assets/pets-actions.gif` |
 | 原第一版 Debug 启动 | 上一轮实际启动成功并确认进程；这不等于新版 UI 已人工验收 | 上一轮验证记录 |
 | 自有证书签名、商店/通用归档、TestFlight、上传审核 | 未执行 | 缺少已配置的开发者账号，未进行外部提交 |
 
@@ -47,15 +47,15 @@ Xcode 26 的 XCTest 运行库要求 macOS 14，测试目标有系统下限链接
 
 ## 桌面三层布局调整
 
-顶部水杯/时间同排，中间宠物动画，底部打卡按钮。通过离屏预览核对下班前、刚归零、加班、已打卡四种布局状态；底部仅在 `work.state == .after && checkout.canCheckout` 时包含按钮，隐藏时保留高度。此次重新执行 macOS 和 iOS 编译及离屏渲染，没有重复运行上文已通过的 49 个核心测试。真实鼠标操作仍待验。
+顶部水杯/时间同排，中间精灵动画，底部打卡按钮。通过离屏预览核对下班前、刚归零、加班、已打卡四种布局状态；底部仅在 `work.state == .after && checkout.canCheckout` 时包含按钮，隐藏时保留高度。此次重新执行 macOS 和 iOS 编译及离屏渲染，没有重复运行上文已通过的 49 个核心测试。真实鼠标操作仍待验。
 
 ## 人工验收仍需进行
 
 | 项目 | 状态 |
 |---|---|
-| 新版单菜单栏项、欢迎页、桌面宠物；旧副本退出后正常启动 | 待验 |
-| 实际宠物拖动、右键、置顶、隐藏、位置保存及多显示器切换 | 待验 |
-| 四种宠物动画、打卡庆祝、加班文案、减少动态效果和长期能耗 | 待验 |
+| 新版单菜单栏项、欢迎页、桌面精灵；旧副本退出后正常启动 | 待验 |
+| 实际精灵拖动、右键、置顶、隐藏、位置保存及多显示器切换 | 待验 |
+| 四种精灵动画、打卡庆祝、加班文案、减少动态效果和长期能耗 | 待验 |
 | 面板/Escape/外部点击、设置聚焦/保存/取消、重启持久化 | 待验 |
 | 按日期弹性上班、默认恢复、修改加班间隔后真实通知 | 待验 |
 | 喝水按钮每次一杯、修改杯量不改旧记录、撤销与跨日显示 | 待验 |

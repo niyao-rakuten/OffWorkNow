@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A little companion for counting down to the end of your workday, drinking water, and clocking out. macOS includes a menu bar utility and a persistent desktop pet; iOS includes an in-app companion and countdown. Both platforms share `WorkdayCore` for schedules, `Decimal` earnings estimates, clock-out records, overtime calculations, and hydration tracking. No third-party runtime dependencies, accounts, or network requests.
+A little sprite for counting down to the end of your workday, drinking water, and clocking out. macOS includes a menu bar utility and a persistent desktop sprite; iOS includes an in-app sprite and countdown. Both platforms share `WorkdayCore` for schedules, `Decimal` earnings estimates, clock-out records, overtime calculations, and hydration tracking. No third-party runtime dependencies, accounts, or network requests.
 
 ## App language
 
@@ -12,21 +12,21 @@ Both macOS and iOS support English and Simplified Chinese. On macOS, open Settin
 
 The single-frame custom animation issue is fixed: after you configure the grid of an imported sprite sheet, the app automatically calculates the regular animation frame count and reserves drinking frames separately. Existing configurations with only one frame show an explanation and a one-click correction; save to apply it. Turn off automatic mode to set the frame count manually.
 
-The latest animation update adds a girl with a bun hairstyle. Six companions each have 6 actions × 6 frames, totaling **216 frames**. The office worker hums and sways, while the cat, dog, fish, and fox spirit dance to music. On the desktop, **click to change actions, double-click to change companions, and drag to reposition**. Playing the drinking animation manually does not add a hydration record. [Full action list](docs/PET_ANIMATIONS.md) · [Music animation preview](docs/assets/pets-music.gif).
+The latest animation update adds a girl with a bun hairstyle. Six sprites each have 6 actions × 6 frames, totaling **216 frames**. The office worker hums and sways, while the cat, dog, fish, and fox spirit dance to music. On the desktop, **click to change actions, double-click to change sprites, and drag to reposition**. Playing the drinking animation manually does not add a hydration record. [Full action list](docs/PET_ANIMATIONS.md) · [Music animation preview](docs/assets/pets-music.gif).
 
-October 13, 2026 update: added the fox spirit and drinking animations for five companions, double-click companion switching, custom PNG sprite-sheet imports, a calendar on launch, daily reports, local history, and three monthly line charts.
+October 13, 2026 update: added the fox spirit and drinking animations for five sprites, double-click sprite switching, custom PNG sprite-sheet imports, a calendar on launch, daily reports, local history, and three monthly line charts.
 
 - The app opens the workday journal (收工日记). Reopen it from Daily Report (每日报表) in the menu bar panel. The calendar shows hand-drawn happy, resigned, or crying faces based on overtime; select a date to see water intake, earnings, and overtime messages. See [Daily report definitions](docs/DAILY_REPORTS.md).
-- Settings → General → Custom Sprite Sheet (设置 → 通用 → 自定义序列帧) supports PNG grids, active frame counts, frame rates, loop modes, drinking frame ranges, and previews. Save to apply changes. See [Custom companions](docs/CUSTOM_PETS.md).
-- Double-click the pet animation to cycle through companions; drag to move it. Recording a drink plays a dedicated animation: cats and dogs use bowls, the worker and fox spirit use cups, and the fish puffs its cheeks.
+- Settings → General → Custom Sprite Sheet (设置 → 通用 → 自定义序列帧) supports PNG grids, active frame counts, frame rates, loop modes, drinking frame ranges, and previews. Save to apply changes. See [Custom sprites](docs/CUSTOM_PETS.md).
+- Double-click the sprite animation to cycle through sprites; drag to move it. Recording a drink plays a dedicated animation: cats and dogs use bowls, the worker and fox spirit use cups, and the fish puffs its cheeks.
 - Recorded dates remain in daily report history. Clocking out freezes report earnings and overtime, while the main panel continues to show scheduled earnings. Hiding earnings also applies to reports and charts. Dates not recorded by older versions cannot be recovered.
 - The latest recorded validation passed **59 macOS core tests** and the iOS build; 150 animation frames and 6 report icons were verified to load. The sandbox grants read-only access to user-selected files for PNG imports.
 
 [Fox spirit artwork](docs/assets/fox-portrait.png) · [Fox animations](docs/assets/fox-actions.gif) · [Drinking animations](docs/assets/pets-drinking.gif) · [Daily report with demo data](docs/assets/daily-report.png)
 
 - Menu bar countdown, earnings, or icon-only mode; a popover panel and separate settings drafts.
-- Desktop companions: **Off-Work Cat, Slacking Dog, Office Worker, Goldfish, Fox Spirit, and Bun-Haired Girl**. Japanese manga and watercolor artwork created with imagegen. Each companion has 4 action sets × 6 frames, plus 6 drinking frames and 6 headphone/music frames. Random actions include purring/arching, tail wagging/barking/bowing, frantic work/daydreaming/thinking, swimming/blowing bubbles, and fox tail swaying. Companions celebrate clock-out and pause when Reduce Motion is enabled or the computer sleeps.
-- Pets display the countdown or elapsed overtime. Drag to reposition; the position is saved locally. General settings let you switch companions, hide the pet, or turn off always-on-top. Display changes trigger a check that the pet remains on screen.
+- Desktop sprites: **Off-Work Cat, Slacking Dog, Office Worker, Goldfish, Fox Spirit, and Bun-Haired Girl**. Japanese manga and watercolor artwork created with imagegen. Each sprite has 4 action sets × 6 frames, plus 6 drinking frames and 6 headphone/music frames. Random actions include purring/arching, tail wagging/barking/bowing, frantic work/daydreaming/thinking, swimming/blowing bubbles, and fox tail swaying. Sprites celebrate clock-out and pause when Reduce Motion is enabled or the computer sleeps.
+- Sprites display the countdown or elapsed overtime. Drag to reposition; the position is saved locally. General settings let you switch sprites, hide the sprite, or turn off always-on-top. Display changes trigger a check that the sprite remains on screen.
 - **Clock Out (打卡下班)** becomes available after work begins on a working day. It records the local time, stops that day's hourly, end-of-work, and overtime reminders, and freezes overtime. The next day resets the clock-out state automatically. Undo an accidental clock-out with confirmation in the panel; future events resume without replaying past ones.
 - **Configurable overtime reminders, every 5 minutes by default**: until you clock out, notifications occur at interval multiples after the scheduled end time, such as 5, 10, and 15 minutes. Desktop messages alternate between playful prompts asking why you are still working and encouraging you to go home. Overtime reminders can be disabled; pausing health reminders does not affect them.
 - **Hydration tracking**: each Drink a Cup (喝一杯水) click records one cup. The default is **500 ml per cup**, configurable as an integer from 1–2000 ml. View today's cup count and total volume, and undo the last cup. Records retain the cup size used at the time, so changing settings does not change previous totals. Tracking also works on days off and resets at the start of each calendar day in the work time zone. There is no prescribed daily hydration goal.
@@ -35,9 +35,9 @@ October 13, 2026 update: added the fox spirit and drinking animations for five c
 
 Clock-out is a personal local record; it does not submit attendance to an employer. The main panel estimates earnings from the planned schedule. Daily reports freeze earnings at clock-out and **do not calculate overtime pay**. Reports retain daily hydration, estimated earnings, and overtime history.
 
-The desktop has three layers: a hand-drawn water cup with the cup count and clickable digital time at the top, the pet animation in the middle, and an image-based Clock Out button at the bottom. The bottom button appears only after the scheduled end time on a working day when you have not clocked out, including the moment the countdown reaches zero and during overtime. It disappears after clock-out; reserved space prevents the pet from jumping. Click the time to open settings, drag the pet to move it, and right-click the cup to undo the last drink. Overtime displays as `+HH:MM:SS`; after clock-out, the actual clock-out time is shown. Overtime reminders use system notifications.
+The desktop has three layers: a hand-drawn water cup with the cup count and clickable digital time at the top, the sprite animation in the middle, and an image-based Clock Out button at the bottom. The bottom button appears only after the scheduled end time on a working day when you have not clocked out, including the moment the countdown reaches zero and during overtime. It disappears after clock-out; reserved space prevents the sprite from jumping. Click the time to open settings, drag the sprite to move it, and right-click the cup to undo the last drink. Overtime displays as `+HH:MM:SS`; after clock-out, the actual clock-out time is shown. Overtime reminders use system notifications.
 
-Actual SwiftUI renders of all six companions: [Light](docs/assets/pets-light.png) · [Dark](docs/assets/pets-dark.png) · [Frame animation preview](docs/assets/pets-actions.gif). See [PET_ART.md](docs/PET_ART.md) for artwork and action details.
+Actual SwiftUI renders of all six sprites: [Light](docs/assets/pets-light.png) · [Dark](docs/assets/pets-dark.png) · [Frame animation preview](docs/assets/pets-actions.gif). See [PET_ART.md](docs/PET_ART.md) for artwork and action details.
 
 ## Running and installing on macOS
 
@@ -47,8 +47,8 @@ Requires macOS 13 or later. Built using Xcode 26.5 on Apple Silicon.
 
 1. Open **`OffWorkNow.xcodeproj`**, select the **`OffWorkNow`** scheme and `My Mac`, then press ⌘R.
 2. The local Debug build is **`build/下班啦.app`**, with ad-hoc signing. Double-click it or run `open 'build/下班啦.app'`.
-3. The workday journal and daily reports appear on launch. Enable notifications explicitly in Notifications and Preferences → Reminders (通知与偏好设置 → 提醒). Closing the journal window leaves the desktop pet and menu bar running.
-4. Install in a fixed location: quit the development copy, copy the `.app` to `~/Applications` or Applications using Finder, launch it there, and then enable launch at login. Avoid running the older 下班小助手, an Xcode copy, and the new app simultaneously; multiple instances can show duplicate menu items, pets, or reminders.
+3. The workday journal and daily reports appear on launch. Enable notifications explicitly in Notifications and Preferences → Reminders (通知与偏好设置 → 提醒). Closing the journal window leaves the desktop sprite and menu bar running.
+4. Install in a fixed location: quit the development copy, copy the `.app` to `~/Applications` or Applications using Finder, launch it there, and then enable launch at login. Avoid running the older 下班小助手, an Xcode copy, and the new app simultaneously; multiple instances can show duplicate menu items, sprites, or reminders.
 5. There is no persistent Dock icon. Open settings or quit from the menu bar panel. Clicking outside or pressing Escape closes the panel. Closing settings cancels the draft without quitting the app.
 
 macOS controls the menu bar position; hold Command to drag it. Use icon-only mode when space is limited. The initial work time zone is taken from the system and does not automatically change when you travel. Defaults are Monday–Friday, 09:00–18:00, with lunch from 12:00–13:00 and monthly salary left blank.
@@ -64,14 +64,14 @@ This script creates a Debug app for the host architecture: arm64 on Apple Silico
 
 Ad-hoc signing is not App Store distribution signing, and the app is not notarized. Moving, downloading, or using it on another machine may trigger Gatekeeper prompts. See [Distribution and installation](docs/APP_STORE.md) for the App Store workflow.
 
-## iOS companion target
+## iOS sprite target
 
 Select the **`OffWorkNow-iOS`** scheme in the same project. Requires iOS 16 or later and supports iPhone/iPad. Run on an installed simulator; physical devices require your own Team in Signing & Capabilities.
 
-iOS supports all six built-in animated companions, custom sprite sheets, the launch calendar and daily reports, countdowns, earnings estimates, schedule/lunch/weekday/time-zone/date-override settings, clock-out, overtime duration and rotating messages, and hydration tracking with configurable cup sizes. Data stays on that device; **there is no cross-device sync**. There is no floating pet across other apps or Widget extension.
+iOS supports all six built-in animated sprites, custom sprite sheets, the launch calendar and daily reports, countdowns, earnings estimates, schedule/lunch/weekday/time-zone/date-override settings, clock-out, overtime duration and rotating messages, and hydration tracking with configurable cup sizes. Data stays on that device; **there is no cross-device sync**. There is no floating sprite across other apps or Widget extension.
 
 - End-of-work notifications require explicit user authorization and schedule working-day events for the next **7 days**. Opening the app or saving settings rebuilds the schedule. iOS manages these local notifications in the background. Clocking out cancels that day's pending end-of-work notification.
-- Overtime messages appear inside the app. iOS does not run the pet, speech, or a continuous timer every 5 minutes in the background, and does not promise background notifications at that interval. Hourly health reminders/speech, desktop always-on-top, and launch at login are currently macOS features.
+- Overtime messages appear inside the app. iOS does not run the sprite, speech, or a continuous timer every 5 minutes in the background, and does not promise background notifications at that interval. Hourly health reminders/speech, desktop always-on-top, and launch at login are currently macOS features.
 - The iOS Simulator target has compiled successfully. Simulator interaction, physical-device notifications, and App Store acceptance remain unverified.
 
 ## Schedule and earnings calculations
@@ -127,8 +127,8 @@ xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow-iOS \
 The latest recorded Xcode macOS build and **all 59 core tests passed**, along with the iOS Simulator build. See [Validation records](docs/VALIDATION.md) for tests and pending manual checks, and [Requirements mapping](docs/REQUIREMENTS.md). The Xcode 26 XCTest runtime requires macOS 14 or later; the app still targets macOS 13, whose real-device compatibility remains unverified.
 
 - `WorkdayCore`: cross-platform logic for work/earnings, settings migration, Clock, reminder scheduling, Checkout, and Hydration.
-- `Sources/WorkdayBuddy`: macOS lifecycle, menu bar, desktop pet, welcome screen, settings, and system services.
-- `Sources/OffWorkNowIOS`: iOS companion app and settings.
+- `Sources/WorkdayBuddy`: macOS lifecycle, menu bar, desktop sprite, welcome screen, settings, and system services.
+- `Sources/OffWorkNowIOS`: iOS sprite app and settings.
 - `Sources/SharedUI/PetAvatar.swift`: frame playback and random actions. `PetArtwork.swift` caches transparent sprite sheets; `PetControls.swift` provides compact image buttons.
 - `Resources/Assets.xcassets`: original cat and clock icons in macOS/iPhone/iPad/App Store sizes. Icon generation scripts are development tools only; the app does not depend on Pillow.
 - `Configuration`: Info.plist files for both platforms, macOS sandbox entitlements, privacy manifest, and App Store export configuration.
@@ -136,4 +136,4 @@ The latest recorded Xcode macOS build and **all 59 core tests passed**, along wi
 
 Local UserDefaults stores schedules, salary, reminder deduplication, the most recent clock-out, today's hydration details, and historical daily reports. Copies of custom PNGs are stored in Application Support/OffWorkNow/CustomPets. There is no encryption, upload, or third-party analytics SDK; monthly salary is not logged. Settings include `schemaVersion`; new fields receive defaults, and damaged configurations are recovered with an explanation. Daily reports store summaries separately, retain history across days, and preserve damaged data with a warning. No calendar, location, contacts, screen recording, or accessibility permissions are required. PNG import reads only files explicitly selected by the user. The privacy manifest declares required reason `CA92.1` for UserDefaults.
 
-To quit, choose Quit in the menu bar panel or right-click the pet and choose Quit OffWorkNow (退出下班啦). To uninstall, disable and save launch at login, quit, and delete the `.app`; App Store installations can also use system app management. Sandbox data may remain. If you want to remove it, quit first and manage `~/Library/Containers/com.workdaybuddy.app` in Finder, taking care to avoid other app containers. The older development command `defaults delete com.workdaybuddy.app` may not clear the new container's data. Uninstalling does not automatically reset system notification authorization.
+To quit, choose Quit in the menu bar panel or right-click the sprite and choose Quit OffWorkNow (退出下班啦). To uninstall, disable and save launch at login, quit, and delete the `.app`; App Store installations can also use system app management. Sandbox data may remain. If you want to remove it, quit first and manage `~/Library/Containers/com.workdaybuddy.app` in Finder, taking care to avoid other app containers. The older development command `defaults delete com.workdaybuddy.app` may not clear the new container's data. Uninstalling does not automatically reset system notification authorization.

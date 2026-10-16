@@ -98,7 +98,7 @@ struct BuiltinPetAvatar: View {
                         y: kind == .goldfish && playing ? sin(ProcessInfo.processInfo.systemUptime * 1.1) * 3 : 0)
         }
         .aspectRatio(1, contentMode: .fit)
-        .accessibilityLabel(kind.title + (celebrating ? L10n.text("，开心下班") : tired ? L10n.text("，陪你等下班") : L10n.text("，桌面伙伴")))
+        .accessibilityLabel(kind.title + (celebrating ? L10n.text("，开心下班") : tired ? L10n.text("，陪你等下班") : L10n.text("，桌面精灵")))
         .onChange(of: drinkTrigger) { requestedDrink = $0 }
         .onChange(of: animationTrigger) { requestedAnimation = $0 }
         .task(id: playbackID) { await playActions() }

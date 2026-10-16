@@ -148,6 +148,8 @@ import WorkdayCore
     private let speech: SpeechService
     private let clock: any Clock
     private var settings = WorkSettings()
+    private let bot = AIBot()
+    private var botContext: AIBotContext { AIBotContext(now: clock.now, settings: settings, checkout: checkout, ledger: ledger, pause: pause) }
     private var suspended = false
     private var planGeneration = 0
     init(notifications: NotificationService, speech: SpeechService, defaults: UserDefaults = .standard, clock: any Clock = SystemClock()) {
@@ -161,12 +163,12 @@ import WorkdayCore
         overtimeMessage = nil
         if !value.speechEnabled { speech.stop() }
         expirePause()
-        if startup, let event = ReminderPlanner.startupEvent(now: clock.now, settings: settings, ledger: ledger, pause: pause, checkout: checkout) { deliver(event) }
+        if startup { apply(bot.handle(.startup, in: botContext)) }
         schedule()
     }
     func pauseForHour() { setPause(clock.now.addingTimeInterval(3600)) }
     func pauseUntilOffwork() {
-        let work = ScheduleCalculator.snapshot(now: clock.now, settings: settings)
+        let work = bot.inspect(botContext).work
         if work.end > clock.now { setPause(work.end) }
     }
     private func setPause(_ until: Date) {
@@ -174,8 +176,9 @@ import WorkdayCore
     }
     func resume() { pause = nil; persistPause(); schedule() }
     func expirePause() {
-        if let pause, !pause.active(now: clock.now, settings: settings) { self.pause = nil; persistPause() }
-        if overtimeMessageDate != ScheduleCalculator.key(clock.now, calendar: settings.calendar) { overtimeMessage = nil }
+        let state = bot.inspect(botContext)
+        if pause != state.activePause { pause = state.activePause; persistPause() }
+        if overtimeMessageDate != state.work.dateKey { overtimeMessage = nil }
     }
     private func persistPause() { defaults.set(try? JSONEncoder().encode(pause), forKey: "reminderPause") }
     private func persistLedger() { defaults.set(try? JSONEncoder().encode(ledger), forKey: "reminderLedger") }
@@ -196,70 +199,57 @@ import WorkdayCore
         timer?.invalidate(); timer = nil
         guard !suspended else { nextEvent = nil; return }
         expirePause()
-        nextEvent = ReminderPlanner.next(now: clock.now, settings: settings, ledger: ledger, pause: pause, checkout: checkout)
+        nextEvent = bot.nextReminder(in: botContext)
         guard let event = nextEvent else { return }
         let delay = max(0.05, event.date.timeIntervalSince(clock.now))
         let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 guard let self, !self.suspended, self.planGeneration == generation else { return }
                 // Late wake/fire never catches up missed events.
-                if ReminderPlanner.due(event, now: self.clock.now, settings: self.settings, ledger: self.ledger, pause: self.pause, checkout: self.checkout) { self.deliver(event) }
+                self.apply(self.bot.handle(.reminder(event), in: self.botContext))
                 self.schedule()
             }
         }
         timer.tolerance = 0.2; self.timer = timer; RunLoop.main.add(timer, forMode: .common)
     }
-    private func content(_ event: ReminderEvent, language: AppLanguage, healthKey: String) -> (String, String) {
-        if event.kind == .offwork { return (L10n.text("下班啦", language: language), L10n.text("下班时间到啦！点击“打卡下班”，今天辛苦了。", language: language)) }
-        if event.kind == .overtime {
-            let work = ScheduleCalculator.snapshot(now: event.date, settings: settings)
-            let message = OvertimeCalculator.message(seconds: event.date.timeIntervalSince(work.end), intervalMinutes: settings.overtimeIntervalMinutes, language: language)
-            overtimeMessage = message
-            overtimeMessageDate = work.dateKey
-            return (L10n.text("加班提醒 · 下班啦", language: language), message)
+    private func apply(_ actions: [AIBotAction]) {
+        for action in actions {
+            if case .deliverReminder(let reminder) = action { deliver(reminder) }
         }
-        let text = L10n.text(healthKey, language: language)
-        let hour = settings.calendar.component(.hour, from: event.date)
-        let remaining = ScheduleCalculator.snapshot(now: event.date, settings: settings).remaining
-        let minutes = Int(ceil(remaining / 60))
-        let duration = minutes >= 60 ? L10n.format("{0} 小时", String(describing: minutes / 60), language: language) + (minutes % 60 > 0 ? L10n.format(" {0} 分钟", String(describing: minutes % 60), language: language) : "") : L10n.format("{0} 分钟", String(describing: minutes), language: language)
-        return (String(format: L10n.text("现在是 %02d:00", language: language), hour), text + " " + L10n.format("距离下班还有 {0}。", String(describing: duration), language: language))
     }
-    private func deliver(_ event: ReminderEvent) {
+    private func deliver(_ reminder: AIBotReminder) {
+        let event = reminder.event
         guard ledger.records[event.id] == nil else { return }
-        let healthKey = event.kind == .hourly ? L10n.sourceKey(for: HealthMessages.choose(categories: settings.categories, previous: ledger.lastMessage)) : ""
-        var localized: [String: String] = [:]
-        for language in [AppLanguage.simplifiedChinese, .english] {
-            let (title, body) = content(event, language: language, healthKey: healthKey)
-            localized[language.rawValue] = title + "\n" + body
+        let text = reminder.message.text()
+        let title = text.title, body = text.body
+        if let key = reminder.healthMessageKey { ledger.lastMessage = key }
+        if event.kind == .overtime {
+            overtimeMessage = body
+            overtimeMessageDate = ScheduleCalculator.key(event.date, calendar: settings.calendar)
         }
-        let (title, body) = content(event, language: L10n.selection.resolved(), healthKey: healthKey)
-        if event.kind == .hourly { ledger.lastMessage = L10n.text(healthKey) }
         var record = EventRecord(notification: "reserved", speech: "skipped")
         // Reserve before any asynchronous channel so restart/permission changes cannot duplicate it.
         ledger.consume(event, record: record); persistLedger()
-        onMessage?(localized)
-        if event.kind == .hourly && settings.speechEnabled { record.speech = speech.speak(title + "。" + body) }
+        onMessage?(reminder.message.localizedContents)
+        if reminder.speak { record.speech = speech.speak(title + ". " + body) }
         ledger.records[event.id] = record; persistLedger()
         let sound = settings.notificationSound
         Task {
             let outcome = await notifications.send(id: event.id, title: title, body: body, sound: sound, shouldSend: { [weak self] in
                 guard let self, !self.suspended else { return false }
-                return !(self.checkout?.applies(now: self.clock.now, settings: self.settings) ?? false) && ReminderPlanner.allowed(event, settings: self.settings, pause: self.pause, checkout: self.checkout)
+                return self.bot.mayDeliver(event, in: self.botContext)
             })
             ledger.records[event.id]?.notification = outcome; persistLedger()
         }
     }
     func test(settings testSettings: WorkSettings) {
-        var text = L10n.text("工作辛苦了，记得适当休息")
-        if testSettings.hourlyEnabled { text = HealthMessages.choose(categories: testSettings.categories, previous: nil) }
-        if testSettings.speechEnabled { _ = speech.speak(L10n.text("测试提醒。") + text) }
-        let key = L10n.sourceKey(for: text)
-        onMessage?(Dictionary(uniqueKeysWithValues: [AppLanguage.simplifiedChinese, .english].map {
-            ($0.rawValue, L10n.text("测试提醒", language: $0) + "\n" + L10n.text(key, language: $0))
-        }))
-        Task { _ = await notifications.send(id: "test.\(UUID().uuidString)", title: L10n.text("测试提醒"), body: text, sound: testSettings.notificationSound) }
+        let message = bot.testReminder(settings: testSettings, now: clock.now)
+        let text = message.text()
+        if testSettings.speechEnabled { _ = speech.speak(text.title + ". " + text.body) }
+        onMessage?(message.localizedContents)
+        Task { _ = await notifications.send(id: message.id, title: text.title, body: text.body, sound: testSettings.notificationSound) }
     }
+
 }
 
 @MainActor final class AssistantStore: ObservableObject {
@@ -301,12 +291,6 @@ import WorkdayCore
     func takeTypingAnimation(for id: UUID) -> Bool {
         unpresentedReplyIDs.remove(id) != nil
     }
-    func generateDailyReport(_ report: DailyReport, hideEarnings: Bool) {
-        // Checkout reports are local, complete pet messages, even during another reply.
-        receive(Dictionary(uniqueKeysWithValues: [AppLanguage.simplifiedChinese, .english].map {
-            ($0.rawValue, report.assistantReport(hideEarnings: hideEarnings, language: $0))
-        }))
-    }
     var greeting: String {
         let name = ownerName.trimmingCharacters(in: .whitespacesAndNewlines)
         return L10n.format("Hi {0}，您有什么吩咐？", name.isEmpty || name == "主人" ? L10n.text("主人") : name)
@@ -334,7 +318,7 @@ import WorkdayCore
         guard let key = AssistantCredential.read(), !key.isEmpty else { issue = "请先在 AI 助手设置中保存 OpenRouter API Key。"; return false }
         guard !modelID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { issue = "请先设置模型 ID。"; return false }
         guard let model = selectedModel else { issue = "请先在 AI 助手设置中选择可用模型。"; return false }
-        let system = "你是桌面宠物 AI 助手。首先准确回答用户当前的问题，遵循用户的任务与语言；表达温和简洁，不要让角色扮演妨碍回答。用户称谓是\(String(ownerName.prefix(64)))，自然地称呼即可，无需每句重复。不能编造模型身份、能力或已经执行的操作。"
+        let system = "你是桌面精灵 AI 助手。首先准确回答用户当前的问题，遵循用户的任务与语言；表达温和简洁，不要让角色扮演妨碍回答。用户称谓是\(String(ownerName.prefix(64)))，自然地称呼即可，无需每句重复。不能编造模型身份、能力或已经执行的操作。"
         let context: [OpenRouterMessage]
         do {
             context = try AssistantContext.build(history: messages, system: system, current: text,

@@ -52,6 +52,7 @@ public struct WorkSettings: Codable, Equatable {
     public var petKind = PetKind.cat
     public var customPet: CustomPetConfiguration? = nil
     public var petAlwaysOnTop = true
+    public var chatPanelPosition = ChatPanelPosition.right
     public var overtimeEnabled = true
     public var overtimeIntervalMinutes = 5
     public var cupVolumeML = 500

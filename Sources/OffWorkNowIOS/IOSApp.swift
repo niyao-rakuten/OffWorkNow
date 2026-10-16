@@ -22,6 +22,8 @@ import WorkdayCore
 }
 
 @MainActor final class MobileModel: ObservableObject {
+    private let bot = AIBot()
+    private var botContext: AIBotContext { AIBotContext(now: now, settings: settings, checkout: checkoutRecord, hydration: hydration) }
     @Published private(set) var settings: WorkSettings
     @Published private(set) var now = Date()
     @Published private(set) var checkoutRecord: CheckoutRecord?
@@ -47,9 +49,10 @@ import WorkdayCore
         catch { self.error = error.localizedDescription }
     }
     func undoWater() { now = Date(); hydrationLog?.undoLast(now: now, settings: settings); defaults.set(try? JSONEncoder().encode(hydrationLog), forKey: "waterCups"); captureReport(force: true) }
-    var work: WorkSnapshot { ScheduleCalculator.snapshot(now: now, settings: settings) }
-    var checkout: CheckoutSnapshot { OvertimeCalculator.snapshot(now: now, settings: settings, work: work, checkout: checkoutRecord) }
-    var earnings: EarningsSnapshot { EarningsCalculator.calculate(now: now, settings: settings, work: work) }
+    var work: WorkSnapshot { bot.inspect(botContext).work }
+    var checkout: CheckoutSnapshot { bot.inspect(botContext).checkout }
+    var earnings: EarningsSnapshot { bot.inspect(botContext).earnings }
+    var overtimeNotice: String? { bot.inspect(botContext).overtimeNotice }
     func activate() {
         now = Date(); captureReport(force: true); timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in Task { @MainActor in self?.now = Date(); self?.captureReport() } }
@@ -57,8 +60,13 @@ import WorkdayCore
     }
     func deactivate() { now = Date(); captureReport(force: true); timer?.invalidate(); timer = nil }
     func checkoutNow() {
-        now = Date(); guard checkout.canCheckout else { return }
-        checkoutRecord = CheckoutRecord(now: now, settings: settings)
+        now = Date()
+        let actions = bot.handle(.checkout, in: botContext)
+        guard let record = actions.compactMap({ action -> CheckoutRecord? in
+            if case .recordCheckout(let record) = action { return record }
+            return nil
+        }).first else { return }
+        checkoutRecord = record
         defaults.set(try? JSONEncoder().encode(checkoutRecord), forKey: "latestCheckout")
         captureReport(force: true)
         Task { await scheduleOffwork() }
@@ -100,16 +108,14 @@ import WorkdayCore
         let pending = await center.pendingNotificationRequests()
         center.removePendingNotificationRequests(withIdentifiers: pending.filter { $0.identifier.hasPrefix("offwork.") }.map(\.identifier))
         guard notificationAllowed, settings.offworkEnabled else { return }
-        let c = settings.calendar; let today = c.startOfDay(for: Date())
-        for offset in 0..<7 {
-            let day = c.date(byAdding: .day, value: offset, to: today)!
-            guard ScheduleCalculator.isWorkday(day, settings: settings) else { continue }
-            let end = ScheduleCalculator.localTime(settings.endMinute(on: day), on: day, calendar: c)
-            guard end > Date(), !(checkoutRecord?.applies(now: end, settings: settings) ?? false) else { continue }
-            let content = UNMutableNotificationContent(); content.title = L10n.text("下班啦"); content.body = L10n.text("下班时间到啦！今天辛苦了，打开下班啦打卡收工。")
+        let c = settings.calendar
+        let context = AIBotContext(now: Date(), settings: settings, checkout: checkoutRecord)
+        for event in bot.upcomingOffwork(in: context) {
+            let text = bot.reminderMessage(event, settings: settings).text()
+            let content = UNMutableNotificationContent(); content.title = text.title; content.body = text.body
             if settings.notificationSound { content.sound = .default }
-            var components = c.dateComponents([.year, .month, .day, .hour, .minute, .second], from: end); components.calendar = c; components.timeZone = c.timeZone
-            let request = UNNotificationRequest(identifier: "offwork.\(settings.timeZoneID).\(ScheduleCalculator.key(day, calendar: c))", content: content, trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false))
+            var components = c.dateComponents([.year, .month, .day, .hour, .minute, .second], from: event.date); components.calendar = c; components.timeZone = c.timeZone
+            let request = UNNotificationRequest(identifier: event.id, content: content, trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false))
             do { try await center.add(request) } catch { self.error = error.localizedDescription }
             }
     }
@@ -130,8 +136,8 @@ struct MobileDashboard: View {
                     Text(title).font(.title2.weight(.semibold))
                     Text(time).font(.system(size: 40, weight: .bold, design: .rounded)).monospacedDigit().minimumScaleFactor(0.6).lineLimit(1)
                     ProgressView(value: model.work.progress).accessibilityLabel(L10n.text("计划工作进度"))
-                    if model.checkout.isOvertime, model.checkout.overtimeSeconds >= OvertimeCalculator.reminderInterval(settings: model.settings), model.settings.overtimeEnabled {
-                        Text(OvertimeCalculator.message(seconds: model.checkout.overtimeSeconds, intervalMinutes: model.settings.overtimeIntervalMinutes)).font(.callout).foregroundStyle(.orange).multilineTextAlignment(.center)
+                    if let notice = model.overtimeNotice {
+                        Text(notice).font(.callout).foregroundStyle(.orange).multilineTextAlignment(.center)
                     }
                     if let earned = model.earnings.earned { Text(L10n.text("今日估算 ") + (model.settings.hideEarnings ? "¥••••" : Money.formatted(earned))).font(.title3).monospacedDigit() }
                     else { Text(model.earnings.reason ?? L10n.text("设置月薪后查看收入")).foregroundStyle(.secondary) }
@@ -143,7 +149,7 @@ struct MobileDashboard: View {
                         if model.hydration.cups > 0 { Button(L10n.text("撤销上一杯")) { model.undoWater() }.font(.caption) }
                     }
                     if !model.notificationAllowed { Button(L10n.text("开启下班通知")) { model.enableNotifications() }; Text(L10n.text("若已拒绝，请在系统设置 → 通知 → 下班啦中开启。")).font(.caption).foregroundStyle(.secondary) }
-                    Text(L10n.text("打卡仅保存在本机；工资按计划估算，不计加班。iOS 宠物在应用内展示。")).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    Text(L10n.text("打卡仅保存在本机；工资按计划估算，不计加班。iOS 精灵在应用内展示。")).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     if let error = model.error { Text(error).font(.caption).foregroundStyle(.red) }
                 }.padding(28)
             }.navigationTitle(L10n.text("下班啦"))

@@ -19,7 +19,7 @@ struct CustomPetEditor: View {
             if busy { ProgressView(L10n.text("正在导入…")) }
             Text(L10n.text("一张 PNG 包含等尺寸网格帧，按从左到右、从上到下播放。建议透明背景；最大 4096×4096、32 MB、256 格。文件仅保存在本机。")).font(.caption).foregroundStyle(.secondary)
             if let config = settings.customPet {
-                TextField(L10n.text("动画名称"), text: field(\.name, default: L10n.text("我的伙伴")))
+                TextField(L10n.text("动画名称"), text: field(\.name, default: L10n.text("我的精灵")))
                 Text(L10n.format("图集 {0} × {1} 像素", String(describing: config.pixelWidth), String(describing: config.pixelHeight))).font(.caption).foregroundStyle(.secondary)
                 HStack {
                     TextField(L10n.text("列数"), value: field(\.columns, default: 1), format: .number)
@@ -72,7 +72,7 @@ struct CustomPetEditor: View {
                     settings.customPet = nil
                     if settings.petKind == .custom { settings.petKind = .fox }
                 }
-                Text(L10n.text("修改后点击设置窗口的“保存”生效；取消不会替换当前伙伴。")).font(.caption).foregroundStyle(.secondary)
+                Text(L10n.text("修改后点击设置窗口的“保存”生效；取消不会替换当前精灵。")).font(.caption).foregroundStyle(.secondary)
             }
             if let issue { Text(issue).font(.caption).foregroundStyle(.red) }
         }

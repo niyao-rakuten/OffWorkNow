@@ -49,6 +49,12 @@
 		F3F1EEBD5B3CE00FC73F1669 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EB2AAF468E1411282CDD2 /* SettingsView.swift */; };
 		F5434A7C8A90E8769388982B /* OvertimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5333758B3C911AC5FCE8FCB3 /* OvertimeTests.swift */; };
 		FA0866BA96AD0BAB541FF551 /* CustomPetEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389EF726A5C56E18568ECC71 /* CustomPetEditor.swift */; };
+		CC418D196F48468F0C55F14B /* HolidayImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28D2B8F0E68E1CE692904EF /* HolidayImportView.swift */; };
+		BED06B49E671DCACA37B38C5 /* HolidayImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28D2B8F0E68E1CE692904EF /* HolidayImportView.swift */; };
+		BF81BCA76582DB7A53E2A6A1 /* HolidayImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A7D5D21472B6F51FB707F4 /* HolidayImportTests.swift */; };
+		D2A70675BDEE41AEBFEBD14D /* AIBotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445D48E90C5E1988A3BB1F8E /* AIBotTests.swift */; };
+		B99A20AE592843F03CEA8ED5 /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 178E5423449B221626194C79 /* MarkdownMessageView.swift */; };
+		95168DA37D703791D532D50E /* MessagePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031985092D4BB54DB915AD8E /* MessagePresentationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +92,11 @@
 		E0CB785678393CF6896DFF1A /* MenuPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPanelView.swift; sourceTree = "<group>"; };
 		E7B1BFA482251F04722B6837 /* OffWorkNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = OffWorkNow.entitlements; sourceTree = "<group>"; };
 		F219C0274590DA45E4BEF1EA /* WorkdayCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = WorkdayCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B28D2B8F0E68E1CE692904EF /* HolidayImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HolidayImportView.swift; sourceTree = "<group>"; };
+		11A7D5D21472B6F51FB707F4 /* HolidayImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HolidayImportTests.swift; sourceTree = "<group>"; };
+		445D48E90C5E1988A3BB1F8E /* AIBotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBotTests.swift; sourceTree = "<group>"; };
+		178E5423449B221626194C79 /* MarkdownMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownMessageView.swift; sourceTree = "<group>"; };
+		031985092D4BB54DB915AD8E /* MessagePresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagePresentationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +133,9 @@
 				6FFE11322718BB1B2B7076EC /* CalculationTests.swift */,
 				DA8A2E9F2A9B5CD3B02D27EC /* CustomPetTests.swift */,
 				03BC6E13B87A5C3022D54BC7 /* DailyReportTests.swift */,
+				031985092D4BB54DB915AD8E /* MessagePresentationTests.swift */,
+				445D48E90C5E1988A3BB1F8E /* AIBotTests.swift */,
+				11A7D5D21472B6F51FB707F4 /* HolidayImportTests.swift */,
 				5D93F3A3DCDC6B9109DA5212 /* FlexibleScheduleTests.swift */,
 				4D6DB513EA91312BBD19CAE4 /* HydrationTests.swift */,
 				414322BAC4EC35A2927F9406 /* LocalizationTests.swift */,
@@ -156,6 +170,7 @@
 			children = (
 				93FF29654B5407EC1978D3B2 /* App.swift */,
 				D487B5DF482136B38F44D599 /* DesktopPetView.swift */,
+				178E5423449B221626194C79 /* MarkdownMessageView.swift */,
 				E0CB785678393CF6896DFF1A /* MenuPanelView.swift */,
 				52A5435348A58AF9E2383EDC /* PetDragHandle.swift */,
 				8C8BC670E746FA93C6CA908F /* Services.swift */,
@@ -172,6 +187,7 @@
 				59CEE785ABF79E4E5FA5AABB /* CustomPetLibrary.swift */,
 				5BB9D60E998F806C4D6DDB7E /* DailyReportStore.swift */,
 				88A7AD251BFC30AD6DB9C034 /* DailyReportsView.swift */,
+				B28D2B8F0E68E1CE692904EF /* HolidayImportView.swift */,
 				1074CB611E191F8D1C958DAE /* PetArtwork.swift */,
 				DA14D537F331606EC2B40819 /* PetAvatar.swift */,
 				1FA12BB8E2DEA6B01A643447 /* PetControls.swift */,
@@ -333,6 +349,7 @@
 				269A5E2AE5682E1D10AE8387 /* CustomPetLibrary.swift in Sources */,
 				18A350A9585C735F7197558D /* DailyReportStore.swift in Sources */,
 				E248B7792096E573B6A6188D /* DailyReportsView.swift in Sources */,
+				BED06B49E671DCACA37B38C5 /* HolidayImportView.swift in Sources */,
 				B1DDD9435DDB878E2E29992A /* PetArtwork.swift in Sources */,
 				C88ABACA591DE8D1A3B0BB1D /* PetAvatar.swift in Sources */,
 				C5F13A9B8EF72BE3AAFD6128 /* PetControls.swift in Sources */,
@@ -345,6 +362,7 @@
 			files = (
 				B43EB7F304EFF2068DC291AD /* App.swift in Sources */,
 				027C155896125707339CAA79 /* DesktopPetView.swift in Sources */,
+				B99A20AE592843F03CEA8ED5 /* MarkdownMessageView.swift in Sources */,
 				CC532F98845C1C8B71D63036 /* MenuPanelView.swift in Sources */,
 				A942BC52FE424A9B62001D00 /* PetDragHandle.swift in Sources */,
 				59DFFE01F54ACEE6ED87BCB6 /* Services.swift in Sources */,
@@ -354,6 +372,7 @@
 				A4B0FD9A29D39C1058AA6B1B /* CustomPetLibrary.swift in Sources */,
 				A642429C203273A093D25EC8 /* DailyReportStore.swift in Sources */,
 				7776EDC271F44D165BD49870 /* DailyReportsView.swift in Sources */,
+				CC418D196F48468F0C55F14B /* HolidayImportView.swift in Sources */,
 				A7D5D856D3DC3C73C1AC7D5E /* PetArtwork.swift in Sources */,
 				296B63C6578B8CB08CE30FE7 /* PetAvatar.swift in Sources */,
 				10C8EDEDB833A7376CB92F87 /* PetControls.swift in Sources */,
@@ -367,6 +386,9 @@
 				32DF968A8C3ADD83DFDEF32F /* CalculationTests.swift in Sources */,
 				15958B04FA99B8103C8724E2 /* CustomPetTests.swift in Sources */,
 				473F095DF866DAA60B44CA23 /* DailyReportTests.swift in Sources */,
+				95168DA37D703791D532D50E /* MessagePresentationTests.swift in Sources */,
+				D2A70675BDEE41AEBFEBD14D /* AIBotTests.swift in Sources */,
+				BF81BCA76582DB7A53E2A6A1 /* HolidayImportTests.swift in Sources */,
 				07A38404A2996815458F9CB2 /* FlexibleScheduleTests.swift in Sources */,
 				94E7A21A3082A1E29ED3894B /* HydrationTests.swift in Sources */,
 				D0DB8EB5D44EAD8578756EA3 /* LocalizationTests.swift in Sources */,
@@ -387,7 +409,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = "Configuration/Info-iOS.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app;
 				PRODUCT_MODULE_NAME = OffWorkNowIOS;
 				PRODUCT_NAME = "下班啦";
@@ -462,7 +484,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = "Configuration/Info-iOS.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app;
 				PRODUCT_MODULE_NAME = OffWorkNowIOS;
 				PRODUCT_NAME = "下班啦";

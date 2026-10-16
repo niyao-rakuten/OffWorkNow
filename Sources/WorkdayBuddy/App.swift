@@ -13,6 +13,7 @@ import WorkdayCore
 }
 
 @MainActor final class AppModel: ObservableObject {
+    let bot = AIBot()
     let store = SettingsStore()
     let notifications = NotificationService()
     let speech = SpeechService()
@@ -24,6 +25,7 @@ import WorkdayCore
     @Published var chatVisible = false {
         didSet { assistant.setPanelVisible(chatVisible) }
     }
+    @Published var chatLayoutExpanded = false
     @Published var selectedSettingsTab = "schedule"
     @Published var waterIssue: String?
     @Published var animationsActive = true
@@ -35,19 +37,21 @@ import WorkdayCore
     @Published private(set) var earnings: EarningsSnapshot
     private let clock: any Clock
     var settings: WorkSettings { store.settings }
+    var botContext: AIBotContext { AIBotContext(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration) }
     init(clock: any Clock = SystemClock()) {
         self.clock = clock; now = clock.now
-        let initialWork = ScheduleCalculator.snapshot(now: clock.now, settings: store.settings)
-        work = initialWork
-        earnings = EarningsCalculator.calculate(now: clock.now, settings: store.settings, work: initialWork)
+        let initial = bot.inspect(AIBotContext(now: clock.now, settings: store.settings))
+        work = initial.work
+        earnings = initial.earnings
         reminders = ReminderCoordinator(notifications: notifications, speech: speech, clock: clock)
         reminders.onMessage = { [weak self] localized in
             self?.assistant.receive(localized)
         }
     }
     func refresh(forceReport: Bool = false) {
-        now = clock.now; work = ScheduleCalculator.snapshot(now: now, settings: settings)
-        earnings = EarningsCalculator.calculate(now: now, settings: settings, work: work); reminders.expirePause()
+        now = clock.now
+        let state = bot.inspect(botContext)
+        work = state.work; earnings = state.earnings; reminders.expirePause()
         reports.capture(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration, force: forceReport)
     }
     func save(_ settings: WorkSettings, launchAtLogin: Bool) throws {
@@ -82,14 +86,20 @@ import WorkdayCore
     }
     func cyclePetAnimation() { petAnimationID &+= 1 }
     func undoWater() { refresh(); hydrationStore.undo(now: now, settings: settings); refresh(forceReport: true) }
-    var checkout: CheckoutSnapshot { OvertimeCalculator.snapshot(now: now, settings: settings, work: work, checkout: checkoutStore.record) }
+    var checkout: CheckoutSnapshot { bot.inspect(botContext).checkout }
     func checkoutNow() {
-        refresh(); guard checkout.canCheckout else { return }
-        checkoutStore.checkout(now: now, settings: settings)
+        refresh()
+        let actions = bot.handle(.checkout, in: botContext)
+        guard !actions.isEmpty else { return }
+        for action in actions {
+            switch action {
+            case .recordCheckout(let record): checkoutStore.checkout(now: record.checkedOutAt, settings: settings)
+            case .showMessagePanel: chatVisible = true
+            case .postMessage(let message): assistant.receive(message.localizedContents)
+            case .deliverReminder: break // ReminderCoordinator owns notification delivery.
+            }
+        }
         reminders.configure(settings, checkout: checkoutStore.record); refresh(forceReport: true)
-        chatVisible = true
-        let report = DailyReport.snapshot(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration)
-        assistant.generateDailyReport(report, hideEarnings: settings.hideEarnings)
     }
     func undoCheckout() { checkoutStore.undo(); reminders.configure(settings); refresh(forceReport: true) }
     #if DEBUG
@@ -134,7 +144,7 @@ import WorkdayCore
     private var subscription: AnyCancellable?
     private var languageSubscription: AnyCancellable?
     private var chatSubscription: AnyCancellable?
-    private var chatWindowExpanded = false
+    private var petPanelLayout = PetPanelLayout(position: .right, expanded: false)
     private var chatCloseTask: Task<Void, Never>?
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -171,7 +181,7 @@ import WorkdayCore
                 guard let self else { return }
                 self.chatCloseTask?.cancel()
                 if visible {
-                    self.chatWindowExpanded = true
+                    self.model.chatLayoutExpanded = true
                     self.popover.performClose(nil)
                     self.syncPetWindow()
                     self.resizePetWindow()
@@ -182,7 +192,7 @@ import WorkdayCore
                         do { try await Task.sleep(nanoseconds: 220_000_000) }
                         catch { return }
                         guard let self, !self.model.chatVisible else { return }
-                        self.chatWindowExpanded = false
+                        self.model.chatLayoutExpanded = false
                         self.resizePetWindow()
                         self.syncPetWindow()
                     }
@@ -243,13 +253,13 @@ import WorkdayCore
         settingsWindow = window; window.center(); NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
     }
     private func syncPetWindow() {
-        guard model.settings.petEnabled || model.chatVisible || chatWindowExpanded else { petWindow?.orderOut(nil); return }
+        guard model.settings.petEnabled || model.chatVisible || model.chatLayoutExpanded else { petWindow?.orderOut(nil); return }
         if petWindow == nil {
             let panel = DesktopPetPanel(contentRect: NSRect(x: 0, y: 0, width: 240, height: 330), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             panel.backgroundColor = .clear; panel.isOpaque = false; panel.hasShadow = false
             panel.isMovableByWindowBackground = true; panel.hidesOnDeactivate = false
             panel.isReleasedWhenClosed = false; panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            panel.contentViewController = NSHostingController(rootView: AppLanguageView { DesktopPetView(model: self.model, openSettings: { [weak self] in self?.showSettings() }, openAssistantSettings: { [weak self] in self?.showAssistantSettings() }) })
+            panel.contentViewController = NSHostingController(rootView: AppLanguageView { DesktopPetView(model: self.model, openReports: { [weak self] in self?.showReports() }, openSettings: { [weak self] in self?.showSettings() }, openAssistantSettings: { [weak self] in self?.showAssistantSettings() }) })
             if !panel.setFrameUsingName("DesktopPet") {
                 let area = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
                 panel.setFrameOrigin(NSPoint(x: area.maxX - 260, y: area.minY + 24))
@@ -258,21 +268,26 @@ import WorkdayCore
                 let area = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
                 panel.setFrameOrigin(NSPoint(x: area.maxX - 260, y: area.minY + 24))
             }
-            panel.setContentSize(NSSize(width: 240, height: 330))
+            let collapsed = PetPanelLayout(position: model.settings.chatPanelPosition, expanded: false)
+            let expanded = PetPanelLayout(position: model.settings.chatPanelPosition, expanded: true)
+            if panel.frame.size == expanded.size {
+                panel.setFrame(collapsed.windowFrame(from: panel.frame, previous: expanded), display: false)
+            }
+            petPanelLayout = collapsed
+            panel.setContentSize(PetPanelLayout.petSize)
+            panel.setFrame(collapsed.windowFrame(from: panel.frame, previous: collapsed, visibleFrame: panel.screen?.visibleFrame), display: false)
             panel.setFrameAutosaveName("DesktopPet"); petWindow = panel
         }
         petWindow?.level = model.settings.petAlwaysOnTop ? .floating : .normal
+        resizePetWindow()
         petWindow?.orderFrontRegardless()
     }
     private func resizePetWindow() {
         guard let panel = petWindow else { return }
-        let size = NSSize(width: model.chatVisible || chatWindowExpanded ? 600 : 240, height: 330)
-        guard panel.frame.size != size else { return }
-        var frame = panel.frame
-        frame.size = size
-        if let area = panel.screen?.visibleFrame {
-            frame.origin.x = min(max(frame.minX, area.minX), area.maxX - size.width)
-        }
+        let layout = PetPanelLayout(position: model.settings.chatPanelPosition, expanded: model.chatVisible || model.chatLayoutExpanded)
+        guard layout != petPanelLayout || panel.frame.size != layout.size else { return }
+        let frame = layout.windowFrame(from: panel.frame, previous: petPanelLayout, visibleFrame: panel.screen?.visibleFrame)
+        petPanelLayout = layout
         panel.setFrame(frame, display: true)
     }
     func showReports() {

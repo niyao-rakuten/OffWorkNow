@@ -5,15 +5,34 @@ import WorkdayCore
 struct DesktopPetView: View {
     @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var model: AppModel
+    let openReports: () -> Void
     let openSettings: () -> Void
     let openAssistantSettings: () -> Void
     @State private var petIssue: String?
     @State private var chatPresented = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        ZStack(alignment: .topLeading) {
+            petContent.offset(x: layout.petOrigin.x, y: layout.petOrigin.y)
+            AssistantChatView(store: model.assistant, openSettings: openAssistantSettings, close: { model.chatVisible = false }, isPresented: model.chatVisible)
+                .frame(width: PetPanelLayout.chatSize.width, height: PetPanelLayout.chatSize.height)
+                .offset(x: layout.chatOrigin.x, y: layout.chatOrigin.y)
+                .opacity(chatPresented ? 1 : 0)
+                .allowsHitTesting(model.chatVisible)
+                .accessibilityHidden(!model.chatVisible)
+        }.frame(width: layout.size.width, height: layout.size.height, alignment: .topLeading)
+        .onAppear { updateChatPresentation() }
+        .onChange(of: model.chatVisible) { _ in updateChatPresentation() }
+        .alert(model.waterIssue != nil ? L10n.text("喝水记录未保存") : L10n.text("无法切换精灵"), isPresented: Binding(get: { model.waterIssue != nil || petIssue != nil }, set: { if !$0 { model.waterIssue = nil; petIssue = nil } })) {
+            Button(L10n.text("好")) { model.waterIssue = nil; petIssue = nil }
+        } message: { Text(model.waterIssue ?? petIssue ?? "") }
+    }
+    private var layout: PetPanelLayout {
+        PetPanelLayout(position: model.settings.chatPanelPosition, expanded: model.chatVisible || model.chatLayoutExpanded)
+    }
+    private var petContent: some View {
         VStack(spacing: 0) {
-            Button(action: openSettings) {
+            Button(action: openReports) {
                 Text(time).font(.system(size: 20, weight: .semibold, design: .rounded))
                     .monospacedDigit().foregroundStyle(AssistantArt.ink)
                     .frame(width: 166, height: 44)
@@ -27,10 +46,10 @@ struct DesktopPetView: View {
                 .overlay(PetDragHandle(singleClick: model.cyclePetAnimation, doubleClick: cyclePet))
                 .help(L10n.text("单击切换动作 · 双击切换形象 · 拖动移动位置"))
                 .accessibilityAction(named: L10n.text("切换动作"), model.cyclePetAnimation)
-                .accessibilityAction(named: L10n.text("切换伙伴"), cyclePet)
+                .accessibilityAction(named: L10n.text("切换精灵"), cyclePet)
                 .contextMenu {
                     Button(L10n.text("下一个动作"), action: model.cyclePetAnimation)
-                    Button(L10n.text("下一个伙伴"), action: cyclePet)
+                    Button(L10n.text("下一个精灵"), action: cyclePet)
                     Button(L10n.text("设置"), action: openSettings)
                     Button(L10n.text("退出下班啦")) { NSApp.terminate(nil) }
                 }
@@ -48,17 +67,6 @@ struct DesktopPetView: View {
                               checkout: model.checkoutNow)
         }
         .padding(.top, 4).frame(width: 240, height: 330, alignment: .top)
-        AssistantChatView(store: model.assistant, openSettings: openAssistantSettings, close: { model.chatVisible = false }, isPresented: model.chatVisible)
-            .frame(width: 344, height: 294).padding(.top, 4)
-            .opacity(chatPresented ? 1 : 0)
-            .allowsHitTesting(model.chatVisible)
-            .accessibilityHidden(!model.chatVisible)
-        }.frame(width: 600, height: 330, alignment: .topLeading)
-        .onAppear { updateChatPresentation() }
-        .onChange(of: model.chatVisible) { _ in updateChatPresentation() }
-        .alert(model.waterIssue != nil ? L10n.text("喝水记录未保存") : L10n.text("无法切换伙伴"), isPresented: Binding(get: { model.waterIssue != nil || petIssue != nil }, set: { if !$0 { model.waterIssue = nil; petIssue = nil } })) {
-            Button(L10n.text("好")) { model.waterIssue = nil; petIssue = nil }
-        } message: { Text(model.waterIssue ?? petIssue ?? "") }
     }
     private func updateChatPresentation() {
         withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
@@ -96,7 +104,7 @@ struct WelcomeView: View {
             Text(L10n.text("陪你认真工作，也提醒你准时收工。")).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 12) {
                 Label(L10n.text("菜单栏查看工资、安排和提醒"), systemImage: "menubar.rectangle")
-                Label(L10n.text("桌面伙伴陪你倒计时，可拖动和切换"), systemImage: "pawprint")
+                Label(L10n.text("桌面精灵陪你倒计时，可拖动和切换"), systemImage: "pawprint")
                 Label(L10n.text("点击“打卡下班”打卡，结束当天提醒"), systemImage: "checkmark.circle")
             }.font(.subheadline)
             Text(L10n.text("月薪默认留空；打卡只保存在本机，不向公司提交。通知由你主动授权。")).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -131,7 +139,7 @@ private struct AssistantChatButton: View {
                             .allowsHitTesting(false).accessibilityHidden(true)
                     }
                 }
-        }.help(store.unreadMessageIDs.isEmpty ? L10n.text("和小宠物聊聊") : L10n.text("有未读消息，点击查看"))
+        }.help(store.unreadMessageIDs.isEmpty ? L10n.text("和精灵聊聊") : L10n.text("有未读消息，点击查看"))
             .accessibilityLabel(store.unreadMessageIDs.isEmpty ? L10n.text("展开或收起聊天") : L10n.text("展开聊天，有未读消息"))
     }
 }
@@ -146,7 +154,7 @@ struct AssistantChatView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Text(L10n.text("小宠物的悄悄话")).font(.system(size: 14, weight: .semibold, design: .rounded))
+                Text(L10n.text("精灵的悄悄话")).font(.system(size: 14, weight: .semibold, design: .rounded))
                 Spacer()
                 Button(action: close) {
                     PetControlImage(asset: .close).frame(width: 20, height: 20)
@@ -254,14 +262,14 @@ private struct AssistantMessageBubble: View {
     @State private var revealedCount = 0
     private var user: Bool { message.role == .user }
     private var displayedText: String {
-        if message.displayedContent.isEmpty { return !message.complete && store.isStreaming ? L10n.text("小宠物正在想…") : L10n.text("未收到回复") }
+        if message.displayedContent.isEmpty { return !message.complete && store.isStreaming ? L10n.text("精灵正在想…") : L10n.text("未收到回复") }
         if user || reduceMotion || animate == false || (animate == nil && !store.needsTypingAnimation(for: message.id)) { return message.displayedContent }
         return String(message.displayedContent.prefix(max(1, revealedCount)))
     }
     var body: some View {
         HStack {
             if user { Spacer(minLength: 24) }
-            Text(displayedText).font(.system(size: 13, design: .rounded)).textSelection(.enabled)
+            MarkdownMessageView(source: displayedText).font(.system(size: 13, design: .rounded)).textSelection(.enabled)
                 .padding(10).background(user ? AssistantArt.sage : .white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(AssistantArt.ink.opacity(0.2), lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
