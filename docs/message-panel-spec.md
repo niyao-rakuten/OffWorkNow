@@ -13,6 +13,8 @@ The requested deliverable explains the current implementation. Section 4 therefo
 
 Related guides: [AI assistant overview](AI-ASSISTANT.md), [local AIBot](LOCAL-AIBOT.md), [OpenRouter component](OPENROUTER.md), [localization](LOCALIZATION.md), [validation history](VALIDATION.md). Some older guide paragraphs describe earlier iterations, including a static greeting or an unintegrated network client. Current source and the source baseline above take precedence.
 
+Subsequent extension (2026-10-16): local information intents now retrieve news and market data through `BotInformationClient`; see [News and markets](NEWS-MARKETS.md) for triggers, sources, data conventions and verification. The architecture diagrams below retain the reviewed baseline.
+
 ## Contents
 
 1. [Scope](#1-scope)

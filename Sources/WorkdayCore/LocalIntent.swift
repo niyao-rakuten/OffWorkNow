@@ -20,6 +20,7 @@ public struct BotChecklist: Codable, Identifiable, Equatable, Sendable {
     public init(items: [BotTodo] = []) { self.items = items }
 }
 public enum LocalBotIntent: Equatable {
+    case information(BotInformationRequest)
     case diet(String, Date), dietSummary(Date), reminder(String, Date), checklist([String]), clarification(String)
 }
 extension AIBot {
@@ -31,6 +32,7 @@ extension AIBot {
                   let result = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) else { return nil }
             return (0..<result.numberOfRanges).map { Range(result.range(at: $0), in: text).map { String(text[$0]) } ?? "" }
         }
+        if let request = BotInformationRequest.interpret(text) { return .information(request) }
         let directChecklist = match(#"^(?:(?:today(?:'s)?\s+)?(?:todo(?:\s+list)?|checklist)|(?:今天|今日)的?待办(?:清单|列表)?)(?:\s*[:：].*)?\s*$"#) != nil
         if directChecklist || match(#"^(?:请|帮我)?(?:创建|新建|建一个|创建一个|建|create|make|帮我创建一个).*?(?:checklist|todo|待办清单|待办列表|清单)"#) != nil {
             let suffix = text.range(of: #"(?:checklist|todo(?:\s+(?:checklist|list))?|待办清单|待办列表|清单)\s*[:：]?\s*"#, options: [.regularExpression, .caseInsensitive]).map { String(text[$0.upperBound...]) } ?? ""

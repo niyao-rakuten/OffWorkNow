@@ -396,6 +396,8 @@ import WorkdayCore
     private func handleLocal(_ intent: LocalBotIntent, input: String) {
         messages.append(AssistantMessage(role: .user, content: input))
         switch intent {
+        case .information(let request):
+            fetchInformation(request)
         case .diet(let text, let date):
             dietEntries.append(BotDietEntry(date: date, text: text)); saveLocal()
             let count = dietEntries.filter { botCalendar.isDate($0.date, inSameDayAs: date) }.count
@@ -412,6 +414,33 @@ import WorkdayCore
             messages[messages.count - 1].checklist = BotChecklist(items: items.map { BotTodo(text: $0) })
             persist()
         case .clarification(let key): receive(localizedReply(key))
+        }
+    }
+    private func fetchInformation(_ request: BotInformationRequest) {
+        let pending = BotInformationClient.status("正在获取公开资讯…", "Fetching public information…")
+        var reply = AssistantMessage(role: .assistant, content: pending[L10n.selection.resolved().rawValue] ?? "", complete: false)
+        reply.localizedContents = pending
+        let id = reply.id
+        unpresentedReplyIDs.insert(id)
+        messages.append(reply); persist(); isStreaming = true
+        requestTask = Task { [weak self] in
+            guard let self else { return }
+            defer { self.isStreaming = false; self.requestTask = nil; self.persist() }
+            let result: [String: String]
+            do {
+                let fetched = try await BotInformationClient().fetch(request)
+                try Task.checkCancellation()
+                result = fetched
+            } catch {
+                result = Task.isCancelled
+                    ? BotInformationClient.status("资讯查询已取消。", "Information request cancelled.")
+                    : BotInformationClient.status("暂时无法获取资讯，请检查网络后重试。", "Information unavailable. Check your connection and retry.")
+            }
+            guard let index = self.messages.firstIndex(where: { $0.id == id }) else { return }
+            self.messages[index].content = result[L10n.selection.resolved().rawValue] ?? ""
+            self.messages[index].localizedContents = result
+            self.messages[index].complete = !Task.isCancelled
+            if !self.panelVisible { self.unreadMessageIDs.insert(id); self.persistUnread() }
         }
     }
     @Published private(set) var unreadMessageIDs: Set<UUID> = []
