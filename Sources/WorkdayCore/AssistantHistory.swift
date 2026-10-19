@@ -34,6 +34,21 @@ public struct AssistantMessage: Codable, Identifiable, Equatable, Sendable {
 }
 
 public enum AssistantHistory {
+    public static func checklistItems(_ messages: [AssistantMessage], on date: Date, calendar: Calendar = .current) -> [BotTodo] {
+        checklists(messages, on: date, calendar: calendar).flatMap(\.items)
+    }
+    public static func checklists(_ messages: [AssistantMessage], on date: Date, calendar: Calendar = .current) -> [BotChecklist] {
+        var seen = Set<UUID>()
+        return messages.filter { $0.role == .assistant && calendar.isDate($0.date, inSameDayAs: date) }
+            .compactMap(\.checklist).filter { seen.insert($0.id).inserted }
+    }
+    public static func updateChecklist(_ messages: inout [AssistantMessage], messageID: UUID, update: (inout BotChecklist) -> Void) {
+        guard var checklist = messages.first(where: { $0.id == messageID })?.checklist else { return }
+        update(&checklist)
+        for index in messages.indices where messages[index].checklist?.id == checklist.id {
+            messages[index].checklist = checklist
+        }
+    }
     public static func save(_ messages: [AssistantMessage], to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]; encoder.dateEncodingStrategy = .iso8601

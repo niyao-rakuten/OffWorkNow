@@ -315,22 +315,27 @@ import WorkdayCore
     deinit { localTimer?.invalidate() }
     func addChecklistItem(messageID: UUID, text: String) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, let index = messages.firstIndex(where: { $0.id == messageID }), messages[index].checklist != nil else { return }
-        messages[index].checklist?.items.append(BotTodo(text: text)); persist()
+        guard !text.isEmpty else { return }
+        AssistantHistory.updateChecklist(&messages, messageID: messageID) { $0.items.append(BotTodo(text: text)) }
+        persist()
     }
     func editChecklistItem(messageID: UUID, itemID: UUID, text: String) {
-        guard let index = messages.firstIndex(where: { $0.id == messageID }),
-              let item = messages[index].checklist?.items.firstIndex(where: { $0.id == itemID }) else { return }
-        messages[index].checklist?.items[item].text = text; persist()
+        AssistantHistory.updateChecklist(&messages, messageID: messageID) { checklist in
+            guard let index = checklist.items.firstIndex(where: { $0.id == itemID }) else { return }
+            checklist.items[index].text = text
+        }
+        persist()
     }
     func toggleChecklistItem(messageID: UUID, itemID: UUID) {
-        guard let index = messages.firstIndex(where: { $0.id == messageID }),
-              let item = messages[index].checklist?.items.firstIndex(where: { $0.id == itemID }) else { return }
-        messages[index].checklist?.items[item].done.toggle(); persist()
+        AssistantHistory.updateChecklist(&messages, messageID: messageID) { checklist in
+            guard let index = checklist.items.firstIndex(where: { $0.id == itemID }) else { return }
+            checklist.items[index].done.toggle()
+        }
+        persist()
     }
     func removeChecklistItem(messageID: UUID, itemID: UUID) {
-        guard let index = messages.firstIndex(where: { $0.id == messageID }) else { return }
-        messages[index].checklist?.items.removeAll { $0.id == itemID }; persist()
+        AssistantHistory.updateChecklist(&messages, messageID: messageID) { $0.items.removeAll { $0.id == itemID } }
+        persist()
     }
     private func saveLocal() {
         do {
@@ -410,6 +415,15 @@ import WorkdayCore
             let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd HH:mm"; formatter.timeZone = botCalendar.timeZone
             receive(localizedReply("已设置提醒：{0}\n{1}", formatter.string(from: date), text))
         case .checklist(let items):
+            let existing = AssistantHistory.checklists(messages, on: Date(), calendar: botCalendar).filter { !$0.items.isEmpty }
+            if items.isEmpty && !existing.isEmpty {
+                for checklist in existing {
+                    receive(localizedReply("待办清单"))
+                    messages[messages.count - 1].checklist = checklist
+                }
+                persist()
+                break
+            }
             receive(localizedReply("已创建待办清单。"))
             messages[messages.count - 1].checklist = BotChecklist(items: items.map { BotTodo(text: $0) })
             persist()

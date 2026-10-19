@@ -33,7 +33,7 @@ extension AIBot {
             return (0..<result.numberOfRanges).map { Range(result.range(at: $0), in: text).map { String(text[$0]) } ?? "" }
         }
         if let request = BotInformationRequest.interpret(text) { return .information(request) }
-        let directChecklist = match(#"^(?:(?:today(?:'s)?\s+)?(?:todo(?:\s+list)?|checklist)|(?:今天|今日)的?待办(?:清单|列表)?)(?:\s*[:：].*)?\s*$"#) != nil
+        let directChecklist = match(#"^(?:(?:today(?:'s)?\s+)?(?:todo(?:\s+list)?|checklist)|(?:(?:今天|今日)的?)?待办(?:清单|列表)?)(?:\s*[:：].*)?\s*$"#) != nil
         if directChecklist || match(#"^(?:请|帮我)?(?:创建|新建|建一个|创建一个|建|create|make|帮我创建一个).*?(?:checklist|todo|待办清单|待办列表|清单)"#) != nil {
             let suffix = text.range(of: #"(?:checklist|todo(?:\s+(?:checklist|list))?|待办清单|待办列表|清单)\s*[:：]?\s*"#, options: [.regularExpression, .caseInsensitive]).map { String(text[$0.upperBound...]) } ?? ""
             let items = suffix.components(separatedBy: CharacterSet(charactersIn: "\n,，、;；")).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }

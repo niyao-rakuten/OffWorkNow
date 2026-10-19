@@ -576,13 +576,17 @@ private struct BotChecklistView: View {
                     VStack(alignment: .leading) {
                         if todo.done {
                             Text(todo.text).strikethrough()
+                                .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
-                            TextField(L10n.text("待办内容"), text: Binding(get: { todo.text }, set: { store.editChecklistItem(messageID: messageID, itemID: todo.id, text: $0) }))
+                            TextField(L10n.text("待办内容"), text: Binding(get: { todo.text }, set: { store.editChecklistItem(messageID: messageID, itemID: todo.id, text: $0) }), axis: .vertical)
                                 .textFieldStyle(.plain)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         if let due = todo.due { Text(due, format: .dateTime.month().day().hour().minute()).font(.caption).foregroundStyle(.secondary) }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     Button { store.removeChecklistItem(messageID: messageID, itemID: todo.id) } label: { Image(systemName: "trash") }
                         .buttonStyle(.plain).accessibilityLabel(L10n.text("删除待办"))
                 }
