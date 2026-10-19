@@ -51,7 +51,7 @@ for target, name in [('app','OffWorkNow'), ('ios','OffWorkNow-iOS'), ('test','Wo
    if target == 'app': settings += ' PRODUCT_MODULE_NAME = WorkdayBuddy; INFOPLIST_FILE = Configuration/Info.plist; CODE_SIGN_ENTITLEMENTS = Configuration/OffWorkNow.entitlements; ENABLE_APP_SANDBOX = YES; ENABLE_HARDENED_RUNTIME = YES; COMBINE_HIDPI_IMAGES = YES;'
   if target == 'test': settings += ' PRODUCT_NAME = WorkdayCoreTests; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.tests; GENERATE_INFOPLIST_FILE = YES; CODE_SIGN_IDENTITY = "-";'
   else:
-   settings += ' PRODUCT_NAME = "下班啦"; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.2.1; SKIP_INSTALL = NO;'
+   settings += ' PRODUCT_NAME = "下班啦"; PRODUCT_BUNDLE_IDENTIFIER = com.workdaybuddy.app; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.2.2; SKIP_INSTALL = NO;'
    if config == 'Debug' and target == 'app': settings += ' CODE_SIGN_IDENTITY = "-";'
   obj(target+config,f'isa = XCBuildConfiguration; name = {config}; buildSettings = {{ {settings} }};')
  obj(target+'config',f'isa = XCConfigurationList; buildConfigurations = {arr([target+"Debug",target+"Release"])}; defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')

@@ -141,16 +141,17 @@ struct SettingsView: View {
                 Toggle(L10n.text("启用不计薪午休"), isOn: $draft.lunchEnabled)
                 if draft.lunchEnabled { timeField(L10n.text("午休开始"), value: $lunchStart, errorKey: "lunchStart"); timeField(L10n.text("午休结束"), value: $lunchEnd, errorKey: "lunchEnd") }
                 Text(L10n.text("下班时间 = 当天上班 + 班次时长；午休工资和进度暂停，倒计时继续。")).font(.caption).foregroundStyle(.secondary)
-                DatePicker(L10n.text("日期（工作时区）"), selection: $flexibleDate, displayedComponents: .date).environment(\.timeZone, draft.calendar.timeZone).environment(\.calendar, draft.calendar)
-                TextField(L10n.text("当天上班（HH:mm）"), text: $flexibleTime).monospacedDigit()
-                Button(L10n.text("添加 / 更新当天时间")) {
-                    do { draft.dailyStartMinutes[ScheduleCalculator.key(flexibleDate, calendar: draft.calendar)] = try minute(flexibleTime, field: L10n.text("弹性上班")); errors["flexible"] = nil }
-                    catch { errors["flexible"] = error.localizedDescription }
+                NavigationLink {
+                    DailyStartTimesView(starts: $draft.dailyStartMinutes, selectedDate: $flexibleDate,
+                        selectedTime: $flexibleTime, calendar: draft.calendar,
+                        error: Binding(get: { errors["flexible"] }, set: { errors["flexible"] = $0 }), apply: addDailyStart)
+                } label: {
+                    HStack {
+                        Text(L10n.text("每天的开始时间"))
+                        Spacer()
+                        Text(L10n.format("{0} 条记录", String(draft.dailyStartMinutes.count))).foregroundStyle(.secondary)
+                    }
                 }
-                ForEach(draft.dailyStartMinutes.keys.sorted(), id: \.self) { key in
-                    HStack { Text(key); Text(ScheduleCalculator.timeLabel(draft.dailyStartMinutes[key]!)).monospacedDigit(); Spacer(); Button(L10n.text("使用默认")) { draft.dailyStartMinutes.removeValue(forKey: key) } }
-                }
-                Text(L10n.text("仅支持当天内班次。任务栏修改今日上班会同步到此处，并立即更新倒计时。")).font(.caption).foregroundStyle(.secondary)
             }
             Section(L10n.text("指定日期覆盖")) {
                 NavigationLink {
@@ -271,6 +272,12 @@ struct SettingsView: View {
         guard parts[0] < 24 && parts[1] < 60 else { throw ValidationError(L10n.format("{0}：小时 00–23，分钟 00–59", String(describing: field))) }
         return parts[0] * 60 + parts[1]
     }
+    private func addDailyStart() {
+        do {
+            draft.dailyStartMinutes[ScheduleCalculator.key(flexibleDate, calendar: draft.calendar)] = try minute(flexibleTime, field: L10n.text("弹性上班"))
+            errors["flexible"] = nil
+        } catch { errors["flexible"] = error.localizedDescription }
+    }
     private func validatedDraft() throws -> WorkSettings {
         var result = draft
         result.overtimeIntervalMinutes = try OvertimeCalculator.parseInterval(overtimeGap)
@@ -319,6 +326,56 @@ private struct LoginStatusView: View {
         Text(service.statusText).font(.caption).foregroundStyle(.secondary)
         if service.status == .requiresApproval { Button(L10n.text("打开登录项设置")) { service.openSettings() } }
         if let issue = service.issue { Text(issue).font(.caption).foregroundStyle(.orange) }
+    }
+}
+
+private struct DailyStartTimesView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    @Binding var starts: [String: Int]
+    @Binding var selectedDate: Date
+    @Binding var selectedTime: String
+    let calendar: Calendar
+    @Binding var error: String?
+    let apply: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Button { dismiss() } label: {
+                    Label(L10n.text("返回工作安排"), systemImage: "chevron.left")
+                }
+                Spacer()
+                Text(L10n.format("{0} 条记录", String(starts.count))).foregroundStyle(.secondary)
+            }.padding(.horizontal, 20).padding(.top, 12)
+            Form {
+                Section(L10n.text("每天的开始时间")) {
+                    DatePicker(L10n.text("日期（工作时区）"), selection: $selectedDate, displayedComponents: .date)
+                    TextField(L10n.text("当天上班（HH:mm）"), text: $selectedTime).monospacedDigit()
+                    if let error { Text(error).font(.caption).foregroundStyle(.red) }
+                    Button(L10n.text("添加 / 更新当天时间"), action: apply)
+                    Text(L10n.text("修改后点击下方“保存”生效。")).font(.caption).foregroundStyle(.secondary)
+                }
+                Section(L10n.text("已设置日期")) {
+                    if starts.isEmpty {
+                        Text(L10n.text("暂无单独设置的开始时间，所有日期使用默认时间。")).foregroundStyle(.secondary)
+                    }
+                    ForEach(starts.keys.sorted(), id: \.self) { key in
+                        if let value = starts[key] {
+                            HStack {
+                                Text(key).monospacedDigit()
+                                Text(ScheduleCalculator.timeLabel(value)).monospacedDigit()
+                                Spacer()
+                                Button(L10n.text("使用默认")) { starts.removeValue(forKey: key) }
+                            }
+                        }
+                    }
+                    Text(L10n.text("仅支持当天内班次。任务栏修改今日上班会同步到此处，并立即更新倒计时。"))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }.formStyle(.grouped)
+        }.navigationTitle(L10n.text("每天的开始时间"))
+            .environment(\.calendar, calendar).environment(\.timeZone, calendar.timeZone)
     }
 }
 

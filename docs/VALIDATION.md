@@ -1,5 +1,11 @@
 # 最新验证记录
 
+## Assistant/checklist localization — 2026-10-19
+
+Explicitly localized the AI Assistant tab/section, missing settings and usage labels, save-key feedback, and assistant-settings issue links. The task section now directly observes the shared language store for independent title/count/status refresh.
+
+Validation: **165 XCTest cases plus four swift-testing cases passed**, and macOS Debug build succeeded. Logs: `build/checklist-localization-tests.log`, `build/checklist-localization-build.log`. Existing localization coverage checks catalog keys and placeholder parity. [English preview](assets/daily-report-checklist.png) and [Chinese preview](assets/daily-report-checklist-zh.png) were rendered from the real SwiftUI view using synthetic data and process-local language overrides; saved user language preferences were not changed. Native interactive language switching while editing remains a manual check.
+
 ## Editable diary checklist — 2026-10-19
 
 The editor revision passed **165 existing XCTest tests and four new swift-testing tests**, with zero failures; macOS `OffWorkNow` Debug build succeeded. Local evidence: `build/editable-report-tests.log` and `build/editable-report-build.log`.

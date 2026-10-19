@@ -21,3 +21,15 @@ Add the same key to `Sources/WorkdayCore/Localization/en.json` and `zh-Hans.json
 - 70 Swift package core tests passed, including language resolution, persistence lookup, runtime switching, schedule compatibility, interpolation, catalog completeness, and placeholder parity.
 - macOS Debug and iOS Simulator builds validated.
 - Manual verification remains: switch languages with multiple windows open and an unsaved settings draft, relaunch to verify persistence, inspect long English labels and VoiceOver, and confirm pending iOS notification text on a device.
+
+
+## Assistant and checklist UI audit — 2026-10-19
+
+The macOS AI Assistant tab, assistant section heading, owner label, key-save feedback and usage labels now use the shared catalogs explicitly. The assistant role label in history uses the same `AI 助手` key. Validation messages linking to assistant settings resolve the localized text before applying the link, preserving the link in both languages.
+
+`ReportTaskSection` observes `AppLanguageStore` directly so its title, grouped counts, empty state and tomorrow-continuation message refresh even when task values do not change. Editable rows already observe the same store, keeping save/cancel and completion accessibility labels current without replacing row identity or editing drafts. Task names remain user-authored text and are not translated.
+
+The report preview harness accepts a language as its second argument after the output path, for example `en` or `zh-Hans`. The override uses the process-local volatile argument domain; it does not change the user's saved language preference.
+
+
+Validation for this audit: 165 existing XCTest cases and four swift-testing cases passed; macOS Debug build succeeded. The actual SwiftUI preview harness rendered [English](assets/daily-report-checklist.png) and [Simplified Chinese](assets/daily-report-checklist-zh.png) using process-only overrides. Group labels and continuation copy changed; task text and completion state stayed the same. Native live-switch testing with a focused text editor remains manual QA.

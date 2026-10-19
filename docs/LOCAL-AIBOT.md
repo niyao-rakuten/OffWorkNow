@@ -42,3 +42,8 @@ See [the implementation specification](checklist-reports-spec.md) for models, di
 Carryover is an `AssistantHistory` policy in `Sources/WorkdayCore/ChecklistCarryover.swift`, not a new `AIBotEvent.startup` branch. `AssistantStore.sendStartupGreeting` attaches its result to the daily weather greeting before awaiting weather. `answerCarryover` rechecks source completion and today's origin IDs, records the choice and optionally appends a fresh checklist message. It does not schedule notifications or copy deadlines.
 
 The local-intent enum has no video-download case and no download executor is installed. Unrecognized sentences continue through the existing optional cloud conversation route; that route cannot execute a download.
+
+
+## Daily start-time navigation
+
+On macOS, Settings → Work Schedule keeps regular start time, shift duration and lunch controls at the top level. The Daily Start Times entry opens a secondary page for per-date additions/updates, the saved date list and Use Default actions. It shares the existing settings draft and requires the outer Save action to persist. Returning to Work Schedule preserves unsaved edits; cancelling Settings discards them. Menu-bar changes to today's start continue to synchronize into the draft. All entry, page and empty-state labels support English and Chinese.

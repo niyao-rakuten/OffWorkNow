@@ -508,6 +508,8 @@ let question = L10n.format(
 
 Carryover prompts are rendered from structured data at access time. Generated checklist replies and clock-out reports retain both language variants in `localizedContents`. Existing language observers refresh open views. Date keys, UUIDs, `originID` and stored task names do not change when the UI language changes. Only English and Simplified Chinese are supplied; Follow System resolves through the existing language policy.
 
+UI audit extension: `ReportTaskSection` now directly observes `AppLanguageStore`, as do task rows. This makes title/count/status text refresh independently of changes to the task array and preserves local edit drafts. The AI Assistant tab/section labels, usage labels and key-save feedback in `Sources/WorkdayBuddy/SettingsView.swift` use explicit `L10n` lookups; the previously missing `AI 助手` catalog key also localizes history role labels. Assistant-settings issue links use the localized substring. See [the localization audit](LOCALIZATION.md#assistant-and-checklist-ui-audit--2026-10-19).
+
 ## 11. Persistence and Platform Boundaries
 
 - [x] R5, R7 / A5, A7: keep payload ownership and persistence stores explicit.
@@ -558,7 +560,8 @@ The first two tables describe the implemented feature delta, including the subse
 | `Sources/WorkdayCore/DailyReport.swift` | Optional task snapshot, summary, and validated archive-item editing |
 | `Sources/WorkdayBuddy/App.swift` | Feed current-day tasks to reports and wire the report-to-history edit callback |
 | `Sources/WorkdayBuddy/Services.swift` | Attach offers, handle choices, and save linked checklist edits before publishing |
-| `Sources/WorkdayBuddy/DesktopPetView.swift` | Shared light-blue choice actions in compact and expanded messages |
+| `Sources/WorkdayBuddy/DesktopPetView.swift` | Shared choice actions and bilingual assistant-settings links |
+| `Sources/WorkdayBuddy/SettingsView.swift` | Explicitly localize assistant tab, section, usage and save feedback |
 | `Sources/SharedUI/DailyReportStore.swift` | Capture snapshots, bypass throttle on task change, and coordinate candidate edits with the source callback |
 | `Sources/SharedUI/DailyReportsView.swift` | Grouped task section below overtime plus editable rows and actionable completion circles |
 | `Sources/SharedUI/PetArtwork.swift` | Load/cache standalone report icon 6 |

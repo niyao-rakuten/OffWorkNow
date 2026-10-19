@@ -8,7 +8,7 @@
 
 默认重新构建 Release 版，包含 Apple Silicon（arm64）和 Intel（x86_64）两种架构，不会替换原来的 Debug 运行包。应用使用本地 ad-hoc 签名，无需 Apple Developer 账号。
 
-输出：`build/下班啦-1.1.0-macOS-universal.dmg`（文件名跟随应用版本号）和同名 `.sha256` 校验文件。脚本会校验应用签名、生成压缩只读磁盘映像并校验映像。
+输出：`build/下班啦-1.2.2-macOS-universal.dmg`（文件名跟随应用版本号）和同名 `.sha256` 校验文件。脚本会校验应用签名、生成压缩只读磁盘映像并校验映像。
 
 安装：先退出旧版 → 打开 DMG → 将“下班啦.app”拖到“Applications” → 从应用程序启动 → 推出 DMG。DMG 是安装介质，应用应复制到固定目录后再运行及配置开机启动；不需要安装后台服务。
 
