@@ -1,5 +1,13 @@
 # 最新验证记录
 
+## Version 1.2.2 and daily start-time navigation — 2026-10-19
+
+Moved the macOS per-date start editor, saved-date list and Use Default actions into Work Schedule → Daily Start Times. The main form retains a localized entry with record count. The secondary page binds to the existing settings draft and selected date/time; Back preserves the draft, while the outer Save/Cancel behavior and menu-bar synchronization remain unchanged.
+
+Validation: 16 existing localization and flexible-schedule XCTest tests passed with no failures. The final Release app and DMG include the navigation change, marketing version 1.2.2, build 2 and both arm64/x86_64 architectures. Read-only inspection verified the embedded app signature, minimum macOS 13.0, both language catalogs, checklist icon and Applications shortcut. The executable matches the final build, DMG verification and SHA-256 check passed, and the mounted image was detached. The package remains a local ad-hoc build without notarization.
+
+Evidence: `build/daily-start-navigation-tests.log`, `build/offworknow-dmg-build.log`, `build/package-1.2.2-validation.json`. Native navigation clicks and a fresh iOS build are not claimed. See [packaging details](DMG.md).
+
 ## Assistant/checklist localization — 2026-10-19
 
 Explicitly localized the AI Assistant tab/section, missing settings and usage labels, save-key feedback, and assistant-settings issue links. The task section now directly observes the shared language store for independent title/count/status refresh.

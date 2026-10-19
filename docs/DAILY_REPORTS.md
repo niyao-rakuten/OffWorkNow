@@ -35,3 +35,9 @@ The next day's first macOS startup greeting offers the immediately previous cale
 Click a task name to edit it inline; use Save/Return to commit or Cancel to discard. Click a circle to complete or reopen a task. Completed tasks remain editable. Counts and groups update immediately, and edits persist across restarts. `DailyReportStore.editChecklistItem` validates a candidate snapshot and coordinates with the macOS host callback to update the source chat checklist before saving the archive. Recalled copies sharing the checklist ID stay synchronized; independently carried tasks are not changed.
 
 Historical report tasks can be edited without changing water, checkout, earnings, overtime or the historical snapshot timestamp. If the source conversation is absent, the archived task remains editable on its own. Failed source writes reject the archive edit and show an issue. This is not an atomic transaction across history JSON and UserDefaults. Earlier clock-out summary messages are not rewritten by later edits.
+
+## End-of-work reminder summary
+
+The macOS end-of-work conversation message includes a live daily report from the hydration log and deduplicated checklist history, using the work timezone and current earnings privacy setting. It does not clock the user out. System notifications retain the short reminder; manual checkout produces a final snapshot at the actual checkout time.
+
+Overtime durations use localized units: Chinese `5分钟` / `1小时5分钟`, English `5min` / `1h5min`. Durations below one hour omit the hour component, including zero (`0分钟` / `0min`).

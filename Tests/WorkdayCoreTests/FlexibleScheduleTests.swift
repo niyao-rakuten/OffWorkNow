@@ -69,8 +69,8 @@ final class FlexibleScheduleTests: ChineseLocalizationTestCase {
         let next = OvertimeCalculator.next(now: now, settings: s, checkout: nil, ledger: ReminderLedger())!
         XCTAssertEqual(next.date, helper.date("2026-10-12 18:10:00"))
         XCTAssertTrue(ReminderPlanner.due(next, now: next.date, settings: s, ledger: ReminderLedger(), pause: nil))
-        XCTAssertEqual(OvertimeCalculator.message(seconds: 600, intervalMinutes: 10), "你怎么又在加班？已经加班0h10min了")
-        XCTAssertEqual(OvertimeCalculator.message(seconds: 1200, intervalMinutes: 10), "已经加班0h20min！不要再当牛马了，快点下班")
+        XCTAssertEqual(OvertimeCalculator.message(seconds: 600, intervalMinutes: 10), "你怎么又在加班？已经加班10分钟了")
+        XCTAssertEqual(OvertimeCalculator.message(seconds: 1200, intervalMinutes: 10), "已经加班20分钟！不要再当牛马了，快点下班")
         XCTAssertEqual(try OvertimeCalculator.parseInterval(" 15 "), 15)
         for value in ["", "0", "-1", "1.5", "NaN", "241", "999999999999999999999999999"] { XCTAssertThrowsError(try OvertimeCalculator.parseInterval(value)) }
         s.overtimeIntervalMinutes = 0; XCTAssertThrowsError(try s.validated())

@@ -34,13 +34,15 @@ public enum OvertimeCalculator {
         let overtime = work.state == .rest ? 0 : max(0, cutoff.timeIntervalSince(work.end))
         return CheckoutSnapshot(isCheckedOut: checked, canCheckout: !checked && work.state != .before && work.state != .rest, overtimeSeconds: overtime)
     }
-    public static func duration(_ seconds: TimeInterval) -> String {
+    public static func duration(_ seconds: TimeInterval, language: AppLanguage? = nil) -> String {
         let minutes = max(0, Int(seconds / 60))
-        return "\(minutes / 60)h\(minutes % 60)min"
+        let minuteText = L10n.format("{0}分钟", String(minutes % 60), language: language)
+        guard minutes >= 60 else { return minuteText }
+        return L10n.format("{0}小时", String(minutes / 60), language: language) + minuteText
     }
     public static func message(seconds: TimeInterval, intervalMinutes: Int = 5, language: AppLanguage? = nil) -> String {
         let step = max(1, Int(seconds / (TimeInterval(max(1, intervalMinutes)) * 60)))
-        let time = duration(seconds)
+        let time = duration(seconds, language: language)
         return step.isMultiple(of: 2) ? L10n.format("已经加班{0}！不要再当牛马了，快点下班", String(describing: time), language: language) : L10n.format("你怎么又在加班？已经加班{0}了", String(describing: time), language: language)
     }
     public static func next(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, ledger: ReminderLedger) -> ReminderEvent? {

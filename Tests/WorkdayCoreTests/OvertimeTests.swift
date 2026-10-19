@@ -2,6 +2,13 @@ import XCTest
 @testable import WorkdayCore
 
 final class OvertimeTests: ChineseLocalizationTestCase {
+    func testLocalizedDurationOmitsZeroHours() {
+        for (seconds, chinese, english) in [(0.0, "0分钟", "0min"), (300, "5分钟", "5min"), (3600, "1小时0分钟", "1h0min"), (3900, "1小时5分钟", "1h5min")] {
+            XCTAssertEqual(OvertimeCalculator.duration(seconds, language: .simplifiedChinese), chinese)
+            XCTAssertEqual(OvertimeCalculator.duration(seconds, language: .english), english)
+            XCTAssertTrue(OvertimeCalculator.message(seconds: seconds, language: .english).contains(english))
+        }
+    }
     let helper = CalculationTests()
     func settings() -> WorkSettings { var s = helper.settings(); s.overtimeEnabled = true; return s }
     func snapshot(_ time: String, checkout: CheckoutRecord? = nil) -> CheckoutSnapshot {
@@ -13,7 +20,7 @@ final class OvertimeTests: ChineseLocalizationTestCase {
         XCTAssertTrue(snapshot("09:00:00").canCheckout)
         XCTAssertFalse(snapshot("18:00:00").isOvertime)
         XCTAssertEqual(snapshot("18:00:01").overtimeSeconds, 1)
-        XCTAssertEqual(snapshot("19:10:00").duration, "1h10min")
+        XCTAssertEqual(snapshot("19:10:00").duration, "1小时10分钟")
         let s = settings(), rest = helper.date("2026-10-17 19:00:00")
         let state = OvertimeCalculator.snapshot(now: rest, settings: s, work: ScheduleCalculator.snapshot(now: rest, settings: s), checkout: nil)
         XCTAssertFalse(state.canCheckout); XCTAssertFalse(state.isOvertime)
@@ -44,10 +51,10 @@ final class OvertimeTests: ChineseLocalizationTestCase {
         XCTAssertEqual(late.date, helper.date("2026-10-12 19:15:00"))
     }
     func testAlternatingRequestedCopyAndHourFormat() {
-        XCTAssertEqual(OvertimeCalculator.message(seconds: 300), "你怎么又在加班？已经加班0h5min了")
-        XCTAssertEqual(OvertimeCalculator.message(seconds: 600), "已经加班0h10min！不要再当牛马了，快点下班")
-        XCTAssertEqual(OvertimeCalculator.message(seconds: 3900), "你怎么又在加班？已经加班1h5min了")
-        XCTAssertEqual(OvertimeCalculator.message(seconds: 4200), "已经加班1h10min！不要再当牛马了，快点下班")
+        XCTAssertEqual(OvertimeCalculator.message(seconds: 300), "你怎么又在加班？已经加班5分钟了")
+        XCTAssertEqual(OvertimeCalculator.message(seconds: 600), "已经加班10分钟！不要再当牛马了，快点下班")
+        XCTAssertEqual(OvertimeCalculator.message(seconds: 3900), "你怎么又在加班？已经加班1小时5分钟了")
+        XCTAssertEqual(OvertimeCalculator.message(seconds: 4200), "已经加班1小时10分钟！不要再当牛马了，快点下班")
     }
     func testCheckoutCancelsTodayEventsAndResumesTomorrow() {
         let s = settings(), now = helper.date("2026-10-12 15:00:00")

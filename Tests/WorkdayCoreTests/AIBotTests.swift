@@ -19,7 +19,7 @@ final class AIBotTests: ChineseLocalizationTestCase {
         }
         XCTAssertEqual(record.checkedOutAt, input.now)
         XCTAssertEqual(message.date, input.now)
-        XCTAssertTrue(message.text(language: .english).body.contains("Overtime: 0h20min"))
+        XCTAssertTrue(message.text(language: .english).body.contains("Overtime: 20min"))
         XCTAssertTrue(message.text(language: .simplifiedChinese).body.contains("今天喝了1500ml水"))
         XCTAssertEqual(try JSONDecoder().decode([AIBotAction].self, from: JSONEncoder().encode(actions)), actions)
         XCTAssertTrue(bot.handle(.checkout, in: context("18:21:00", checkout: record)).isEmpty)

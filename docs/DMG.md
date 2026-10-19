@@ -32,3 +32,12 @@
 Apple 官方流程：[Developer ID](https://developer.apple.com/developer-id/) · [macOS 公证](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)。
 
 Mac App Store 使用 Xcode Archive → App Store Connect，不提交 DMG。原商店上架流程仍见 [APP_STORE.md](APP_STORE.md)。
+
+
+## 1.2.2 packaging verification — 2026-10-19
+
+The final local build includes the bilingual assistant/checklist updates and the macOS Daily Start Times secondary settings page. Output: `build/下班啦-1.2.2-macOS-universal.dmg` and its `.sha256` file. The packaged app reports version 1.2.2, build 2, minimum macOS 13.0, and both arm64/x86_64 architectures.
+
+The build script verified the app signature and DMG checksum. The final image was mounted read-only; its embedded app signature, version, architecture, English/Chinese page resources, checklist artwork and Applications shortcut were verified. The packaged executable matched the final Release build byte-for-byte. The SHA-256 check passed and the image was detached after inspection. Evidence: `build/offworknow-dmg-build.log` and `build/package-1.2.2-validation.json`.
+
+This is an ad-hoc local test build, without Developer ID signing or Apple notarization. No application was installed, replaced, uploaded or published. The Xcode project and project generator both specify marketing version 1.2.2.

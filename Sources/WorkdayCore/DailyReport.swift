@@ -31,8 +31,7 @@ public struct DailyReport: Codable, Equatable, Identifiable {
         case .happy: lines.append(L10n.text("今天没有加班，宝贝真棒～ 快点回去休息吧", language: language))
         case .neutral: lines.append(L10n.text("快点回家，不要让底薪被稀释", language: language))
         case .crying:
-            let minutes = max(0, Int(overtimeSeconds / 60))
-            lines.append(L10n.format("天呐噜！今天竟然加班 {0} h,{1} min，也太辛苦了吧，快点回家休息！明天不许这样了", String(minutes / 60), String(minutes % 60), language: language))
+            lines.append(L10n.format("天呐噜！今天竟然加班{0}，也太辛苦了吧，快点回家休息！明天不许这样了", OvertimeCalculator.duration(overtimeSeconds, language: language), language: language))
         }
         if let tasks = taskSummary(language: language) { lines.append(tasks) }
         return lines.joined(separator: "\n\n")
@@ -63,7 +62,7 @@ public struct DailyReport: Codable, Equatable, Identifiable {
             L10n.format("实际打卡：{0}", checkoutTime, language: language),
             L10n.format("饮水：{0} ml，共 {1} 杯（仅应用记录）", String(waterML), String(cups), language: language),
             L10n.format("今日收入：{0}", income, language: language),
-            L10n.format("加班：{0}", OvertimeCalculator.duration(overtimeSeconds), language: language)
+            L10n.format("加班：{0}", OvertimeCalculator.duration(overtimeSeconds, language: language), language: language)
         ].joined(separator: "\n") + "\n\n" + assistantSummary(hideEarnings: hideEarnings, language: language)
     }
     public var mood: ReportMood? {
@@ -84,8 +83,7 @@ public struct DailyReport: Codable, Equatable, Identifiable {
         case .happy: return L10n.text("今天没有加班，宝贝真棒～ 快点回去休息吧")
         case .neutral: return L10n.text("辛苦了，快点回家，不要让底薪被稀释")
         case .crying:
-            let minutes = max(0, Int(overtimeSeconds / 60))
-            return L10n.format("天呐噜！今天竟然加班 {0} h,{1} min，也太辛苦了吧，快点回家休息！明天不许这样了", String(describing: minutes / 60), String(describing: minutes % 60))
+            return L10n.format("天呐噜！今天竟然加班{0}，也太辛苦了吧，快点回家休息！明天不许这样了", OvertimeCalculator.duration(overtimeSeconds))
         }
     }
     public static func snapshot(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, hydration: HydrationSummary, checklistItems: [BotTodo] = []) -> DailyReport {

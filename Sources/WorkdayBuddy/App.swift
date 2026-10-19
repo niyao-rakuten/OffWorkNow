@@ -43,6 +43,13 @@ import WorkdayCore
         work = initial.work
         earnings = initial.earnings
         reminders = ReminderCoordinator(notifications: notifications, speech: speech, clock: clock)
+        reminders.offworkSummary = { [weak self] date in
+            guard let self else { return [:] }
+            let report = DailyReport.snapshot(now: date, settings: self.settings, checkout: self.checkoutStore.record,
+                hydration: self.hydrationStore.log?.summary(now: date, settings: self.settings) ?? .init(cups: 0, totalML: 0),
+                checklistItems: AssistantHistory.checklistItems(self.assistant.messages, on: date, calendar: self.settings.calendar))
+            return self.bot.dailyReportMessage(report, hideEarnings: self.settings.hideEarnings).localizedContents
+        }
         reminders.onMessage = { [weak self] localized in
             self?.assistant.receive(localized)
         }

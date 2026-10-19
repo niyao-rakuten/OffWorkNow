@@ -141,6 +141,7 @@ import WorkdayCore
 
 @MainActor final class ReminderCoordinator: ObservableObject {
     var onMessage: (([String: String]) -> Void)?
+    var offworkSummary: ((Date) -> [String: String])?
     @Published private(set) var pause: ReminderPause?
     @Published private(set) var nextEvent: ReminderEvent?
     @Published private(set) var overtimeMessage: String?
@@ -235,7 +236,11 @@ import WorkdayCore
         var record = EventRecord(notification: "reserved", speech: "skipped")
         // Reserve before any asynchronous channel so restart/permission changes cannot duplicate it.
         ledger.consume(event, record: record); persistLedger()
-        onMessage?(reminder.message.localizedContents)
+        var contents = reminder.message.localizedContents
+        if event.kind == .offwork, let summary = offworkSummary?(clock.now) {
+            for (language, text) in summary { contents[language, default: ""] += "\n\n" + text }
+        }
+        onMessage?(contents)
         if reminder.speak { record.speech = speech.speak(title + ". " + body) }
         ledger.records[event.id] = record; persistLedger()
         let sound = settings.notificationSound
