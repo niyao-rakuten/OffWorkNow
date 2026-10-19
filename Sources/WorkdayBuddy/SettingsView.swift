@@ -84,7 +84,7 @@ struct SettingsView: View {
                 scheduleTab.tabItem { Label(L10n.text("工作安排"), systemImage: "calendar") }.tag("schedule")
                 payTab.tabItem { Label(L10n.text("工资"), systemImage: "yensign.circle") }.tag("pay")
                 remindersTab.tabItem { Label(L10n.text("提醒"), systemImage: "bell") }.tag("reminders")
-                AssistantSettingsView(store: model.assistant).tabItem { Label("AI 助手", systemImage: "bubble.left.and.bubble.right") }.tag("assistant")
+                AssistantSettingsView(store: model.assistant).tabItem { Label(L10n.text("AI 助手"), systemImage: "bubble.left.and.bubble.right") }.tag("assistant")
                 generalTab.tabItem { Label(L10n.text("通用"), systemImage: "gearshape") }.tag("general")
             }.padding(16)
             Divider()
@@ -381,15 +381,15 @@ struct AssistantSettingsView: View {
     }
     private var settingsForm: some View {
         Form {
-            Section("AI 助手") {
-                TextField("称谓", text: $store.ownerName)
+            Section(L10n.text("AI 助手")) {
+                TextField(L10n.text("称谓"), text: $store.ownerName)
                 TextField(L10n.text("天气城市"), text: $store.weatherCity)
                 Text(L10n.text("默认上海，每次启动重新查询天气；问候仅每天首次启动展示。修改城市后下次启动生效。"))
                     .font(.caption).foregroundStyle(.secondary)
                 Link(L10n.text("天气数据：Open-Meteo"), destination: URL(string: "https://open-meteo.com/")!)
                     .font(.caption)
                 Picker(L10n.text("AI 模型"), selection: $store.modelID) {
-                    if store.selectedModel == nil { Text("请选择模型（原模型：\(store.modelID)）").tag(store.modelID) }
+                    if store.selectedModel == nil { Text(L10n.format("请选择模型（原模型：{0}）", store.modelID)).tag(store.modelID) }
                     ForEach(store.availableModels) { model in
                         Text(model.name + " · " + L10n.text(model.isFree ? "免费" : "低价") + (model.supportsImages ? " · " + L10n.text("视觉") : "")).tag(model.id)
                     }
@@ -419,29 +419,29 @@ struct AssistantSettingsView: View {
                 }
                 Button(L10n.text(store.refreshingModels ? "正在刷新…" : "刷新可用模型")) { Task { await store.refreshModels() } }.disabled(store.refreshingModels)
                 if let issue = store.modelIssue { Text(issue).font(.caption).foregroundStyle(.orange) }
-                Text("助手设置修改后立即保存。优先提供免费模型和低价开放权重模型；价格以 OpenRouter 实际结算为准。")
+                Text(L10n.text("助手设置修改后立即保存。优先提供免费模型和低价开放权重模型；价格以 OpenRouter 实际结算为准。"))
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("OpenRouter") {
                 SecureField("API Key", text: $apiKey)
-                Button("保存密钥") {
+                Button(L10n.text("保存密钥")) {
                     do { try AssistantCredential.save(apiKey); apiKey = ""; status = "密钥已保存到本机应用数据。" }
                     catch { status = error.localizedDescription }
                 }.disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                if let status { Text(status).font(.caption).foregroundStyle(.secondary) }
+                if let status { Text(L10n.text(status)).font(.caption).foregroundStyle(.secondary) }
             }
-            Section("用量") {
+            Section(L10n.text("用量")) {
                 if let usage = store.latestUsage {
-                    LabeledContent("最近一次输入 / 输出", value: "\(usage.promptTokens) / \(usage.completionTokens) token")
+                    LabeledContent(L10n.text("最近一次输入 / 输出"), value: "\(usage.promptTokens) / \(usage.completionTokens) token")
                     if let model = store.messages.last(where: { $0.usage != nil })?.modelID {
-                        LabeledContent("最近一次实际模型", value: model)
+                        LabeledContent(L10n.text("最近一次实际模型"), value: model)
                     }
-                    LabeledContent("最近一次总量", value: "\(usage.totalTokens) token")
-                    LabeledContent("最近一次费用", value: usage.cost.map { String(format: "$%.6f", $0) } ?? "未返回")
-                } else { Text("尚未收到用量统计").foregroundStyle(.secondary) }
-                LabeledContent("本机已记录用量", value: "\(store.recordedUsages.reduce(0) { $0 + $1.totalTokens }) token · \(store.recordedUsages.count) 次")
-                LabeledContent("本机已记录费用", value: String(format: "$%.6f", store.recordedUsages.compactMap(\.cost).reduce(0, +)))
-                Text("仅统计本机聊天收到的实际用量；中断请求或旧消息可能缺失统计，不代表账户总用量。")
+                    LabeledContent(L10n.text("最近一次总量"), value: "\(usage.totalTokens) token")
+                    LabeledContent(L10n.text("最近一次费用"), value: usage.cost.map { String(format: "$%.6f", $0) } ?? L10n.text("未返回"))
+                } else { Text(L10n.text("尚未收到用量统计")).foregroundStyle(.secondary) }
+                LabeledContent(L10n.text("本机已记录用量"), value: L10n.format("{0} token · {1} 次", String(store.recordedUsages.reduce(0) { $0 + $1.totalTokens }), String(store.recordedUsages.count)))
+                LabeledContent(L10n.text("本机已记录费用"), value: String(format: "$%.6f", store.recordedUsages.compactMap(\.cost).reduce(0, +)))
+                Text(L10n.text("仅统计本机聊天收到的实际用量；中断请求或旧消息可能缺失统计，不代表账户总用量。"))
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section(L10n.text("对话上下文")) {

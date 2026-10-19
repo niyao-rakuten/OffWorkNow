@@ -4,7 +4,7 @@
 
 ## Inputs and outputs
 
-- `AIBotContext`: explicit time, settings, checkout, hydration, reminder ledger, and reminder pause. The host owns and persists this state.
+- `AIBotContext`: explicit time, settings, checkout, hydration, reminder ledger, reminder pause, and current-day `checklistItems`. The host owns and persists this state.
 - `inspect(context)`: work state, estimated earnings, checkout availability, and the daily report snapshot.
 - `handle(event, in: context)`: typed, Codable actions for checkout, startup, or a reminder timer event.
 - `nextReminder(in:)` and `upcomingOffwork(in:days:)`: timer and mobile notification planning.
@@ -12,9 +12,11 @@
 - `AIBotMessage`: stable source identifier, event time, and Chinese/English title/body variants shared by notifications and sprite chat.
 
 ```swift
+// Sources/WorkdayCore/AIBot.swift (CHANGED: host-adapter usage)
 let bot = AIBot()
 let context = AIBotContext(now: clock.now, settings: settings,
-    checkout: checkout, hydration: hydration, ledger: ledger, pause: pause)
+    checkout: checkout, hydration: hydration, ledger: ledger, pause: pause,
+    checklistItems: checklistItems)
 let actions = bot.handle(.checkout, in: context)
 // Host executes, in order: persist checkout, show panel, append the local message.
 ```
@@ -32,3 +34,11 @@ For a future local robot, supply a different host/adapter and add explicit event
 In Settings, choose a notice year, paste a Chinese notice, parse it, and review the festival dates and make-up workdays. Import merges only recognized dates into the settings draft. Save Settings to apply it; unrelated overrides and past daily reports are preserved.
 
 The regex parser removes parenthetical weekday/lunar descriptions, recognizes numbered festival sections, expands inclusive ranges with omitted months, and handles explicit or implicit year boundaries. Only `放假` and `上班` clauses are imported. Optional leave suggestions are excluded. Invalid dates, conflicting instructions, unrecognized festival sections, and malformed workday lists reject the import. Tests cover the supplied 2022–2026 notices.
+
+## Checklist reports and carryover — 2026-10-19
+
+See [the implementation specification](checklist-reports-spec.md) for models, diagrams, storage compatibility and test coverage. `AppModel` obtains current-day tasks through `AssistantHistory.checklistItems` using the work calendar; `AIBot.inspect` and checkout handling include those values in `DailyReport.snapshot`. The domain remains independent of UI and networking.
+
+Carryover is an `AssistantHistory` policy in `Sources/WorkdayCore/ChecklistCarryover.swift`, not a new `AIBotEvent.startup` branch. `AssistantStore.sendStartupGreeting` attaches its result to the daily weather greeting before awaiting weather. `answerCarryover` rechecks source completion and today's origin IDs, records the choice and optionally appends a fresh checklist message. It does not schedule notifications or copy deadlines.
+
+The local-intent enum has no video-download case and no download executor is installed. Unrecognized sentences continue through the existing optional cloud conversation route; that route cannot execute a download.

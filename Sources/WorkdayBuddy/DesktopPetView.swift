@@ -98,6 +98,7 @@ struct WelcomeView: View {
 
 /// Warm paper, cocoa outlines and muted sage match the illustrated desktop controls.
 enum AssistantArt {
+    static let actionBlue = Color(red: 0.43, green: 0.67, blue: 0.88)
     static let ink = Color(red: 0.29, green: 0.20, blue: 0.14)
     static let paper = Color(red: 1, green: 0.96, blue: 0.86)
     static let sage = Color(red: 0.86, green: 0.91, blue: 0.81)
@@ -175,8 +176,8 @@ struct AssistantChatView: View {
             .shadow(color: AssistantArt.ink.opacity(0.12), radius: 3, y: 2)
     }
     private func settingsLinkedIssue(_ issue: String) -> AttributedString {
-        var text = AttributedString(issue)
-        if let range = text.range(of: "AI 助手设置") {
+        var text = AttributedString(L10n.text(issue))
+        if let range = text.range(of: L10n.text("AI 助手设置")) ?? text.range(of: "AI 助手设置") {
             text[range].link = URL(string: "workdaybuddy://assistant-settings")
             text[range].font = .system(size: 12, weight: .semibold, design: .rounded)
             text[range].underlineStyle = .single
@@ -402,6 +403,7 @@ private struct AssistantMessageBubble: View {
             VStack(alignment: .leading, spacing: 6) {
                 VStack(alignment: .leading, spacing: 10) {
                     MarkdownMessageView(source: displayedText).textSelection(.enabled)
+                    if message.carryover != nil { CarryoverActionsView(store: store, messageID: message.id) }
                     if message.checklist != nil {
                         BotChecklistView(store: store, messageID: message.id)
                     }
@@ -474,6 +476,7 @@ private struct ExpandedAssistantMessageView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
                         MarkdownMessageView(source: message.displayedContent).textSelection(.enabled)
+                        if message.carryover != nil { CarryoverActionsView(store: store, messageID: messageID) }
                         if message.checklist != nil { BotChecklistView(store: store, messageID: messageID) }
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(4)
                 }
@@ -600,4 +603,24 @@ private struct BotChecklistView: View {
             .background(.white.opacity(0.65), in: RoundedRectangle(cornerRadius: 14))
     }
     private func add() { store.addChecklistItem(messageID: messageID, text: newItem); newItem = "" }
+}
+
+private struct CarryoverActionsView: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    @ObservedObject var store: AssistantStore
+    let messageID: UUID
+    private var message: AssistantMessage? { store.messages.first { $0.id == messageID } }
+    var body: some View {
+        if let message, message.carryover?.accepted == nil,
+           store.conversationCalendar.isDate(message.date, inSameDayAs: store.timelineDate) {
+            HStack(spacing: 20) {
+                Button(L10n.text("是")) { store.answerCarryover(messageID: messageID, accept: true) }
+                Button(L10n.text("否")) { store.answerCarryover(messageID: messageID, accept: false) }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(AssistantArt.actionBlue)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L10n.text("是否需要创建待办事项？"))
+        }
+    }
 }

@@ -1,5 +1,32 @@
 # 最新验证记录
 
+## Editable diary checklist — 2026-10-19
+
+The editor revision passed **165 existing XCTest tests and four new swift-testing tests**, with zero failures; macOS `OffWorkNow` Debug build succeeded. Local evidence: `build/editable-report-tests.log` and `build/editable-report-build.log`.
+
+The four tests in `Tests/WorkdayCoreTests/DailyReportEditingTests.swift` cover save/reload, completion reversal, preservation of task identity and financial snapshots, rejection of blank/unknown edits, source/recalled-list synchronization, independent next-day copies and archive-only editing without the source conversation.
+
+The actual SwiftUI preview harness also verified report-to-source callbacks, rejected source writes leaving the report archive unchanged, and restored edited tasks from an isolated preferences suite. Seven icons and 13 report records loaded. [Updated preview](assets/daily-report-checklist.png). Native keyboard/mouse interaction and a fresh iOS build are still not claimed.
+
+## Checklist reports, artwork and download removal — 2026-10-19
+
+This entry records checks completed against the current working-tree implementation before the documentation update. Documentation edits do not re-run or expand application validation. Technical behavior and unresolved limits are in [the specification](checklist-reports-spec.md).
+
+| Check | Result | Local evidence |
+|---|---|---|
+| Swift package regression suite | **165 XCTest tests, zero failures** | `build/checklist-cleanup-tests.log` |
+| macOS `OffWorkNow` Debug build | **BUILD SUCCEEDED** with `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` | `build/checklist-cleanup-build.log` |
+| Actual SwiftUI report preview | 13 reports restored; seven icons loaded; corrupt archive preserved; long mixed-language tasks rendered below overtime | `scripts/render-report-preview.swift`, [preview](assets/daily-report-checklist.png) |
+| Video removal audit | No product intent/executor, dedicated Downloads entitlement, related strings, tests or scripts found | Source/configuration review; historical chats not deleted |
+| iOS task parity / fresh build | Not claimed for this revision | Mobile host still supplies an empty task array |
+| Native carryover buttons, accessibility and write-failure recovery | Manual QA remains | See specification §14 and §16 |
+
+Build logs are local ignored artifacts and may disappear after cleanup. The checked-in screenshot uses only synthetic data and is not evidence of end-to-end native mouse interaction. The diary intentionally uses its light paper palette in dark mode.
+
+Documentation-only verification: `docs/checklist-reports-spec.md` contains 16 sections and ten Mermaid diagrams. Referenced paths and relative links exist, fences are balanced, and the proposed swift-testing example type-checks without diagnostics against the local module and Xcode Testing framework. The example was not added to or executed by the existing suite; no new application test/build result is claimed.
+
+## Earlier validation history
+
 自定义动画单帧修复（2026-10-13）：macOS **63 项测试、0 失败**，iOS Simulator 编译通过。新增回归覆盖：1×1 导入后调整为 6×6 自动从 1 增至 36 帧；喝水 31–36 时普通为 30 帧且帧索引实际前进/循环；旧单帧配置显式修复后重载保持 30；手动帧数保留；喝水范围修改/关闭；未完成及极大网格输入不溢出或清空帧数。桌面实际点击与配置界面交互仍需实机验收。
 
 DMG 打包验证（2026-10-13）：`scripts/build-dmg.sh` 成功构建 Release 双架构（arm64 + x86_64），生成约 44 MB 的 `build/下班啦-1.1.0-macOS-universal.dmg`。映像 CRC 校验通过；只读挂载后确认应用签名有效、可执行文件包含两种架构、Applications 符号链接指向 `/Applications`，含中文安装说明，验证后已卸载映像。此包使用 ad-hoc 本地签名，未 Developer ID 签名或公证；未改动系统已安装应用。

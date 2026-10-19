@@ -12,11 +12,14 @@ public struct AssistantMessage: Codable, Identifiable, Equatable, Sendable {
     public var proactive: Bool?
     public var greetingDay: String?
     public var checklist: BotChecklist?
+    public var carryover: ChecklistCarryover?
     public var weather: StartupWeather?
     public var weatherFailure: String?
     public var localizedContents: [String: String]?
     public var displayedContent: String {
-        localizedContents?[L10n.selection.resolved().rawValue] ?? content
+        let base = localizedContents?[L10n.selection.resolved().rawValue] ?? content
+        guard let carryover else { return base }
+        return base + "\n\n" + carryover.prompt(language: L10n.selection.resolved())
     }
     public var isStartupGreeting: Bool {
         role == .assistant && proactive == true && (greetingDay != nil || weather != nil || weatherFailure != nil
@@ -48,6 +51,19 @@ public enum AssistantHistory {
         for index in messages.indices where messages[index].checklist?.id == checklist.id {
             messages[index].checklist = checklist
         }
+    }
+    @discardableResult public static func editChecklistItem(_ messages: inout [AssistantMessage], itemID: UUID,
+        on date: Date, calendar: Calendar, text: String? = nil, done: Bool? = nil) throws -> Bool {
+        guard let message = messages.first(where: {
+            $0.role == .assistant && calendar.isDate($0.date, inSameDayAs: date)
+                && $0.checklist?.items.contains(where: { $0.id == itemID }) == true
+        }), let original = message.checklist?.items.first(where: { $0.id == itemID }) else { return false }
+        let edited = try original.edited(text: text, done: done)
+        updateChecklist(&messages, messageID: message.id) { checklist in
+            guard let index = checklist.items.firstIndex(where: { $0.id == itemID }) else { return }
+            checklist.items[index] = edited
+        }
+        return true
     }
     public static func save(_ messages: [AssistantMessage], to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

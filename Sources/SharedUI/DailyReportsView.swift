@@ -155,6 +155,12 @@ struct DailyReportsView: View {
                       message: settings.hideEarnings ? L10n.text("辛苦啦～收入已隐藏，快乐下班～") : report.salaryMessage)
             Divider().overlay(DiaryStyle.ink.opacity(0.12))
             reportRow(icon: 5, title: L10n.text("加班 ") + OvertimeCalculator.duration(report.overtimeSeconds), message: report.overtimeMessage)
+            if let items = report.checklistItems {
+                Divider().overlay(DiaryStyle.ink.opacity(0.12))
+                ReportTaskSection(items: items) { itemID, text, done in
+                    store.editChecklistItem(reportID: report.id, itemID: itemID, text: text, done: done)
+                }
+            }
         }.padding(20).background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 22))
     }
     private func reportRow(icon: Int, title: String, message: String) -> some View {
@@ -202,5 +208,97 @@ struct DailyReportsView: View {
         case .income: return report.earned.map { NSDecimalNumber(decimal: $0).doubleValue }
         case .overtime: return report.overtimeSeconds / 60
         }
+    }
+}
+
+private struct ReportTaskSection: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    let items: [BotTodo]
+    let edit: (UUID, String?, Bool?) -> Bool
+    private var completed: [BotTodo] { items.filter(\.done) }
+    private var unfinished: [BotTodo] { items.filter { !$0.done } }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ReportIcon(index: 6).frame(width: 48, height: 48)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L10n.text("今日待办事项"))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                if items.isEmpty {
+                    Text(L10n.text("今天没有待办事项记录。"))
+                        .font(.subheadline).foregroundStyle(DiaryStyle.ink.opacity(0.7))
+                } else {
+                    if !completed.isEmpty { taskGroup(completed, done: true) }
+                    if !unfinished.isEmpty {
+                        taskGroup(unfinished, done: false)
+                        Text(L10n.text("未完成的事项，明天继续处理。"))
+                            .font(.caption).foregroundStyle(DiaryStyle.ink.opacity(0.7))
+                    }
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading)
+        }.fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func taskGroup(_ tasks: [BotTodo], done: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(L10n.format(done ? "已完成 {0} 项" : "未完成 {0} 项", String(tasks.count)))
+                .font(.caption.weight(.medium)).foregroundStyle(DiaryStyle.ink.opacity(0.7))
+            ForEach(tasks) { task in
+                ReportTaskRow(task: task, edit: edit)
+            }
+        }
+    }
+}
+
+private struct ReportTaskRow: View {
+    @ObservedObject private var language = AppLanguageStore.shared
+    let task: BotTodo
+    let edit: (UUID, String?, Bool?) -> Bool
+    @State private var editing = false
+    @State private var draft = ""
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Button {
+                _ = edit(task.id, nil, !task.done)
+            } label: {
+                Image(systemName: task.done ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(DiaryStyle.ink.opacity(task.done ? 0.55 : 0.75))
+                    .frame(minWidth: 24, minHeight: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.text(task.done ? "标记为未完成" : "标记为已完成"))
+            .accessibilityValue(task.text)
+            .disabled(editing)
+            if editing {
+                TextField(L10n.text("编辑待办事项"), text: $draft, axis: .vertical)
+                    .textFieldStyle(.plain).font(.subheadline)
+                    .focused($focused).onSubmit(save)
+                    .accessibilityLabel(L10n.text("编辑待办事项"))
+                Button(action: save) { Image(systemName: "checkmark") }
+                    .buttonStyle(.plain).accessibilityLabel(L10n.text("保存待办事项"))
+                    .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button { editing = false; focused = false } label: { Image(systemName: "xmark") }
+                    .buttonStyle(.plain).accessibilityLabel(L10n.text("取消编辑"))
+            } else {
+                Button(action: beginEditing) {
+                    Text(task.text).font(.subheadline).lineSpacing(3)
+                        .strikethrough(task.done)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.format("编辑待办：{0}", task.text))
+            }
+        }
+    }
+    private func beginEditing() { draft = task.text; editing = true; focused = true }
+    private func save() {
+        guard edit(task.id, draft, nil) else { return }
+        editing = false; focused = false
     }
 }

@@ -36,7 +36,7 @@ import WorkdayCore
     @Published private(set) var earnings: EarningsSnapshot
     private let clock: any Clock
     var settings: WorkSettings { store.settings }
-    var botContext: AIBotContext { AIBotContext(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration) }
+    var botContext: AIBotContext { AIBotContext(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration, checklistItems: AssistantHistory.checklistItems(assistant.messages, on: now, calendar: settings.calendar)) }
     init(clock: any Clock = SystemClock()) {
         self.clock = clock; now = clock.now
         let initial = bot.inspect(AIBotContext(now: clock.now, settings: store.settings))
@@ -46,13 +46,16 @@ import WorkdayCore
         reminders.onMessage = { [weak self] localized in
             self?.assistant.receive(localized)
         }
+        reports.onChecklistEdit = { [weak self] report, itemID, text, done in
+            self?.assistant.editReportChecklistItem(report, itemID: itemID, text: text, done: done) ?? false
+        }
         Task { [weak self] in await self?.assistant.sendStartupGreeting() }
     }
     func refresh(forceReport: Bool = false) {
         now = clock.now
         let state = bot.inspect(botContext)
         work = state.work; earnings = state.earnings; reminders.expirePause()
-        reports.capture(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration, force: forceReport)
+        reports.capture(now: now, settings: settings, checkout: checkoutStore.record, hydration: hydration, checklistItems: AssistantHistory.checklistItems(assistant.messages, on: now, calendar: settings.calendar), force: forceReport)
     }
     func save(_ settings: WorkSettings, launchAtLogin: Bool) throws {
         _ = try settings.validated()

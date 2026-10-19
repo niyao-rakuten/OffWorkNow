@@ -8,6 +8,7 @@ import WorkdayCore
     private static var frames: [String: [CGImage]] = [:]
     private static var controls: [CGImage] = []
     private static var reportIcons: [CGImage] = []
+    private static var checklistReportIcon: CGImage?
     enum Control: Int { case cup, clock, checkout, checkedOut, chat, close, send, stop }
 
     static func frame(kind: PetKind, row: Int, column: Int) -> CGImage? {
@@ -47,6 +48,14 @@ import WorkdayCore
     }
 
     static func reportIcon(_ index: Int) -> CGImage? {
+        if index == 6 {
+            if checklistReportIcon == nil, let directory = resourceDirectory,
+               let source = CGImageSourceCreateWithURL(directory.appendingPathComponent("report-checklist.png") as CFURL, nil),
+               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) {
+                checklistReportIcon = trimTransparentMargin(image)
+            }
+            return checklistReportIcon
+        }
         if reportIcons.isEmpty { reportIcons = loadCells("report-ui", columns: 3, rows: 2).map(trimTransparentMargin) }
         return reportIcons.indices.contains(index) ? reportIcons[index] : nil
     }

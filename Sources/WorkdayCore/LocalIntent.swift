@@ -11,8 +11,19 @@ public struct BotTodo: Codable, Identifiable, Equatable, Sendable {
     public var text: String
     public var done = false
     public var due: Date?
+    public var originID: UUID?
     public var delivered = false
     public init(text: String, due: Date? = nil) { self.text = text; self.due = due }
+    public func edited(text: String? = nil, done: Bool? = nil) throws -> BotTodo {
+        var next = self
+        if let text {
+            let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty else { throw ValidationError(L10n.text("待办事项不能为空。")) }
+            next.text = value
+        }
+        if let done { next.done = done }
+        return next
+    }
 }
 public struct BotChecklist: Codable, Identifiable, Equatable, Sendable {
     public var id = UUID()

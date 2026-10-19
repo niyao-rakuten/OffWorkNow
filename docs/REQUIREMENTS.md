@@ -1,5 +1,23 @@
 # 最新需求对照
 
+## Checklist/report extension — 2026-10-19
+
+The current implementation is documented in [the checklist technical specification](checklist-reports-spec.md). Prior counts and platform claims in the historical table below describe earlier revisions.
+
+| Requirement | Current implementation | Evidence / limit |
+|---|---|---|
+| Report completed and unfinished work | Work-calendar message checklist projection feeds clock-out prose and archived task snapshots | Domain/report tests; no timed-reminder or backlog aggregation |
+| Offer yesterday's unfinished tasks at next startup | Structured greeting payload and localized light-blue Yes/No buttons in compact and expanded views | Decision/source-state/deduplication tests; actual native clicks remain manual QA |
+| Accept into today's own checklist | Fresh checklist/item IDs with preserved origin IDs; decision and reply saved together | Round-trip and repeated/competing-offer tests; successful save required for restart durability |
+| Diary checklist beneath alarm clock | Grouped wrapping editable rows and a separate watercolor icon | Inspected actual SwiftUI preview, seven images loaded |
+| Multilingual application copy | English/Chinese catalogs and dynamic structured prompt | Localization tests; task names intentionally preserved |
+| Edit and check report tasks | Inline text drafts and completion buttons persist and synchronize linked chat tasks | Four swift-testing regressions plus store/preview smoke; native clicks remain manual QA |
+| Remove video downloading | No local download intent, executor, dedicated grant, dependency or product test | Source/configuration search and macOS build |
+
+Verification on this implementation: **165 core XCTest tests plus four editor swift-testing tests, zero failures; macOS Debug build passed**. A synthetic-data preview restored 13 reports, loaded seven icons and preserved corrupt archive bytes. This revision does not claim iOS task-input/carryover parity or a fresh iOS build.
+
+## Earlier requirement baseline
+
 2026-10-13：新增小狐妖、五种角色各自喝水动画、双击切换、PNG 图集导入与播放设置。新增启动日历、喝水/收入/加班日报、本地每日历史和月度折线图，使用 imagegen 手绘表情及指标图标。59 项核心测试和双平台编译通过；PNG 导入、持久化与帧加载 smoke 通过。真实鼠标和设备交互仍待验收。说明见 [自定义精灵](CUSTOM_PETS.md) 与 [日报](DAILY_REPORTS.md)。
 
 | 需求 | 实现 | 验证 |

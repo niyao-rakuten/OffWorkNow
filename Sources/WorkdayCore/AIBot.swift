@@ -5,13 +5,15 @@ public struct AIBotContext {
     public let now: Date
     public let settings: WorkSettings
     public let checkout: CheckoutRecord?
+    public let checklistItems: [BotTodo]
     public let hydration: HydrationSummary
     public let ledger: ReminderLedger
     public let pause: ReminderPause?
     public init(now: Date, settings: WorkSettings, checkout: CheckoutRecord? = nil,
                 hydration: HydrationSummary = .init(cups: 0, totalML: 0),
-                ledger: ReminderLedger = .init(), pause: ReminderPause? = nil) {
+                ledger: ReminderLedger = .init(), pause: ReminderPause? = nil, checklistItems: [BotTodo] = []) {
         self.now = now; self.settings = settings; self.checkout = checkout
+        self.checklistItems = checklistItems
         self.hydration = hydration; self.ledger = ledger; self.pause = pause
     }
 }
@@ -73,7 +75,7 @@ public struct AIBot: Sendable {
         return AIBotSnapshot(work: work,
             earnings: EarningsCalculator.calculate(now: context.now, settings: context.settings, work: work),
             checkout: checkout,
-            report: DailyReport.snapshot(now: context.now, settings: context.settings, checkout: context.checkout, hydration: context.hydration),
+            report: DailyReport.snapshot(now: context.now, settings: context.settings, checkout: context.checkout, hydration: context.hydration, checklistItems: context.checklistItems),
             activePause: context.pause?.active(now: context.now, settings: context.settings) == true ? context.pause : nil,
             overtimeNotice: shouldShowOvertime ? OvertimeCalculator.message(seconds: checkout.overtimeSeconds, intervalMinutes: context.settings.overtimeIntervalMinutes) : nil)
     }
@@ -82,7 +84,7 @@ public struct AIBot: Sendable {
         case .checkout:
             guard inspect(context).checkout.canCheckout else { return [] }
             let checkout = CheckoutRecord(now: context.now, settings: context.settings)
-            let report = DailyReport.snapshot(now: context.now, settings: context.settings, checkout: checkout, hydration: context.hydration)
+            let report = DailyReport.snapshot(now: context.now, settings: context.settings, checkout: checkout, hydration: context.hydration, checklistItems: context.checklistItems)
             return [.recordCheckout(checkout), .showMessagePanel, .postMessage(dailyReportMessage(report, hideEarnings: context.settings.hideEarnings))]
         case .startup:
             guard let reminder = ReminderPlanner.startupEvent(now: context.now, settings: context.settings,

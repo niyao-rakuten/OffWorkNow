@@ -18,6 +18,7 @@ public struct DailyReport: Codable, Equatable, Identifiable {
     public var earned: Decimal?
     public var overtimeSeconds: TimeInterval
     public var checkedOutAt: Date?
+    public var checklistItems: [BotTodo]?
     public var id: String { timeZoneID + "/" + dateKey }
     public func assistantSummary(hideEarnings: Bool, language: AppLanguage? = nil) -> String {
         var lines = [waterML < 1500
@@ -33,7 +34,19 @@ public struct DailyReport: Codable, Equatable, Identifiable {
             let minutes = max(0, Int(overtimeSeconds / 60))
             lines.append(L10n.format("天呐噜！今天竟然加班 {0} h,{1} min，也太辛苦了吧，快点回家休息！明天不许这样了", String(minutes / 60), String(minutes % 60), language: language))
         }
+        if let tasks = taskSummary(language: language) { lines.append(tasks) }
         return lines.joined(separator: "\n\n")
+    }
+    public func taskSummary(language: AppLanguage? = nil) -> String? {
+        guard let checklistItems else { return nil }
+        let done = checklistItems.filter(\.done).map(\.text)
+        let pending = checklistItems.filter { !$0.done }.map(\.text)
+        guard !checklistItems.isEmpty else { return L10n.text("今天没有待办事项记录。", language: language) }
+        let separator = L10n.text("、", language: language)
+        let completed = done.isEmpty ? L10n.text("今天尚未完成待办事项。", language: language)
+            : L10n.format("今天已完成：{0}。", done.joined(separator: separator), language: language)
+        return completed + " " + (pending.isEmpty ? L10n.text("今日待办已全部完成。", language: language)
+            : L10n.format("还有{0}尚未完成，明天需要继续处理。", pending.joined(separator: separator), language: language))
     }
     /// A checkout snapshot is the source of truth, independent of earlier chat messages.
     public func assistantReport(hideEarnings: Bool, language: AppLanguage? = nil) -> String {
@@ -75,7 +88,7 @@ public struct DailyReport: Codable, Equatable, Identifiable {
             return L10n.format("天呐噜！今天竟然加班 {0} h,{1} min，也太辛苦了吧，快点回家休息！明天不许这样了", String(describing: minutes / 60), String(describing: minutes % 60))
         }
     }
-    public static func snapshot(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, hydration: HydrationSummary) -> DailyReport {
+    public static func snapshot(now: Date, settings: WorkSettings, checkout: CheckoutRecord?, hydration: HydrationSummary, checklistItems: [BotTodo] = []) -> DailyReport {
         let work = ScheduleCalculator.snapshot(now: now, settings: settings)
         let checked = checkout?.applies(now: now, settings: settings) == true ? checkout?.checkedOutAt : nil
         let cutoff = checked ?? now
@@ -84,7 +97,7 @@ public struct DailyReport: Codable, Equatable, Identifiable {
         return DailyReport(dateKey: work.dateKey, timeZoneID: settings.timeZoneID, updatedAt: now,
                            scheduledEnd: work.end, isWorkday: work.state != .rest,
                            waterML: hydration.totalML, cups: hydration.cups, earned: earnings.earned,
-                           overtimeSeconds: work.state == .rest ? 0 : max(0, cutoff.timeIntervalSince(work.end)), checkedOutAt: checked)
+                           overtimeSeconds: work.state == .rest ? 0 : max(0, cutoff.timeIntervalSince(work.end)), checkedOutAt: checked, checklistItems: checklistItems)
     }
     public func validated() throws -> Self {
         guard let zone = TimeZone(identifier: timeZoneID) else { throw ValidationError(L10n.text("日报时区无效")) }
@@ -115,6 +128,16 @@ public struct DailyReportArchive: Codable, Equatable {
         if let index = records.firstIndex(where: { $0.id == report.id }) { if report.updatedAt >= records[index].updatedAt { records[index] = report } }
         else { records.append(report) }
         records.sort { $0.id < $1.id }
+    }
+    @discardableResult public mutating func editChecklistItem(reportID: String, itemID: UUID,
+        text: String? = nil, done: Bool? = nil) throws -> Bool {
+        guard var report = records.first(where: { $0.id == reportID }),
+              let index = report.checklistItems?.firstIndex(where: { $0.id == itemID }),
+              let item = report.checklistItems?[index] else { return false }
+        report.checklistItems?[index] = try item.edited(text: text, done: done)
+        // Historical report timestamps remain within their original calendar date.
+        try upsert(report)
+        return true
     }
     public static func decode(_ data: Data) throws -> Self {
         let archive = try JSONDecoder().decode(Self.self, from: data)

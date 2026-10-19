@@ -15,6 +15,8 @@ Related guides: [AI assistant overview](AI-ASSISTANT.md), [local AIBot](LOCAL-AI
 
 Subsequent extension (2026-10-16): local information intents now retrieve news and market data through `BotInformationClient`; see [News and markets](NEWS-MARKETS.md) for triggers, sources, data conventions and verification. The architecture diagrams below retain the reviewed baseline.
 
+Latest feature extension (2026-10-19): [Checklist reports and next-day carryover](checklist-reports-spec.md) supersedes the checklist/report payload details for the current working tree. `AssistantMessage.carryover`, `BotTodo.originID` and `DailyReport.checklistItems` are optional additions; compact and expanded greetings now share `CarryoverActionsView`. The diagrams below retain their reviewed 2026-10-16 baseline rather than implying a new refactor. Video downloading is not a supported capability and its implementation has been removed.
+
 ## Contents
 
 1. [Scope](#1-scope)
@@ -776,7 +778,17 @@ All mutations resolve message ID and item ID in the store before editing. Adding
 
 The expanded dialog and compact bubble use the same `BotChecklistView` and store. Markdown task-list glyphs in an ordinary model response are read-only and never acquire this behavior automatically.
 
-### 11.4 Reminder delivery boundary
+### 11.4 Daily reporting and next-day carryover extension
+
+Current implementation details are maintained in [the checklist specification](checklist-reports-spec.md). `AssistantHistory.checklists` deduplicates recalled checklist UUIDs, and `checklistItems` supplies the work-calendar day's current task values to reports. Timed reminders remain outside that projection.
+
+The newly appended first daily greeting stores `ChecklistCarryover` before the weather await. `AssistantMessage.displayedContent` appends its localized prompt, so updating weather does not remove the offer. `CarryoverActionsView` appears in both the compact bubble and expanded dialog. The shared store action rejects answered or expired offers, rechecks source IDs and today's lineage, and saves the chosen decision with any newly appended checklist message in one history write. This is not a transaction across UserDefaults or a guarantee against disk-write failures.
+
+Copied tasks receive fresh IDs, retain `originID`, and reset completion/deadline/delivery state. No new system reminder is scheduled. Only the previous calendar day is considered, and an app remaining open across midnight does not automatically create another greeting. The existing daily receipt suppresses a second offer after successful same-day restart.
+
+Report editing extension: diary task names and completion circles now dispatch through `DailyReportStore.editChecklistItem` and the macOS `onChecklistEdit` callback to `AssistantStore.editReportChecklistItem`. The source history is written before publishing the message change and committing the report archive. The report's calendar date and time zone constrain task lookup; updates propagate to recalled copies with the same checklist ID, while independent carried copies retain their own state. Failed source writes reject the report edit. See the checklist specification §9.1 for archive-only editing and cross-store crash limits.
+
+### 11.5 Reminder delivery boundary
 
 Regular reminders reserve their stable event ID in `ReminderLedger` before chat, speech and asynchronous system-notification effects. Notification failure does not retract the chat message. Local task reminders schedule `local.todo.<UUID>` notifications, and global reminder clearing preserves this prefix. Deadline polling marks a todo delivered before appending a chat result; a closed app cannot poll, so overdue undelivered tasks are appended on the next initialization.
 

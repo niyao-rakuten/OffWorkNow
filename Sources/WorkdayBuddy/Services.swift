@@ -283,6 +283,7 @@ import WorkdayCore
             messages[messages.count - 1].complete = false
             messages[messages.count - 1].weatherFailure = "pending"
             messages[messages.count - 1].greetingDay = day
+            messages[messages.count - 1].carryover = AssistantHistory.carryoverOffer(messages, now: date, calendar: calendar)
             persist()
         }
         defaults.set(day, forKey: "assistant.greetingDay")
@@ -304,6 +305,12 @@ import WorkdayCore
         messages[index].complete = true
         persist()
     }
+    func answerCarryover(messageID: UUID, accept: Bool) {
+        let previousIDs = Set(messages.map(\.id))
+        guard AssistantHistory.answerCarryover(&messages, messageID: messageID, accept: accept, now: Date(), calendar: botCalendar) else { return }
+        unpresentedReplyIDs.formUnion(messages.filter { !previousIDs.contains($0.id) }.map(\.id))
+        persist()
+    }
     @Published private(set) var todos: [BotTodo] = []
     @Published private(set) var dietEntries: [BotDietEntry] = []
     private var localTimer: Timer?
@@ -313,6 +320,21 @@ import WorkdayCore
         return settings.calendar
     }
     deinit { localTimer?.invalidate() }
+    func editReportChecklistItem(_ report: DailyReport, itemID: UUID, text: String?, done: Bool?) -> Bool {
+        guard let zone = TimeZone(identifier: report.timeZoneID) else { return false }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
+        guard let date = ScheduleCalculator.date(from: report.dateKey, calendar: calendar) else { return false }
+        do {
+            var next = messages
+            let found = try AssistantHistory.editChecklistItem(&next, itemID: itemID,
+                on: date, calendar: calendar, text: text, done: done)
+            // An archived report can outlive its source conversation.
+            guard found else { return true }
+            try AssistantHistory.save(next, to: historyURL)
+            messages = next; issue = nil
+            return true
+        } catch { issue = L10n.text("待办保存失败，请重试。"); return false }
+    }
     func addChecklistItem(messageID: UUID, text: String) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }

@@ -59,3 +59,14 @@
 每条消息按实际内容高度与当前消息区可视高度比较，超长消息在自身气泡右下角显示纯图标展开按钮；短消息不显示。按钮随所属消息滚动，点击只打开该条消息，不在面板上放置固定入口。展开为可滚动的完整 Markdown 对话框，直接展示已收到的完整正文，保留代码、表格、文本选择及清单操作，并提供复制全部和关闭。流式消息在对话框内继续更新，不额外发起请求。
 
 待办勾选后使用带删除线的 Text 显示；取消勾选后恢复可编辑的 TextField，避免 macOS 原生文本输入框忽略 SwiftUI 的删除线样式。
+
+## Checklist report and greeting extension — 2026-10-19
+
+The [checklist technical specification](checklist-reports-spec.md) documents the current task payloads and persistence limits. The clock-out report summarizes completed and unfinished tasks. The first daily macOS greeting appends yesterday's unfinished task names and offers localized light-blue Yes/No actions in both compact and expanded message views. Accepting creates today's independent checklist; declining retains yesterday's records. Decisions, source lineage and copied lists are stored in message history.
+
+These local operations need no OpenRouter key. Existing timed reminders remain separate. App-owned copy is English/Chinese, while task names remain user text. The report diary renders grouped task rows with a hand-drawn checklist icon below the alarm-clock section; see [the updated preview](assets/daily-report-checklist.png).
+
+Video downloading was removed: no matching local intent, downloader, download-specific permission or third-party download-tool dependency remains in the app. Historical messages are preserved. Ordinary unrecognized input may still be sent to configured cloud chat, without performing a download.
+
+
+Diary task editing: clicking a task circle toggles completion; clicking its name opens an inline editor. On macOS, saved edits also update the corresponding chat checklist and its recalled copies. Historical financial snapshots and independent next-day copies are preserved. The [checklist specification](checklist-reports-spec.md#91-editing-and-completion-actions) describes write ordering and error behavior.
