@@ -441,7 +441,24 @@ struct AssistantSettingsView: View {
             Section(L10n.text("AI 助手")) {
                 TextField(L10n.text("称谓"), text: $store.ownerName)
                 TextField(L10n.text("天气城市"), text: $store.weatherCity)
-                Text(L10n.text("默认上海，每次启动重新查询天气；问候仅每天首次启动展示。修改城市后下次启动生效。"))
+                HStack {
+                    Button {
+                        Task { await store.refreshCurrentWeather() }
+                    } label: {
+                        Label(L10n.text(store.refreshingWeather ? "正在获取天气…" : "刷新当前天气"), systemImage: "arrow.clockwise")
+                    }
+                    .disabled(store.refreshingWeather)
+                    if store.refreshingWeather { ProgressView().controlSize(.small) }
+                }
+                if let weather = store.currentWeather {
+                    Text(L10n.format("天气已刷新：{0} · {1}", weather.city, weather.description(language: L10n.selection.resolved())))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if let issue = store.weatherRefreshIssue {
+                    Text(L10n.format("天气刷新失败：{0}", issue))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Text(L10n.text("默认上海，每次启动重新查询天气；问候仅每天首次启动展示。修改城市后可点击刷新立即生效。"))
                     .font(.caption).foregroundStyle(.secondary)
                 Link(L10n.text("天气数据：Open-Meteo"), destination: URL(string: "https://open-meteo.com/")!)
                     .font(.caption)

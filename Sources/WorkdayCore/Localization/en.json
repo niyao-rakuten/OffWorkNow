@@ -1,4 +1,6 @@
 {
+  "放大聊天面板": "Enlarge chat panel",
+  "恢复聊天面板": "Restore chat panel",
   "喝一杯水，{0}毫升": "Drink a cup of water, {0} milliliters",
   "今天{0}杯，共{1}毫升": "{0} cups today, {1} milliliters total",
   "喝一杯 +{0} ml · 今天共 {1} ml": "Drink +{0} ml · {1} ml today",
@@ -610,5 +612,9 @@
   "暂无单独设置的开始时间，所有日期使用默认时间。": "No daily start times set. All dates use the default start time.",
   "{0}分钟": "{0}min",
   "{0}小时": "{0}h",
-  "天呐噜！今天竟然加班{0}，也太辛苦了吧，快点回家休息！明天不许这样了": "Wow, {0} of overtime today! That's a lot. Head home and rest; take it easier tomorrow."
+  "天呐噜！今天竟然加班{0}，也太辛苦了吧，快点回家休息！明天不许这样了": "Wow, {0} of overtime today! That's a lot. Head home and rest; take it easier tomorrow.",
+  "默认上海，每次启动重新查询天气；问候仅每天首次启动展示。修改城市后可点击刷新立即生效。": "Defaults to Shanghai. Weather is fetched on every launch; the greeting appears only on the first launch each day. After changing the city, click Refresh to apply it immediately.",
+  "刷新当前天气": "Refresh current weather",
+  "天气已刷新：{0} · {1}": "Weather refreshed: {0} · {1}",
+  "天气刷新失败：{0}": "Weather refresh failed: {0}"
 }

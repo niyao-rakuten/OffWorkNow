@@ -25,6 +25,7 @@ import WorkdayCore
     @Published var chatVisible = false {
         didSet { assistant.setPanelVisible(chatVisible) }
     }
+    @Published var chatEnlarged = false
     @Published var selectedSettingsTab = "schedule"
     @Published var waterIssue: String?
     @Published var animationsActive = true
@@ -277,7 +278,8 @@ import WorkdayCore
     private func positionChatWindow() {
         guard let pet = petWindow, let chat = chatWindow else { return }
         let frame = PetPanelLayout.chatWindowFrame(relativeTo: pet.frame, position: model.settings.chatPanelPosition,
-                                                   visibleFrame: pet.screen?.visibleFrame)
+                                                   visibleFrame: pet.screen?.visibleFrame,
+                                                   size: model.chatEnlarged ? PetPanelLayout.enlargedChatSize : PetPanelLayout.chatSize)
         chat.level = pet.level
         if chat.frame != frame { chat.setFrame(frame, display: true, animate: false) }
     }
@@ -294,7 +296,17 @@ import WorkdayCore
                 panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false
                 panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 panel.contentViewController = NSHostingController(rootView: AppLanguageView {
-                    FloatingAssistantChatView(model: self.model, openSettings: { [weak self] in self?.showAssistantSettings() })
+                    FloatingAssistantChatView(model: self.model, openSettings: { [weak self] in self?.showAssistantSettings() },
+                        toggleSize: { [weak self] in
+                            guard let self else { return }
+                            self.model.chatEnlarged.toggle()
+                            self.positionChatWindow()
+                        }, move: { [weak self] delta in
+                            guard let self, let pet = self.petWindow else { return }
+                            pet.setFrameOrigin(NSPoint(x: pet.frame.minX + delta.width, y: pet.frame.minY + delta.height))
+                            self.positionChatWindow()
+                            pet.saveFrame(usingName: "DesktopPet")
+                        })
                 })
                 chatWindow = panel
             }
@@ -373,9 +385,12 @@ private struct MacReportsView: View {
 private struct FloatingAssistantChatView: View {
     @ObservedObject var model: AppModel
     let openSettings: () -> Void
+    let toggleSize: () -> Void
+    let move: (CGSize) -> Void
     var body: some View {
         AssistantChatView(store: model.assistant, openSettings: openSettings,
-                          close: { model.chatVisible = false }, isPresented: model.chatVisible)
-            .frame(width: PetPanelLayout.chatSize.width, height: PetPanelLayout.chatSize.height)
+                          close: { model.chatVisible = false }, isPresented: model.chatVisible,
+                          isEnlarged: model.chatEnlarged, toggleSize: toggleSize, move: move)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

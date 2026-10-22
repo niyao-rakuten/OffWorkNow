@@ -3,6 +3,26 @@ import CoreGraphics
 @testable import WorkdayCore
 
 final class MessagePresentationTests: ChineseLocalizationTestCase {
+    func testEnlargedChatAnchorsAndRestoresInEveryDirection() {
+        let pet = CGRect(x: 600, y: 600, width: 240, height: 330)
+        for position in ChatPanelPosition.allCases {
+            let initial = PetPanelLayout.chatWindowFrame(relativeTo: pet, position: position)
+            let enlarged = PetPanelLayout.chatWindowFrame(relativeTo: pet, position: position, size: PetPanelLayout.enlargedChatSize)
+            XCTAssertEqual(enlarged.size, PetPanelLayout.enlargedChatSize)
+            XCTAssertFalse(enlarged.intersects(pet))
+            switch position {
+            case .right: XCTAssertEqual(enlarged.minX, initial.minX)
+            case .left: XCTAssertEqual(enlarged.maxX, initial.maxX)
+            case .above: XCTAssertEqual(enlarged.minY, initial.minY)
+            case .below: XCTAssertEqual(enlarged.maxY, initial.maxY)
+            }
+            XCTAssertEqual(PetPanelLayout.chatWindowFrame(relativeTo: pet, position: position), initial)
+            let smallScreen = CGRect(x: 0, y: 0, width: 500, height: 400)
+            XCTAssertTrue(smallScreen.contains(PetPanelLayout.chatWindowFrame(relativeTo: pet, position: position,
+                visibleFrame: smallScreen, size: PetPanelLayout.enlargedChatSize)))
+        }
+    }
+
     func testIndependentChatWindowNeverChangesPetAnchorInAnyDirection() {
         let pet = CGRect(x: 600, y: 600, width: 240, height: 330)
         for position in ChatPanelPosition.allCases {

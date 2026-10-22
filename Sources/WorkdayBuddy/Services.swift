@@ -266,6 +266,44 @@ import WorkdayCore
     @Published private(set) var timelineDate = Date()
     @Published private(set) var conversationCalendar = Calendar.current
     @Published var weatherCity: String { didSet { defaults.set(weatherCity, forKey: "assistant.weatherCity") } }
+    @Published private(set) var refreshingWeather = false
+    @Published private(set) var currentWeather: StartupWeather?
+    @Published private(set) var weatherRefreshIssue: String?
+
+    func refreshCurrentWeather() async {
+        guard !refreshingWeather else { return }
+        refreshingWeather = true
+        weatherRefreshIssue = nil
+        currentWeather = nil
+        defer { refreshingWeather = false }
+        let trimmed = weatherCity.trimmingCharacters(in: .whitespacesAndNewlines)
+        let city = trimmed.isEmpty ? "上海" : trimmed
+        do {
+            let weather = try await StartupWeatherClient().fetch(city: city)
+            currentWeather = weather
+            saveWeatherSnapshot(weather)
+            defaults.removeObject(forKey: "assistant.latestWeatherFailure")
+            let day = AssistantGreetingPolicy.dayKey(now: Date(), calendar: botCalendar)
+            if let index = messages.lastIndex(where: { $0.greetingDay == day && $0.complete }) {
+                let localized = localBot.startupGreeting(name: ownerName, city: city, date: messages[index].date,
+                                                        calendar: botCalendar, weather: weather)
+                messages[index].weather = weather
+                messages[index].weatherFailure = nil
+                messages[index].localizedContents = localized
+                messages[index].content = localized[L10n.selection.resolved().rawValue] ?? ""
+                persist()
+            }
+        } catch {
+            weatherRefreshIssue = error.localizedDescription
+            defaults.set(error.localizedDescription, forKey: "assistant.latestWeatherFailure")
+        }
+    }
+
+    private func saveWeatherSnapshot(_ weather: StartupWeather) {
+        var snapshots = (defaults.data(forKey: "assistant.weatherSnapshots").flatMap { try? JSONDecoder().decode([StartupWeather].self, from: $0) }) ?? []
+        snapshots.append(weather)
+        if let data = try? JSONEncoder().encode(Array(snapshots.suffix(365))) { defaults.set(data, forKey: "assistant.weatherSnapshots") }
+    }
     private var startupGreetingStarted = false
     private func refreshConversationDay() {
         let now = Date(), calendar = botCalendar
@@ -296,11 +334,7 @@ import WorkdayCore
         let failure: String?
         do { weather = try await StartupWeatherClient().fetch(city: city); failure = nil }
         catch { weather = nil; failure = error.localizedDescription }
-        if let weather {
-            var snapshots = (defaults.data(forKey: "assistant.weatherSnapshots").flatMap { try? JSONDecoder().decode([StartupWeather].self, from: $0) }) ?? []
-            snapshots.append(weather)
-            if let data = try? JSONEncoder().encode(Array(snapshots.suffix(365))) { defaults.set(data, forKey: "assistant.weatherSnapshots") }
-        }
+        if let weather { saveWeatherSnapshot(weather) }
         defaults.set(failure, forKey: "assistant.latestWeatherFailure")
         guard let id, let index = messages.firstIndex(where: { $0.id == id }) else { return }
         let localized = localBot.startupGreeting(name: name, city: city, date: date, calendar: calendar, weather: weather)

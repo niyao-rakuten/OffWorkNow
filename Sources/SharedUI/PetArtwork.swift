@@ -9,7 +9,7 @@ import WorkdayCore
     private static var controls: [CGImage] = []
     private static var reportIcons: [CGImage] = []
     private static var checklistReportIcon: CGImage?
-    enum Control: Int { case cup, clock, checkout, checkedOut, chat, close, send, stop }
+    enum Control: Int { case cup, clock, checkout, checkedOut, chat, close, send, stop, expand, restore }
 
     static func frame(kind: PetKind, row: Int, column: Int) -> CGImage? {
         guard kind != .custom, (0..<6).contains(row), (0..<6).contains(column) else { return nil }
@@ -27,12 +27,14 @@ import WorkdayCore
 
     private static var standaloneControls: [String: CGImage] = [:]
     static func control(_ control: Control) -> CGImage? {
-        if [.chat, .close, .send, .stop].contains(control) {
+        if [.chat, .close, .send, .stop, .expand, .restore].contains(control) {
             let name: String
             switch control {
             case .chat: name = "chat"
             case .close: name = "close"
             case .send: name = "send"
+            case .expand: name = "expand"
+            case .restore: name = "restore"
             default: name = "stop"
             }
             if standaloneControls[name] == nil, let directory = resourceDirectory,

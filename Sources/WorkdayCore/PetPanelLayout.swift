@@ -17,6 +17,7 @@ public enum ChatPanelPosition: String, Codable, CaseIterable {
 public struct PetPanelLayout: Equatable {
     public static let petSize = CGSize(width: 240, height: 330)
     public static let chatSize = CGSize(width: 344, height: 294)
+    public static let enlargedChatSize = CGSize(width: 560, height: 540)
     public let size: CGSize
     public let petOrigin: CGPoint
     public let chatOrigin: CGPoint
@@ -50,12 +51,25 @@ public struct PetPanelLayout: Equatable {
         }
     }
     /// An independent chat window follows the fixed pet window; only the chat is clamped at screen edges.
-    public static func chatWindowFrame(relativeTo pet: CGRect, position: ChatPanelPosition, visibleFrame: CGRect? = nil) -> CGRect {
+    public static func chatWindowFrame(relativeTo pet: CGRect, position: ChatPanelPosition, visibleFrame: CGRect? = nil, size: CGSize = chatSize) -> CGRect {
         let layout = PetPanelLayout(position: position, expanded: true)
         var frame = CGRect(x: pet.minX + layout.chatOrigin.x - layout.petOrigin.x,
                            y: pet.maxY + layout.petOrigin.y - layout.chatOrigin.y - chatSize.height,
                            width: chatSize.width, height: chatSize.height)
+        switch position {
+        case .right: frame.origin.y += chatSize.height - size.height
+        case .left:
+            frame.origin.x += chatSize.width - size.width
+            frame.origin.y += chatSize.height - size.height
+        case .above: frame.origin.x += (chatSize.width - size.width) / 2
+        case .below:
+            frame.origin.x += (chatSize.width - size.width) / 2
+            frame.origin.y += chatSize.height - size.height
+        }
+        frame.size = size
         if let area = visibleFrame {
+            frame.size.width = min(frame.width, area.width)
+            frame.size.height = min(frame.height, area.height)
             frame.origin.x = min(max(frame.minX, area.minX), max(area.minX, area.maxX - frame.width))
             frame.origin.y = min(max(frame.minY, area.minY), max(area.minY, area.maxY - frame.height))
         }

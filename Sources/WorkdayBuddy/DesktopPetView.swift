@@ -130,18 +130,45 @@ struct AssistantChatView: View {
     let openSettings: () -> Void
     let close: () -> Void
     var isPresented = true
+    var isEnlarged = false
+    var toggleSize: () -> Void = {}
+    var move: (CGSize) -> Void = { _ in }
+    @State private var dragPoint: NSPoint?
     @State private var draft = ""
+    private var panelDrag: some Gesture {
+        DragGesture(minimumDistance: 4, coordinateSpace: .global)
+            .onChanged { value in
+                let point = NSEvent.mouseLocation
+                if let previous = dragPoint {
+                    move(CGSize(width: point.x - previous.x, height: point.y - previous.y))
+                } else {
+                    move(CGSize(width: value.translation.width, height: -value.translation.height))
+                }
+                dragPoint = point
+            }
+            .onEnded { _ in dragPoint = nil }
+    }
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Spacer()
+                Color.clear.contentShape(Rectangle()).gesture(panelDrag)
+                Button(action: toggleSize) {
+                    PetControlImage(asset: isEnlarged ? .restore : .expand)
+                        .frame(width: 20, height: 20)
+                        .frame(width: 26, height: 26).contentShape(Rectangle())
+                }.buttonStyle(.plain)
+                    .help(L10n.text(isEnlarged ? "恢复聊天面板" : "放大聊天面板"))
+                    .accessibilityLabel(L10n.text(isEnlarged ? "恢复聊天面板" : "放大聊天面板"))
                 Button(action: close) {
                     PetControlImage(asset: .close).frame(width: 20, height: 20)
                         .frame(width: 26, height: 26).contentShape(Rectangle())
                 }.buttonStyle(.plain).help(L10n.text("关闭对话")).accessibilityLabel(L10n.text("关闭对话"))
             }
+            .frame(height: 26)
             AssistantMessagesView(store: store, isPresented: isPresented)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .simultaneousGesture(panelDrag)
             if let issue = store.issue {
                 Text(settingsLinkedIssue(issue)).font(.caption)
                     .tint(Color(red: 0.27, green: 0.43, blue: 0.27))
