@@ -48,6 +48,7 @@ public enum AssistantHistory {
     public static func updateChecklist(_ messages: inout [AssistantMessage], messageID: UUID, update: (inout BotChecklist) -> Void) {
         guard var checklist = messages.first(where: { $0.id == messageID })?.checklist else { return }
         update(&checklist)
+        checklist.items = checklist.orderedItems
         for index in messages.indices where messages[index].checklist?.id == checklist.id {
             messages[index].checklist = checklist
         }

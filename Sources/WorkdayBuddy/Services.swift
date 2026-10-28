@@ -394,6 +394,12 @@ import WorkdayCore
         }
         persist()
     }
+    func moveChecklistItem(messageID: UUID, itemID: UUID, to targetID: UUID) {
+        AssistantHistory.updateChecklist(&messages, messageID: messageID) {
+            $0.moveItem(itemID, to: targetID)
+        }
+        persist()
+    }
     func removeChecklistItem(messageID: UUID, itemID: UUID) {
         AssistantHistory.updateChecklist(&messages, messageID: messageID) { $0.items.removeAll { $0.id == itemID } }
         persist()

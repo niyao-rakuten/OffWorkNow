@@ -599,8 +599,15 @@ private struct BotChecklistView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.text("待办清单")).font(.headline)
-            ForEach(store.messages.first(where: { $0.id == messageID })?.checklist?.items ?? []) { todo in
+            ForEach(store.messages.first(where: { $0.id == messageID })?.checklist?.orderedItems ?? []) { todo in
                 HStack(alignment: .top) {
+                    Image(systemName: "line.3.horizontal")
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 3)
+                        .contentShape(Rectangle())
+                        .draggable("checklist:\(messageID):\(todo.id)")
+                        .accessibilityLabel(L10n.text("拖拽排序"))
+                        .help(L10n.text("拖拽排序"))
                     Toggle(L10n.text("完成"), isOn: Binding(get: { todo.done }, set: { _ in store.toggleChecklistItem(messageID: messageID, itemID: todo.id) }))
                         .toggleStyle(.checkbox).labelsHidden().accessibilityLabel(todo.text)
                     VStack(alignment: .leading) {
@@ -619,6 +626,21 @@ private struct BotChecklistView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     Button { store.removeChecklistItem(messageID: messageID, itemID: todo.id) } label: { Image(systemName: "trash") }
                         .buttonStyle(.plain).accessibilityLabel(L10n.text("删除待办"))
+                }
+                .contentShape(Rectangle())
+                .dropDestination(for: String.self) { values, _ in
+                    guard values.count == 1, let value = values.first else { return false }
+                    let parts = value.split(separator: ":")
+                    guard parts.count == 3, parts[0] == "checklist",
+                          parts[1] == Substring(messageID.uuidString),
+                          let sourceID = UUID(uuidString: String(parts[2])),
+                          sourceID != todo.id,
+                          let source = store.messages.first(where: { $0.id == messageID })?.checklist?.items.first(where: { $0.id == sourceID }),
+                          source.done == todo.done else { return false }
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        store.moveChecklistItem(messageID: messageID, itemID: sourceID, to: todo.id)
+                    }
+                    return true
                 }
             }
             HStack {

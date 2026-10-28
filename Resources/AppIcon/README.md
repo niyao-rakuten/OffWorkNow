@@ -1,0 +1,7 @@
+# OffWorkNow app icon
+
+The master `offwork-clock-original.png` was created with the built-in image_gen tool. Run `python3 scripts/generate-icons.py` to regenerate all macOS and iOS catalog sizes.
+
+## Generation prompt
+
+Use case: stylized-concept. Asset type: finished 1024 square app icon for a Japanese healing hand-painted desktop workday companion called OffWorkNow. Main subject: ONE friendly rounded vintage desk alarm clock, large centered simple silhouette, cream paper dial, thick softly irregular chestnut brown watercolor outlines, muted sage green clock casing, two tiny rounded alarm bells, short feet, warm apricot clock hands showing 6 o'clock. A small warm apricot sunset semicircle behind the clock provides a gentle after-work feeling, not a separate scene. Style: tasteful Japanese zakka stationery illustration, hand-painted gouache and watercolor, soft pencil edges, visible subtle paper grain, cozy and calm, matching cream peach brown watercolor UI buttons. Composition: strong immediately recognizable icon at 32px, clock occupies about 70 percent of the square, generous balanced margins, restrained colors. Background: full bleed solid pale warm ivory with very subtle paper texture, completely opaque square canvas, NO rounded outer mask (OS will handle), no transparent corners. No animals, no cat, no people, no letters, no numbers, no text, no logo, no border, no watermark, no glossy 3D, no flat vector geometry. Save a local PNG artifact.

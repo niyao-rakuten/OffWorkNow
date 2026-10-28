@@ -29,6 +29,17 @@ public struct BotChecklist: Codable, Identifiable, Equatable, Sendable {
     public var id = UUID()
     public var items: [BotTodo]
     public init(items: [BotTodo] = []) { self.items = items }
+    public var orderedItems: [BotTodo] {
+        items.filter { !$0.done } + items.filter { $0.done }
+    }
+    public mutating func moveItem(_ itemID: UUID, to targetID: UUID) {
+        items = orderedItems
+        guard let source = items.firstIndex(where: { $0.id == itemID }),
+              let target = items.firstIndex(where: { $0.id == targetID }),
+              source != target, items[source].done == items[target].done else { return }
+        let item = items.remove(at: source)
+        items.insert(item, at: target)
+    }
 }
 public enum LocalBotIntent: Equatable {
     case information(BotInformationRequest)
