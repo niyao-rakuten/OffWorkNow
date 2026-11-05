@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A little sprite for counting down to the end of your workday, drinking water, and clocking out. macOS includes a menu bar utility and a persistent desktop sprite; iOS includes an in-app sprite and countdown. Both platforms share `WorkdayCore` for schedules, `Decimal` earnings estimates, clock-out records, overtime calculations, and hydration tracking. No third-party runtime dependencies, accounts, or network requests.
+A little sprite for counting down to the end of your workday, drinking water, and clocking out. macOS includes a menu bar utility and a persistent desktop sprite; iOS includes an in-app sprite and countdown. Both platforms share `WorkdayCore` for schedules, `Decimal` earnings estimates, clock-out records, overtime calculations, and hydration tracking. Core tracking works offline without third-party runtime libraries. macOS also includes local assistant commands, optional OpenRouter chat, weather, news/markets, and screenshots.
 
 ## App language
 
@@ -10,17 +10,16 @@ Both macOS and iOS support English and Simplified Chinese. On macOS, open Settin
 
 ## What's available
 
+Current version: **1.5.2 (build 9)**. Reaching the scheduled finish only prompts you to click Clock Out. It does not clock out automatically or append dates, hydration, earnings, overtime, or tasks. The complete chat summary appears only after you explicitly clock out.
+
 The single-frame custom animation issue is fixed: after you configure the grid of an imported sprite sheet, the app automatically calculates the regular animation frame count and reserves drinking frames separately. Existing configurations with only one frame show an explanation and a one-click correction; save to apply it. Turn off automatic mode to set the frame count manually.
 
 The latest animation update adds a girl with a bun hairstyle. Six sprites each have 6 actions × 6 frames, totaling **216 frames**. The office worker hums and sways, while the cat, dog, fish, and fox spirit dance to music. On the desktop, **click to change actions, double-click to change sprites, and drag to reposition**. Playing the drinking animation manually does not add a hydration record. [Full action list](docs/PET_ANIMATIONS.md) · [Music animation preview](docs/assets/pets-music.gif).
-
-October 13, 2026 update: added the fox spirit and drinking animations for five sprites, double-click sprite switching, custom PNG sprite-sheet imports, a calendar on launch, daily reports, local history, and three monthly line charts.
 
 - The app opens the workday journal (收工日记). Reopen it from Daily Report (每日报表) in the menu bar panel. The calendar shows hand-drawn happy, resigned, or crying faces based on overtime; select a date to see water intake, earnings, and overtime messages. See [Daily report definitions](docs/DAILY_REPORTS.md).
 - Settings → General → Custom Sprite Sheet (设置 → 通用 → 自定义序列帧) supports PNG grids, active frame counts, frame rates, loop modes, drinking frame ranges, and previews. Save to apply changes. See [Custom sprites](docs/CUSTOM_PETS.md).
 - Double-click the sprite animation to cycle through sprites; drag to move it. Recording a drink plays a dedicated animation: cats and dogs use bowls, the worker and fox spirit use cups, and the fish puffs its cheeks.
 - Recorded dates remain in daily report history. Clocking out freezes report earnings and overtime, while the main panel continues to show scheduled earnings. Hiding earnings also applies to reports and charts. Dates not recorded by older versions cannot be recovered.
-- The latest recorded validation passed **59 macOS core tests** and the iOS build; 150 animation frames and 6 report icons were verified to load. The sandbox grants read-only access to user-selected files for PNG imports.
 
 [Fox spirit artwork](docs/assets/fox-portrait.png) · [Fox animations](docs/assets/fox-actions.gif) · [Drinking animations](docs/assets/pets-drinking.gif) · [Daily report with demo data](docs/assets/daily-report.png)
 
@@ -35,15 +34,44 @@ October 13, 2026 update: added the fox spirit and drinking animations for five s
 
 Clock-out is a personal local record; it does not submit attendance to an employer. The main panel estimates earnings from the planned schedule. Daily reports freeze earnings at clock-out and **do not calculate overtime pay**. Reports retain daily hydration, estimated earnings, and overtime history.
 
-The desktop has three layers: a hand-drawn water cup with the cup count and clickable digital time at the top, the sprite animation in the middle, and an image-based Clock Out button at the bottom. The bottom button appears only after the scheduled end time on a working day when you have not clocked out, including the moment the countdown reaches zero and during overtime. It disappears after clock-out; reserved space prevents the sprite from jumping. Click the time to open settings, drag the sprite to move it, and right-click the cup to undo the last drink. Overtime displays as `+HH:MM:SS`; after clock-out, the actual clock-out time is shown. Overtime reminders use system notifications.
+The desktop sprite shows a countdown or elapsed overtime, with drink, chat, and screenshot controls and a Clock Out button after the scheduled finish. Click the sprite to switch actions, double-click to switch characters, and drag to move it. Click the time for settings; right-click the cup to undo the last drink. After clock-out, it displays the recorded clock-out time.
 
 Actual SwiftUI renders of all six sprites: [Light](docs/assets/pets-light.png) · [Dark](docs/assets/pets-dark.png) · [Frame animation preview](docs/assets/pets-actions.gif). See [PET_ART.md](docs/PET_ART.md) for artwork and action details.
+
+## macOS assistant and tasks
+
+Open chat from the sprite and choose its position (left, right, above, or below) in settings. Return sends; Shift+Return inserts a newline. The panel supports streaming responses, stopping generation, Markdown, expanding long messages, and copying. It initially shows today's history in the work time zone and can load earlier dates. Settings provide full history, usage, and JSON export.
+
+These deterministic local commands require no OpenRouter key:
+
+| Feature | Example |
+|---|---|
+| Create a checklist | `create checklist: release version, run tests` |
+| One-time reminder | `remind me tomorrow at 16:00 to run tests` |
+| Record food | `I ate eggs` |
+| Summarize food records | `show today diet` |
+
+Checklists support adding, editing, completing, and deleting items. Timed reminders are also stored as completable tasks. Recurring reminders and calorie estimation are unsupported. Clock-out summaries include completed and unfinished tasks, and diary tasks can be edited. The first daily greeting can offer to carry yesterday's unfinished tasks into an independent checklist for today; declining preserves the old records.
+
+Optional cloud chat is configured under Settings → AI Assistant with a name, OpenRouter API key, model, and token budgets; these settings save immediately. Model catalog refresh and per-message/cumulative usage and cost are available. Unrecognized commands use the selected model, with at most the latest six complete message groups from the current work-zone date by default. Chat sends text only; there is no image upload. See [AI assistant](docs/AI-ASSISTANT.md) and [Local AIBot](docs/LOCAL-AIBOT.md).
+
+## Weather, news, and markets (macOS)
+
+The first daily launch adds a bilingual date, weekday, and weather greeting. Later launches query weather again without adding duplicate greetings. The weather city defaults to Shanghai and can be changed in assistant settings. Open-Meteo weather requires neither an OpenRouter key nor location permission.
+
+Enter `news`, `business news`, `search news about AI chips`, `markets`, `gold`, or `bitcoin` to query public sources directly without an OpenRouter key. News includes sources, headlines, timestamps, and links. Markets cover indices, BTC/USD, and gold futures, with quote times and data limitations. These features require a network connection and explain failures; quotes are not guaranteed to be real time. See [News and markets](docs/NEWS-MARKETS.md).
+
+## Screenshots and annotation (macOS)
+
+Click the sprite's camera button and drag to select an area. Move the selection or resize it using eight handles; annotate with pencil, rectangles, ellipses, mosaic, color selection, and undo. Return / Confirm copies to the clipboard; Escape / Cancel discards. Screenshots stay in memory and are not automatically saved or sent to AI.
+
+Allow OffWorkNow (下班啦) under System Settings → Privacy & Security → Screen & System Audio Recording, then restart if macOS requests it. Updating an ad-hoc build can leave an enabled permission associated with the old signature. After installing the final build, remove the old permission entry, add `/Applications/下班啦.app`, and grant access again. Alternatively, explicitly run `tccutil reset ScreenCapture com.workdaybuddy.app`, then reopen and authorize; it resets only this app's screen-capture approval. Distribution builds should use stable certificate signing. See [Screenshot details](docs/screenshot.md).
 
 ## Running and installing on macOS
 
 To create a drag-to-Applications installer, run `./scripts/build-dmg.sh` from the project directory. It produces a Release DMG for Apple Silicon and Intel. See [DMG.md](docs/DMG.md) for installation and distribution signing.
 
-Requires macOS 13 or later. Built using Xcode 26.5 on Apple Silicon.
+Requires macOS 13 or later. Build with Xcode on macOS.
 
 1. Open **`OffWorkNow.xcodeproj`**, select the **`OffWorkNow`** scheme and `My Mac`, then press ⌘R.
 2. The local Debug build is **`build/下班啦.app`**, with ad-hoc signing. Double-click it or run `open 'build/下班啦.app'`.
@@ -68,7 +96,7 @@ Ad-hoc signing is not App Store distribution signing, and the app is not notariz
 
 Select the **`OffWorkNow-iOS`** scheme in the same project. Requires iOS 16 or later and supports iPhone/iPad. Run on an installed simulator; physical devices require your own Team in Signing & Capabilities.
 
-iOS supports all six built-in animated sprites, custom sprite sheets, the launch calendar and daily reports, countdowns, earnings estimates, schedule/lunch/weekday/time-zone/date-override settings, clock-out, overtime duration and rotating messages, and hydration tracking with configurable cup sizes. Data stays on that device; **there is no cross-device sync**. There is no floating sprite across other apps or Widget extension.
+iOS supports all six built-in animated sprites, custom sprite sheets, the launch calendar and daily reports, countdowns, earnings estimates, schedule/lunch/weekday/time-zone/date-override settings, clock-out, overtime duration and rotating messages, and hydration tracking with configurable cup sizes. Data stays on that device; **there is no cross-device sync**. There is no floating sprite across other apps or Widget extension. Chat, local checklist carryover, news/markets, and screenshots currently have macOS entry points only.
 
 - End-of-work notifications require explicit user authorization and schedule working-day events for the next **7 days**. Opening the app or saving settings rebuilds the schedule. iOS manages these local notifications in the background. Clocking out cancels that day's pending end-of-work notification.
 - Overtime messages appear inside the app. iOS does not run the sprite, speech, or a continuous timer every 5 minutes in the background, and does not promise background notifications at that interval. Hourly health reminders/speech, desktop always-on-top, and launch at login are currently macOS features.
@@ -76,7 +104,7 @@ iOS supports all six built-in animated sprites, custom sprite sheets, the launch
 
 ## Schedule and earnings calculations
 
-Settings use drafts, centralized validation, and explicit saving. A blank monthly salary differs from zero. Amounts range from CNY 0–10,000,000 with up to two decimal places; standard thousands separators are supported, and calculations use `Decimal`. Overnight shifts are unsupported, and at least one regular working day is required. With lunch enabled, start < lunch start < lunch end < finish. Date overrides take precedence over weekdays; holidays and compensatory working days are not detected automatically.
+Settings use drafts, centralized validation, and explicit saving. A blank monthly salary differs from zero. Amounts range from CNY 0–10,000,000 with up to two decimal places; standard thousands separators are supported, and calculations use `Decimal`. Overnight shifts are unsupported, and at least one regular working day is required. With lunch enabled, start < lunch start < lunch end < finish. Date overrides take precedence over weekdays; holidays and compensatory working days are not detected automatically. Settings can parse pasted Chinese holiday notices, preview holidays and make-up workdays, and merge them into the draft; save to apply.
 
 Daily pay Q uses one of three mutually exclusive methods:
 
@@ -124,7 +152,7 @@ xcodebuild -project OffWorkNow.xcodeproj -scheme OffWorkNow-iOS \
   build CODE_SIGNING_ALLOWED=NO
 ```
 
-The latest recorded Xcode macOS build and **all 59 core tests passed**, along with the iOS Simulator build. See [Validation records](docs/VALIDATION.md) for tests and pending manual checks, and [Requirements mapping](docs/REQUIREMENTS.md). The Xcode 26 XCTest runtime requires macOS 14 or later; the app still targets macOS 13, whose real-device compatibility remains unverified.
+Version 1.5.2 (build 9) passed macOS Debug/Release builds, 11 AIBot regression tests, and universal DMG verification. The full suite and iOS build were not rerun for this change. See [Validation records](docs/VALIDATION.md) for tests and pending manual checks, and [Requirements mapping](docs/REQUIREMENTS.md). The Xcode 26 XCTest runtime requires macOS 14 or later; the app still targets macOS 13, whose real-device compatibility remains unverified.
 
 - `WorkdayCore`: cross-platform logic for work/earnings, settings migration, Clock, reminder scheduling, Checkout, and Hydration.
 - `Sources/WorkdayBuddy`: macOS lifecycle, menu bar, desktop sprite, welcome screen, settings, and system services.
@@ -134,6 +162,8 @@ The latest recorded Xcode macOS build and **all 59 core tests passed**, along wi
 - `Configuration`: Info.plist files for both platforms, macOS sandbox entitlements, privacy manifest, and App Store export configuration.
 - `scripts/archive-app-store.sh`: creates an archive when a developer account is available; does not upload or publish it.
 
-Local UserDefaults stores schedules, salary, reminder deduplication, the most recent clock-out, today's hydration details, and historical daily reports. Copies of custom PNGs are stored in Application Support/OffWorkNow/CustomPets. There is no encryption, upload, or third-party analytics SDK; monthly salary is not logged. Settings include `schemaVersion`; new fields receive defaults, and damaged configurations are recovered with an explanation. Daily reports store summaries separately, retain history across days, and preserve damaged data with a warning. No calendar, location, contacts, screen recording, or accessibility permissions are required. PNG import reads only files explicitly selected by the user. The privacy manifest declares required reason `CA92.1` for UserDefaults.
+Local preferences store schedules, salary, reminder deduplication, clock-out, hydration, reports, local tasks, and assistant settings. Chat history lives in the app's Application Support/OffWorkNow/assistant-history.json; custom sprite sheets are in CustomPets beside it. Sandboxed builds keep this data inside the app container. API keys are stored in local preferences without Keychain encryption and are excluded from chat-history exports. Exported history may contain personal records and tasks.
+
+Local tracking and automatic reminders do not call OpenRouter. Explicit cloud conversations send input and same-day context, potentially including checklists or clock-out summaries, to OpenRouter and the selected model provider. Weather, news, and markets contact their respective sources. There is no third-party analytics SDK, and salary is not logged. Screenshots need screen-recording permission; notifications require consent, and PNG import/history export use user-selected files. No calendar, location, contacts, or accessibility permission is required. The privacy manifest declares UserDefaults reason `CA92.1`.
 
 To quit, choose Quit in the menu bar panel or right-click the sprite and choose Quit OffWorkNow (退出下班啦). To uninstall, disable and save launch at login, quit, and delete the `.app`; App Store installations can also use system app management. Sandbox data may remain. If you want to remove it, quit first and manage `~/Library/Containers/com.workdaybuddy.app` in Finder, taking care to avoid other app containers. The older development command `defaults delete com.workdaybuddy.app` may not clear the new container's data. Uninstalling does not automatically reset system notification authorization.
