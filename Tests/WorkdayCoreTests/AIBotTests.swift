@@ -29,6 +29,26 @@ final class AIBotTests: ChineseLocalizationTestCase {
         let rest = AIBotContext(now: helper.date("2026-10-17 18:00:00"), settings: helper.settings())
         XCTAssertTrue(bot.handle(.checkout, in: rest).isEmpty)
     }
+    func testOffworkReminderOnlyPromptsAndSummaryWaitsForCheckout() throws {
+        let input = context("18:00:00")
+        let event = ReminderPlanner.event(date: input.now, kind: .offwork, settings: input.settings)
+        for trigger in [AIBotEvent.reminder(event)] {
+            let actions = bot.handle(trigger, in: input)
+            XCTAssertEqual(actions.count, 1)
+            guard case .deliverReminder(let reminder) = try XCTUnwrap(actions.first) else { return XCTFail() }
+            XCTAssertEqual(reminder.message.text(language: .simplifiedChinese).body,
+                           "下班时间到啦！点击“打卡下班”，今天辛苦了。")
+            XCTAssertEqual(reminder.message.text(language: .english).body,
+                           "Time to finish work! Click Clock Out. Great work today.")
+        }
+        XCTAssertTrue(bot.handle(.startup, in: input).isEmpty)
+        let actions = bot.handle(.checkout, in: input)
+        guard case .postMessage(let summary) = try XCTUnwrap(actions.last) else { return XCTFail() }
+        let body = summary.text(language: .simplifiedChinese).body
+        for field in ["实际打卡：18:00:00", "饮水：1500", "今日收入：", "加班：", "今天没有待办事项记录。"] {
+            XCTAssertTrue(body.contains(field), "Missing checkout summary field: \(field)")
+        }
+    }
     func testReportFreezesAtCheckoutAndDoesNotLeakHiddenEarnings() {
         let settings = helper.settings()
         let record = CheckoutRecord(now: helper.date("2026-10-12 15:00:00"), settings: settings)
