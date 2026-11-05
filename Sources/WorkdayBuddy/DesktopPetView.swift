@@ -37,7 +37,7 @@ struct DesktopPetView: View {
                     Button(L10n.text("设置"), action: openSettings)
                     Button(L10n.text("退出下班啦")) { NSApp.terminate(nil) }
                 }
-            HStack(spacing: 18) {
+            HStack(spacing: 12) {
                 Button(action: model.drinkWater) {
                     HStack(spacing: 2) {
                         PetControlImage(asset: .cup).frame(width: 36, height: 36)
@@ -45,6 +45,10 @@ struct DesktopPetView: View {
                     }
                 }.help(L10n.text("喝一杯水")).accessibilityLabel(L10n.text("喝一杯水"))
                     .contextMenu { Button(L10n.text("撤销上一杯"), action: model.undoWater).disabled(model.hydration.cups == 0) }
+                Button { ScreenshotController.shared.start() } label: {
+                    Image("ScreenshotCamera").resizable().scaledToFit().frame(width: 36, height: 36)
+                        .contentShape(Rectangle())
+                }.help("截图并标注").accessibilityLabel("截图并标注")
                 AssistantChatButton(store: model.assistant) { model.chatVisible.toggle() }
             }.buttonStyle(.plain).foregroundStyle(AssistantArt.ink)
             PetCheckoutButton(visible: model.work.state == .after && model.checkout.canCheckout,
