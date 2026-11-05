@@ -137,7 +137,7 @@ import WorkdayCore
         }
     }
 
-    private static func trimTransparentMargin(_ image: CGImage) -> CGImage {
+    static func trimTransparentMargin(_ image: CGImage) -> CGImage {
         let width = image.width, height = image.height
         var pixels = [UInt8](repeating: 0, count: width * height * 4)
         let bounds: CGRect? = pixels.withUnsafeMutableBytes { buffer in

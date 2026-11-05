@@ -1,0 +1,52 @@
+[
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotSelect.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: A crop selection symbol: four bold cocoa brown corner brackets, a small central mint move arrow. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotPencil.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: One simple diagonal wooden pencil with muted ochre body and cocoa tip. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotRectangle.imageset/icon.png",
+    "prompt": "Use case: precise-object-edit. Edit target: rectangular toolbar symbol. Remove the entire brown glow and all shadows outside the rectangle. Change outer rectangle proportions to 4:3 width to height, make the interior completely transparent, leaving only a single bold clean cocoa brown hand drawn outline. Keep simple watercolor pencil edge texture, centered one symbol occupying 85% of image. No background, no shadow, no glow, no text. Actual transparent background and actual transparent empty interior.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotEllipse.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: One empty oval cocoa brown outline, cream translucent interior. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotMosaic.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: A simple 3 by 3 square checkerboard of large opaque cocoa, cream and sage pixels; no handle. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotColor.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: A simple painter palette with three large muted red, blue and sage paint dots. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotUndo.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: One thick curved cocoa arrow pointing left, single arrow, no other elements. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotCancel.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: A single bold hand drawn muted brick red X cross with cocoa brown edging, no box. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotConfirm.imageset/icon.png",
+    "prompt": "Use case: stylized-concept. Asset type: small hand-painted desktop app toolbar icon. Primary request: A single bold hand drawn sage green check mark with cocoa brown edging, no box. Style: Japanese soothing hand drawn watercolor with bold clean cocoa brown pencil contour, cream and muted sage palette, subtle texture. Composition: single centered isolated symbol filling 85% of square, generous transparent margin, visually balanced, extremely simple and readable at 24 pixels. Genuine transparent background. No text, no letters, no numbers, no emoji glyphs, no faces, no shadows, no button background, no decorative objects.",
+    "method": "built-in image_gen"
+  },
+  {
+    "asset": "Resources/Assets.xcassets/ScreenshotCamera.imageset/camera.png",
+    "prompt": "Use case: precise-object-edit. Edit target: existing hand-painted camera icon. Make ONLY a subtle line-weight refinement: reduce the cocoa brown outer body contour, shutter outline, flash outline, horizontal divider and lens ring outline thickness by approximately 20 percent (to about 80% of current stroke width). This is a small adjustment, keep clear medium-weight brown pencil outlines, not hairlines. Preserve exactly the camera silhouette, proportions, placement, cream and muted mint colors, lens size and shading, watercolor texture and transparent background. No face, no eyes, no blush, no mouth, no text, no additional elements. True transparent PNG.",
+    "method": "built-in image_gen"
+  }
+]

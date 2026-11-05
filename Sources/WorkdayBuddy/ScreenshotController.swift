@@ -6,40 +6,25 @@ import ScreenCaptureKit
     static let shared = ScreenshotController()
     private var panels: [NSPanel] = []
     private var capturing = false
+    private let captureScreens: @MainActor () async throws -> [(NSScreen, CGImage)]
+    private let failureHandler: (@MainActor (Error) -> Void)?
+
+    init(captureScreens: @escaping @MainActor () async throws -> [(NSScreen, CGImage)] = {
+        try await ScreenshotController.captureScreens()
+    }, failureHandler: (@MainActor (Error) -> Void)? = nil) {
+        self.captureScreens = captureScreens
+        self.failureHandler = failureHandler
+    }
 
     func start() {
         guard !capturing, panels.isEmpty else { return }
-        guard CGPreflightScreenCaptureAccess() else {
-            CGRequestScreenCaptureAccess()
-            let alert = NSAlert()
-            alert.messageText = "需要屏幕录制权限"
-            alert.informativeText = "请在系统设置 → 隐私与安全性 → 屏幕与系统音频录制中允许下班啦，然后重新尝试截图。必要时请重启应用。"
-            alert.addButton(withTitle: "好")
-            alert.runModal()
-            return
-        }
         capturing = true
         Task {
             defer { capturing = false }
             do {
-                let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-                var captures: [(NSScreen, CGImage)] = []
-                for screen in NSScreen.screens {
-                    guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber,
-                          let display = content.displays.first(where: { $0.displayID == number.uint32Value }) else { continue }
-                    let image: CGImage
-                    if #available(macOS 14.0, *) {
-                        let config = SCStreamConfiguration()
-                        config.width = display.width * Int(screen.backingScaleFactor)
-                        config.height = display.height * Int(screen.backingScaleFactor)
-                        config.showsCursor = false
-                        image = try await SCScreenshotManager.captureImage(contentFilter: SCContentFilter(display: display, excludingWindows: []), configuration: config)
-                    } else {
-                        guard let captured = CGDisplayCreateImage(display.displayID) else { continue }
-                        image = captured
-                    }
-                    captures.append((screen, image))
-                }
+                // ScreenCaptureKit is authoritative and performs the system consent flow.
+                // A CoreGraphics preflight can be stale after granting permission or updating.
+                let captures = try await captureScreens()
                 guard !captures.isEmpty else { throw CaptureError.unavailable }
                 for (screen, image) in captures {
                     let panel = CapturePanel(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
@@ -58,17 +43,62 @@ import ScreenCaptureKit
                 NSApp.activate(ignoringOtherApps: true)
             } catch {
                 close()
-                let alert = NSAlert()
-                alert.messageText = "截图失败"
-                alert.informativeText = error.localizedDescription
-                alert.runModal()
+                if let failureHandler { failureHandler(error) }
+                else { presentFailure(error) }
             }
         }
     }
+    private static func captureScreens() async throws -> [(NSScreen, CGImage)] {
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        var captures: [(NSScreen, CGImage)] = []
+        for screen in NSScreen.screens {
+            guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber,
+                  let display = content.displays.first(where: { $0.displayID == number.uint32Value }) else { continue }
+            let image: CGImage
+            if #available(macOS 14.0, *) {
+                let config = SCStreamConfiguration()
+                config.width = display.width * Int(screen.backingScaleFactor)
+                config.height = display.height * Int(screen.backingScaleFactor)
+                config.showsCursor = false
+                image = try await SCScreenshotManager.captureImage(contentFilter: SCContentFilter(display: display, excludingWindows: []), configuration: config)
+            } else {
+                guard let captured = CGDisplayCreateImage(display.displayID) else { continue }
+                image = captured
+            }
+            captures.append((screen, image))
+        }
+        return captures
+    }
+
+    static func isPermissionDenied(_ error: Error) -> Bool {
+        let error = error as NSError
+        return error.domain == SCStreamErrorDomain && error.code == SCStreamError.Code.userDeclined.rawValue
+    }
+
+    private func presentFailure(_ error: Error) {
+        let alert = NSAlert()
+        if Self.isPermissionDenied(error) {
+            alert.messageText = "系统尚未允许当前版本截图"
+            alert.informativeText = "请在系统设置中允许“下班啦”录制屏幕。若开关已经开启，请先完全退出应用，再从“应用程序”重新打开。更新后仍无效时，可在权限列表移除旧的“下班啦”，重新添加下方路径的应用并授权。\n\n当前应用：\(Bundle.main.bundlePath)"
+            alert.addButton(withTitle: "打开系统设置")
+            alert.addButton(withTitle: "稍后")
+            if alert.runModal() == .alertFirstButtonReturn,
+               let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                NSWorkspace.shared.open(url)
+            }
+        } else {
+            let detail = error as NSError
+            alert.messageText = "截图失败"
+            alert.informativeText = "\(error.localizedDescription)\n\n错误：\(detail.domain) (\(detail.code))"
+            alert.addButton(withTitle: "好")
+            alert.runModal()
+        }
+    }
+
     private func close() { panels.forEach { $0.orderOut(nil) }; panels.removeAll() }
     private enum CaptureError: LocalizedError {
         case unavailable
-        var errorDescription: String? { "无法读取屏幕，请检查屏幕录制权限。" }
+        var errorDescription: String? { "没有可截图的屏幕，请检查显示器连接后重试。" }
     }
 }
 
@@ -100,6 +130,8 @@ private final class ScreenshotCanvas: NSView {
     private var moving = false
     private let toolbar = NSStackView()
     private var toolButtons: [NSButton] = []
+    private var colorButton: ScreenshotColorButton?
+    private var previousColorPanelLevel: NSWindow.Level?
     override var acceptsFirstResponder: Bool { true }
     init(frame: CGRect, image: CGImage) {
         self.image = NSImage(cgImage: image, size: frame.size)
@@ -110,24 +142,26 @@ private final class ScreenshotCanvas: NSView {
         toolbar.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
         toolbar.layer?.cornerRadius = 9
         toolbar.edgeInsets = NSEdgeInsets(top: 7, left: 8, bottom: 7, right: 8)
-        let names = ["选区", "✏️", "▭", "◯", "马赛克"]
+        let icons = ["ScreenshotSelect", "ScreenshotPencil", "ScreenshotRectangle", "ScreenshotEllipse", "ScreenshotMosaic"]
         let tips = ["移动选区 / 拖动边缘调整大小", "铅笔画线", "矩形边框", "椭圆边框", "涂抹马赛克"]
-        for index in names.indices {
-            let button = NSButton(title: names[index], target: self, action: #selector(changeTool(_:)))
-            button.tag = index; button.toolTip = tips[index]
-            button.setAccessibilityLabel(tips[index])
-            button.bezelStyle = .regularSquare
+        for index in icons.indices {
+            let button = iconButton(icons[index], tip: tips[index], action: #selector(changeTool(_:)))
+            button.tag = index
+            button.setButtonType(.pushOnPushOff)
             toolbar.addArrangedSubview(button); toolButtons.append(button)
         }
-        let well = NSColorWell(frame: CGRect(x: 0, y: 0, width: 36, height: 26))
-        well.color = color; well.target = self; well.action = #selector(changeColor(_:))
-        well.toolTip = "画笔与边框颜色"
-        toolbar.addArrangedSubview(well)
-        for (title, action) in [("撤销", #selector(undoMark)), ("❌", #selector(cancel)), ("✅", #selector(copyCapture))] {
-            let button = NSButton(title: title, target: self, action: action)
-            button.bezelStyle = .regularSquare
-            button.toolTip = title == "✅" ? "复制到剪贴板 (Return)" : title == "❌" ? "丢弃截图 (Esc)" : "撤销标注 (⌘Z)"
-            toolbar.addArrangedSubview(button)
+        let palette = ScreenshotColorButton(image: ScreenshotIcons.image("ScreenshotColor"), target: self, action: #selector(chooseColor))
+        configure(palette, tip: "画笔与边框颜色")
+        palette.selectedColor = color
+        colorButton = palette
+        toolbar.addArrangedSubview(palette)
+        let actions: [(String, String, Selector)] = [
+            ("ScreenshotUndo", "撤销标注 (⌘Z)", #selector(undoMark)),
+            ("ScreenshotCancel", "丢弃截图 (Esc)", #selector(cancel)),
+            ("ScreenshotConfirm", "复制到剪贴板 (Return)", #selector(copyCapture))
+        ]
+        for (icon, tip, action) in actions {
+            toolbar.addArrangedSubview(iconButton(icon, tip: tip, action: action))
         }
         addSubview(toolbar); toolbar.isHidden = true
         updateButtons()
@@ -135,9 +169,48 @@ private final class ScreenshotCanvas: NSView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     @objc private func changeTool(_ sender: NSButton) { tool = Tool(rawValue: sender.tag) ?? .select; updateButtons() }
     private func updateButtons() { for button in toolButtons { button.state = button.tag == tool.rawValue ? .on : .off } }
-    @objc private func changeColor(_ sender: NSColorWell) { color = sender.color }
+    private func iconButton(_ name: String, tip: String, action: Selector) -> NSButton {
+        let button = ScreenshotToolButton(image: ScreenshotIcons.image(name), target: self, action: action)
+        configure(button, tip: tip)
+        return button
+    }
+    private func configure(_ button: NSButton, tip: String) {
+        button.title = ""
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
+        button.toolTip = tip
+        button.setAccessibilityLabel(tip)
+        button.widthAnchor.constraint(equalToConstant: 34).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 34).isActive = true
+    }
+    @objc private func chooseColor() {
+        let panel = NSColorPanel.shared
+        if previousColorPanelLevel == nil { previousColorPanelLevel = panel.level }
+        panel.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
+        panel.color = color
+        panel.showsAlpha = false
+        panel.isContinuous = true
+        panel.setTarget(self)
+        panel.setAction(#selector(changeColor(_:)))
+        panel.orderFront(nil)
+    }
+    @objc private func changeColor(_ sender: NSColorPanel) {
+        color = sender.color
+        colorButton?.selectedColor = color
+    }
     @objc private func undoMark() { if !marks.isEmpty { marks.removeLast(); needsDisplay = true } }
-    @objc private func cancel() { NSColorPanel.shared.close(); finish?() }
+    @objc private func cancel() {
+        if let level = previousColorPanelLevel {
+            let panel = NSColorPanel.shared
+            panel.close()
+            panel.level = level
+            panel.setTarget(nil)
+            previousColorPanelLevel = nil
+        }
+        finish?()
+    }
     override func keyDown(with event: NSEvent) {
         if event.keyCode == 53 { cancel() }
         else if event.keyCode == 36 { copyCapture() }
@@ -264,5 +337,42 @@ private final class ScreenshotCanvas: NSView {
         let result = NSImage(size: selection.size); result.addRepresentation(bitmap)
         NSPasteboard.general.clearContents(); NSPasteboard.general.writeObjects([result])
         cancel()
+    }
+}
+
+
+/// Trim source padding and preserve aspect ratio at native toolbar sizes.
+@MainActor enum ScreenshotIcons {
+    private static var cache: [String: NSImage] = [:]
+    static func image(_ name: String) -> NSImage {
+        if let cached = cache[name] { return cached }
+        guard let source = NSImage(named: name),
+              let cg = source.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return NSImage(size: NSSize(width: 26, height: 26)) }
+        let trimmed = PetArtwork.trimTransparentMargin(cg)
+        let ratio = CGFloat(trimmed.width) / CGFloat(trimmed.height)
+        let size = ratio >= 1 ? NSSize(width: 26, height: 26 / ratio) : NSSize(width: 26 * ratio, height: 26)
+        let image = NSImage(cgImage: trimmed, size: size)
+        cache[name] = image
+        return image
+    }
+}
+
+private final class ScreenshotColorButton: NSButton {
+    var selectedColor: NSColor = .systemRed { didSet { needsDisplay = true } }
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        let dot = NSBezierPath(ovalIn: NSRect(x: bounds.maxX - 10, y: 1, width: 8, height: 8))
+        selectedColor.setFill(); dot.fill()
+        NSColor.white.setStroke(); dot.lineWidth = 1; dot.stroke()
+    }
+}
+
+private final class ScreenshotToolButton: NSButton {
+    override func draw(_ dirtyRect: NSRect) {
+        if state == .on {
+            NSColor.controlAccentColor.withAlphaComponent(0.18).setFill()
+            NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 6, yRadius: 6).fill()
+        }
+        super.draw(dirtyRect)
     }
 }
