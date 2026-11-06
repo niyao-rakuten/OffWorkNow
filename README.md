@@ -10,7 +10,7 @@ Both macOS and iOS support English and Simplified Chinese. On macOS, open Settin
 
 ## What's available
 
-Current version: **1.5.2 (build 9)**. Reaching the scheduled finish only prompts you to click Clock Out. It does not clock out automatically or append dates, hydration, earnings, overtime, or tasks. The complete chat summary appears only after you explicitly clock out.
+Current version: **1.5.3 (build 10)**. Reaching the scheduled finish only prompts you to click Clock Out. It does not clock out automatically or append dates, hydration, earnings, overtime, or tasks. The complete chat summary appears only after you explicitly clock out.
 
 The single-frame custom animation issue is fixed: after you configure the grid of an imported sprite sheet, the app automatically calculates the regular animation frame count and reserves drinking frames separately. Existing configurations with only one frame show an explanation and a one-click correction; save to apply it. Turn off automatic mode to set the frame count manually.
 

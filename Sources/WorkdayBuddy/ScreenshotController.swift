@@ -5,6 +5,7 @@ import ScreenCaptureKit
 @MainActor final class ScreenshotController {
     static let shared = ScreenshotController()
     private var panels: [NSPanel] = []
+    private weak var selectedPanel: NSPanel?
     private var capturing = false
     private let captureScreens: @MainActor () async throws -> [(NSScreen, CGImage)]
     private let failureHandler: (@MainActor (Error) -> Void)?
@@ -17,9 +18,15 @@ import ScreenCaptureKit
     }
 
     func start() {
-        guard !capturing, panels.isEmpty else { return }
+        guard !capturing else { return }
+        if !panels.isEmpty {
+            // A hidden panel still owns the selection and annotations. Resume it
+            // instead of leaving the camera inert or capturing our own overlay.
+            showPanels()
+            return
+        }
         capturing = true
-        Task {
+        Task { [self] in
             defer { capturing = false }
             do {
                 // ScreenCaptureKit is authoritative and performs the system consent flow.
@@ -29,18 +36,19 @@ import ScreenCaptureKit
                 for (screen, image) in captures {
                     let panel = CapturePanel(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
                     panel.level = .screenSaver
+                    panel.hidesOnDeactivate = false
                     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                     let canvas = ScreenshotCanvas(frame: CGRect(origin: .zero, size: screen.frame.size), image: image)
                     canvas.finish = { [weak self] in self?.close() }
                     canvas.activate = { [weak self, weak panel] in
+                        self?.selectedPanel = panel
                         self?.panels.filter { $0 !== panel }.forEach { $0.orderOut(nil) }
                     }
                     panel.contentView = canvas
                     panels.append(panel)
-                    panel.makeKeyAndOrderFront(nil)
                     panel.makeFirstResponder(canvas)
                 }
-                NSApp.activate(ignoringOtherApps: true)
+                showPanels()
             } catch {
                 close()
                 if let failureHandler { failureHandler(error) }
@@ -95,7 +103,19 @@ import ScreenCaptureKit
         }
     }
 
-    private func close() { panels.forEach { $0.orderOut(nil) }; panels.removeAll() }
+    private func showPanels() {
+        NSApp.activate(ignoringOtherApps: true)
+        for panel in panels where selectedPanel == nil || panel === selectedPanel {
+            panel.makeKeyAndOrderFront(nil)
+            panel.makeFirstResponder(panel.contentView)
+        }
+    }
+
+    private func close() {
+        panels.forEach { ($0.contentView as? ScreenshotCanvas)?.dismissColorPanel(); $0.orderOut(nil) }
+        panels.removeAll()
+        selectedPanel = nil
+    }
     private enum CaptureError: LocalizedError {
         case unavailable
         var errorDescription: String? { "没有可截图的屏幕，请检查显示器连接后重试。" }
@@ -202,6 +222,10 @@ private final class ScreenshotCanvas: NSView {
     }
     @objc private func undoMark() { if !marks.isEmpty { marks.removeLast(); needsDisplay = true } }
     @objc private func cancel() {
+        dismissColorPanel()
+        finish?()
+    }
+    func dismissColorPanel() {
         if let level = previousColorPanelLevel {
             let panel = NSColorPanel.shared
             panel.close()
@@ -209,7 +233,6 @@ private final class ScreenshotCanvas: NSView {
             panel.setTarget(nil)
             previousColorPanelLevel = nil
         }
-        finish?()
     }
     override func keyDown(with event: NSEvent) {
         if event.keyCode == 53 { cancel() }

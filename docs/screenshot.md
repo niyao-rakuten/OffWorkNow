@@ -6,6 +6,8 @@
 
 ✅ / Return 将最终图片复制到剪贴板；❌ / Escape 丢弃。截图不写入磁盘、不发送到聊天。
 
+截图面板不会随应用失去焦点自动隐藏；若窗口被隐藏，再次点击相机会恢复当前选区及标注。多屏选定目标后只恢复目标屏幕。确认或取消后释放会话及调色板，下次点击开始新截图。
+
 ## 验证
 
 macOS Debug 构建通过。需桌面人工验收：首次权限拒绝与授权后重试、多显示器选择、Retina 与非 Retina 粘贴尺寸、八方向缩放、边缘选区工具栏、各标注工具、连续马赛克、撤销、确认复制及取消保留原剪贴板。
@@ -27,6 +29,8 @@ macOS Debug 构建通过。需桌面人工验收：首次权限拒绝与授权�
 本机排查确认运行路径为 `/Applications/下班啦.app`，安装版本为 1.5.1，签名为 ad-hoc（无 TeamIdentifier）。临时签名更新可能造成旧授权与新构建不匹配，移除前置判断不能修复系统中已失效的授权条目。替换修复包前退出旧应用，从应用程序目录重新打开；若仍收到 ScreenCaptureKit 未授权错误，在“屏幕与系统音频录制”移除旧条目，添加 `/Applications/下班啦.app` 并重新授权，按系统要求退出并重新打开。正式分发应使用稳定的 Developer ID 签名。
 
 回归命令：`./scripts/test-screenshot-permissions.sh`。用注入的截图提供器验证实际调用、重复点击合并、拒绝后不自动重试、后续主动重试、错误分类；不读取屏幕、不弹系统权限窗、不修改隐私设置。实际 macOS TCC 授权与多屏截图仍需安装后人工验证。
+
+窗口生命周期回归：先执行上述编译脚本，再运行 `build/screenshot-regression/permission-flow --window-lifecycle`。使用合成图片短暂显示原生面板，验证隐藏后恢复同一画布、不重复截图、取消后允许新截图；需要桌面会话，不读取真实屏幕。
 
 参考：[Apple ScreenCaptureKit 权限错误定义](https://developer.apple.com/documentation/screencapturekit/error-constants)。
 
