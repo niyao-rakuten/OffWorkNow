@@ -236,7 +236,7 @@ import WorkdayCore
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 650, height: 660), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = L10n.text("下班啦 · 设置"); window.isReleasedWhenClosed = false; window.delegate = self
         window.minSize = NSSize(width: 590, height: 540)
-        window.contentViewController = NSHostingController(rootView: AppLanguageView { SettingsView(model: self.model, close: { [weak self] in self?.settingsWindow?.close() }) })
+        window.contentViewController = NSHostingController(rootView: AppLanguageView { SettingsView(model: self.model, close: { [weak self] in self?.settingsWindow?.close() }, restorePetPosition: { [weak self] in self?.restorePetPosition() }) })
         settingsWindow = window; window.center(); NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
     }
     private func syncPetWindow() {
@@ -267,6 +267,18 @@ import WorkdayCore
         petWindow?.level = model.settings.petAlwaysOnTop ? .floating : .normal
         positionChatWindow()
         petWindow?.orderFrontRegardless()
+    }
+    private func restorePetPosition() {
+        let screen = settingsWindow?.screen ?? NSScreen.main ?? NSScreen.screens.first
+        guard let screen else { return }
+        syncPetWindow()
+        guard let pet = petWindow else { return }
+        let area = screen.visibleFrame
+        pet.setFrameOrigin(NSPoint(x: area.midX - pet.frame.width / 2,
+                                   y: area.midY - pet.frame.height / 2))
+        pet.saveFrame(usingName: "DesktopPet")
+        positionChatWindow()
+        pet.orderFrontRegardless()
     }
     private func positionChatWindow() {
         guard let pet = petWindow, let chat = chatWindow else { return }

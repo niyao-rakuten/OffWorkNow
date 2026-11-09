@@ -1,4 +1,6 @@
 {
+  "恢复精灵到屏幕中央": "Restore sprite to screen center",
+  "精灵被拖出屏幕时，点击立即恢复位置，无需保存。请先启用并保存桌面精灵设置。": "If the sprite is off screen, click to restore its position immediately without saving. Enable and save the desktop sprite setting first.",
   "放大聊天面板": "Enlarge chat panel",
   "恢复聊天面板": "Restore chat panel",
   "喝一杯水，{0}毫升": "Drink a cup of water, {0} milliliters",

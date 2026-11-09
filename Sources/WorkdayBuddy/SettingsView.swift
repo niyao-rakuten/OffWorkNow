@@ -51,6 +51,7 @@ struct SettingsView: View {
     @ObservedObject private var language = AppLanguageStore.shared
     @ObservedObject var model: AppModel
     let close: () -> Void
+    let restorePetPosition: () -> Void
     @State private var draft: WorkSettings
     @State private var monthly: String
     @State private var daily: String
@@ -68,8 +69,8 @@ struct SettingsView: View {
     @State private var errors: [String: String] = [:]
     @State private var confirmReset = false
     @State private var importedAssets: Set<UUID> = []
-    init(model: AppModel, close: @escaping () -> Void) {
-        self.model = model; self.close = close
+    init(model: AppModel, close: @escaping () -> Void, restorePetPosition: @escaping () -> Void) {
+        self.model = model; self.close = close; self.restorePetPosition = restorePetPosition
         let s = model.settings
         _draft = State(initialValue: s); _monthly = State(initialValue: Money.input(s.monthlySalary)); _daily = State(initialValue: Money.input(s.customDaily)); _days = State(initialValue: Money.input(s.fixedDays))
         _overtimeGap = State(initialValue: String(s.overtimeIntervalMinutes))
@@ -234,6 +235,9 @@ struct SettingsView: View {
                 Picker(L10n.text("消息面板位置"), selection: $draft.chatPanelPosition) {
                     ForEach(ChatPanelPosition.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
+                Button(L10n.text("恢复精灵到屏幕中央"), action: restorePetPosition)
+                    .disabled(!model.settings.petEnabled && !model.chatVisible)
+                Text(L10n.text("精灵被拖出屏幕时，点击立即恢复位置，无需保存。请先启用并保存桌面精灵设置。")).font(.caption).foregroundStyle(.secondary)
                 PetAvatar(kind: draft.petKind, custom: draft.customPet).frame(width: 110, height: 110)
                 Text(L10n.text("拖动精灵或空白处可移动；支持减少动态效果。隐藏精灵不关闭通知。")).font(.caption).foregroundStyle(.secondary)
             }
